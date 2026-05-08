@@ -1,14 +1,18 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+//models for auth controller functions 
 const {createUser, findUserByEmail} = require("../models/authModel");
 
+//register user 
 const register = async (req, res) => {
+
     try {
-        const { fullname, email, password } = req.body;
+        const { fullname, email, password, } = req.body;
 
+        //check if email already exists
         findUserByEmail(email, async (err, result) => {
-
+            
             if (result.length > 0) {
                 return res.status(400).json({
                     message: "Email already exists"
@@ -17,10 +21,13 @@ const register = async (req, res) => {
 
             const hashedPassword = await bcrypt.hash(password, 10);
 
-            createUser(
+            const role = "agent";
+            
+            createUser (
                 fullname,
                 email,
                 hashedPassword,
+                role,
                 (err, result) => {
 
                     if (err) {
