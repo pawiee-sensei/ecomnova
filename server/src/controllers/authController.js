@@ -23,12 +23,7 @@ const register = async (req, res) => {
 
             const role = "agent";
             
-            createUser (
-                fullname,
-                email,
-                hashedPassword,
-                role,
-                (err, result) => {
+        createUser (fullname, email, hashedPassword, role, (err, result) => {
 
                     if (err) {
                         return res.status(500).json(err);

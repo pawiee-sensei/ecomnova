@@ -7,18 +7,18 @@ const ProtectedRoute = ({
     roles
 }) => {
 
-    const user = useAuthStore(
-        (state) => state.user
-    );
+    const { user, token, loading } = useAuthStore();
 
-    const token = useAuthStore(
-        (state) => state.token
-    );
-
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+    
+    //if user is not logged in / redirect to login
     if (!token) {
         return <Navigate to="/login" />;
     }
 
+    //checks if user has the required role
     if (
         roles &&
         !roles.includes(user?.role)
@@ -26,6 +26,7 @@ const ProtectedRoute = ({
         return <Navigate to="/login" />;
     }
 
+    //if user has the required role, render the protected route
     return children;
 };
 
