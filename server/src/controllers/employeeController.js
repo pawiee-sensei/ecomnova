@@ -18,6 +18,37 @@ const getEmployees = async (req, res) => {
     }
 };
 
+const createEmployee = async (req, res) => {
+    try {
+        /*
+          Receive admin form data
+        */
+        const {
+            fullname,
+            email,
+            password,
+            role
+        } = req.body;
+
+        await employeeService.createEmployee({
+            fullname,
+            email,
+            password,
+            role
+        });
+
+        res.status(201).json({
+            message: "Employee created"
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Employee creation failed"
+        });
+    }
+};
+
 module.exports = {
-    getEmployees
+    getEmployees,
+    createEmployee
 };

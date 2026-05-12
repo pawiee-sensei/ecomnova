@@ -1,4 +1,5 @@
 const employeeModel = require("../models/employeeModel");
+const bcrypt = require("bcryptjs");
 
 /*
   Service layer
@@ -15,6 +16,44 @@ const getEmployees = async () => {
     });
 };
 
+const createEmployee = async (data) => {
+    return new Promise(async (resolve, reject) => {
+
+        /*
+          Hash password
+          Never store plain passwords
+        */
+        const hashedPassword =
+            await bcrypt.hash(data.password, 10);
+
+        /*
+          Generate employee ID
+          Example: EMP-1005
+        */
+        const employeeId =
+            `EMP-${Date.now()}`;
+
+        const employeeData = {
+            employee_id: employeeId,
+            fullname: data.fullname,
+            email: data.email,
+            password: hashedPassword,
+            role: data.role,
+            status: "active"
+        };
+
+        employeeModel.createEmployee(
+            employeeData,
+            (err, result) => {
+                if (err) return reject(err);
+
+                resolve(result);
+            }
+        );
+    });
+};
+
 module.exports = {
-    getEmployees
+    getEmployees,
+    createEmployee
 };
