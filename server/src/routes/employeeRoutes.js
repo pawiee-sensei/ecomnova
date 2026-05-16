@@ -4,7 +4,12 @@ const verifyToken = require("../middleware/authMiddleware");
 
 const authorizeRoles = require("../middleware/roleMiddleware");
 
-const { getEmployees, createEmployee , getEmployeeById, updateEmployee} = require("../controllers/employeeController");
+const { getEmployees,
+        createEmployee,
+        getEmployeeById,
+        updateEmployee,
+        updateEmployeeStatus
+    } = require("../controllers/employeeController");
 
 const router = express.Router();
 
@@ -38,6 +43,13 @@ router.post(
     verifyToken,
     authorizeRoles("admin", "super_admin"),
     createEmployee
+);
+
+router.patch(
+    "/:id/status",
+    verifyToken,
+    authorizeRoles("admin", "super_admin"),
+    updateEmployeeStatus
 );
 
 module.exports = router;

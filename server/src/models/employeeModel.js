@@ -109,9 +109,32 @@ const updateEmployee = (
     );
 };
 
+/*
+  Update employee account status
+*/
+
+const updateEmployeeStatus = (
+    id,
+    status,
+    callback
+) => {
+    const sql = `
+        UPDATE users
+        SET status = ?
+        WHERE id = ?
+    `;
+
+    db.query(
+        sql,
+        [status, id],
+        callback
+    );
+};
+
 module.exports = {
     getAllEmployees,
     createEmployee,
     getEmployeeById,
-    updateEmployee
+    updateEmployee,
+    updateEmployeeStatus
 };

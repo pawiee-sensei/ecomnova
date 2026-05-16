@@ -96,9 +96,37 @@ const updateEmployee = async (
     }
 };
 
+/*
+  Change employee access status
+*/
+
+const updateEmployeeStatus = async (
+    req,
+    res
+) => {
+    try {
+        const { status } = req.body;
+
+        await employeeService.updateEmployeeStatus(
+            req.params.id,
+            status
+        );
+
+        res.status(200).json({
+            message: "Employee status updated"
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Status update failed"
+        });
+    }
+};
+
 module.exports = {
     getEmployees,
     createEmployee,
     getEmployeeById,
-    updateEmployee
+    updateEmployee,
+    updateEmployeeStatus
 };

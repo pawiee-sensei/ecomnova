@@ -91,9 +91,31 @@ const updateEmployee = async (
     });
 };
 
+/*
+  Toggle employee account access
+*/
+
+const updateEmployeeStatus = async (
+    id,
+    status
+) => {
+    return new Promise((resolve, reject) => {
+        employeeModel.updateEmployeeStatus(
+            id,
+            status,
+            (err, result) => {
+                if (err) return reject(err);
+
+                resolve(result);
+            }
+        );
+    });
+};
+
 module.exports = {
     getEmployees,
     createEmployee,
     getEmployeeById,
-    updateEmployee
+    updateEmployee,
+    updateEmployeeStatus
 };

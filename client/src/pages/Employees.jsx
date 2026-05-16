@@ -36,8 +36,52 @@ const Employees = () => {
             }
         };
 
+
+
         fetchEmployees();
     }, []);
+
+    /*
+  Toggle employee account status
+*/
+    const handleStatusToggle = async (
+        employeeId,
+        currentStatus
+    ) => {
+        try {
+            const newStatus =
+                currentStatus === "active"
+                    ? "inactive"
+                    : "active";
+
+            await api.patch(
+                `/admin/employees/${employeeId}/status`,
+                {
+                    status: newStatus
+                }
+            );
+
+            /*
+            Update UI instantly
+            */
+            setEmployees((prevEmployees) =>
+                prevEmployees.map((employee) =>
+                    employee.id === employeeId
+                        ? {
+                            ...employee,
+                            status: newStatus
+                        }
+                        : employee
+                )
+            );
+
+        } catch (error) {
+            console.error(
+                "Status update failed:",
+                error
+            );
+        }
+    };
 
     if (loading) {
         return (
@@ -141,14 +185,38 @@ const Employees = () => {
                                     </span>
                                 </td>
 
-                                <td className="p-4">
-                                    {/* Navigate to edit page */}
+                                <td className="p-4 flex gap-2">
+
+                                    {/* Edit profile */}
                                     <Link
                                         to={`/admin/employees/edit/${employee.id}`}
                                         className="bg-black text-white px-4 py-2 rounded-lg text-sm"
                                     >
                                         Edit
                                     </Link>
+
+                                    {/* Toggle account access */}
+                                    <button
+                                        onClick={() =>
+                                            handleStatusToggle(
+                                                employee.id,
+                                                employee.status
+                                            )
+                                        }
+                                        className={`
+                                            px-4 py-2 rounded-lg text-sm text-white
+                                            ${
+                                                employee.status === "active"
+                                                    ? "bg-red-600"
+                                                    : "bg-green-600"
+                                            }
+                                        `}
+                                    >
+                                        {employee.status === "active"
+                                            ? "Deactivate"
+                                            : "Activate"}
+                                    </button>
+
                                 </td>
                             </tr>
                         ))}
