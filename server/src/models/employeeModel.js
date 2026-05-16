@@ -5,8 +5,21 @@ const db = require("../config/db");
   Model = SQL only
 */
 
-const getAllEmployees = (callback) => {
-    const sql = `
+/*
+  Workforce directory with search support
+*/
+
+/*
+  Workforce directory with search + filters
+*/
+
+const getAllEmployees = (
+    search,
+    role,
+    status,
+    callback
+) => {
+    let sql = `
         SELECT
             id,
             employee_id,
@@ -16,12 +29,60 @@ const getAllEmployees = (callback) => {
             status,
             created_at
         FROM users
+        WHERE 1=1
+    `;
+
+    const values = [];
+
+    /*
+      Search filter
+    */
+    if (search) {
+        sql += `
+            AND (
+                employee_id LIKE ?
+                OR fullname LIKE ?
+                OR email LIKE ?
+            )
+        `;
+
+        const keyword = `%${search}%`;
+
+        values.push(
+            keyword,
+            keyword,
+            keyword
+        );
+    }
+
+    /*
+      Role filter
+    */
+    if (role) {
+        sql += `
+            AND role = ?
+        `;
+
+        values.push(role);
+    }
+
+    /*
+      Status filter
+    */
+    if (status) {
+        sql += `
+            AND status = ?
+        `;
+
+        values.push(status);
+    }
+
+    sql += `
         ORDER BY created_at DESC
     `;
 
-    db.query(sql, callback);
+    db.query(sql, values, callback);
 };
-
 const createEmployee = (
     employeeData,
     callback

@@ -6,8 +6,10 @@ const employeeService = require("../services/employeeService");
 
 const getEmployees = async (req, res) => {
     try {
+        const { search, role, status } = req.query;
+
         const employees =
-            await employeeService.getEmployees();
+            await employeeService.getEmployees(search, role, status);
 
         res.status(200).json(employees);
 
@@ -100,12 +102,35 @@ const updateEmployee = async (
   Change employee access status
 */
 
+/*
+  Change employee account status
+*/
+
 const updateEmployeeStatus = async (
     req,
     res
 ) => {
     try {
         const { status } = req.body;
+
+        /*
+          Allowed enterprise statuses
+        */
+        const allowedStatuses = [
+            "active",
+            "inactive",
+            "suspended",
+            "terminated"
+        ];
+
+        /*
+          Prevent invalid updates
+        */
+        if (!allowedStatuses.includes(status)) {
+            return res.status(400).json({
+                message: "Invalid status"
+            });
+        }
 
         await employeeService.updateEmployeeStatus(
             req.params.id,

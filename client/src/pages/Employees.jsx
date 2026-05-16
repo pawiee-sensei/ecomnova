@@ -15,13 +15,28 @@ const Employees = () => {
     const [loading, setLoading] = useState(true);
 
     /*
+    Search keyword
+    */
+    const [search, setSearch] = useState("");
+
+    /*
+    Role filter
+    */
+    const [roleFilter, setRoleFilter] = useState("");
+
+    /*
+    Status filter
+    */
+    const [statusFilter, setStatusFilter] = useState("");
+
+    /*
       Fetch workforce directory
     */
     useEffect(() => {
         const fetchEmployees = async () => {
             try {
                 const response = await api.get(
-                    "/admin/employees"
+                    `/admin/employees?search=${search}&role=${roleFilter}&status=${statusFilter}`
                 );
 
                 setEmployees(response.data);
@@ -39,21 +54,19 @@ const Employees = () => {
 
 
         fetchEmployees();
-    }, []);
+    }, [search, roleFilter, statusFilter]);
 
     /*
   Toggle employee account status
 */
-    const handleStatusToggle = async (
+ /*
+  Change employee account status
+*/
+    const handleStatusChange = async (
         employeeId,
-        currentStatus
+        newStatus
     ) => {
         try {
-            const newStatus =
-                currentStatus === "active"
-                    ? "inactive"
-                    : "active";
-
             await api.patch(
                 `/admin/employees/${employeeId}/status`,
                 {
@@ -62,7 +75,7 @@ const Employees = () => {
             );
 
             /*
-            Update UI instantly
+            Instant UI refresh
             */
             setEmployees((prevEmployees) =>
                 prevEmployees.map((employee) =>
@@ -116,7 +129,90 @@ const Employees = () => {
                     >
                         Create Employee
                     </Link>
+                    
                 </div>  
+
+<div className="mb-6 flex gap-4 flex-wrap">
+
+    {/* Search */}
+    <input
+        type="text"
+        placeholder="Search employee..."
+        value={search}
+        onChange={(e) =>
+            setSearch(e.target.value)
+        }
+        className="border p-4 rounded-lg w-full max-w-md"
+    />
+
+    {/* Role filter */}
+    <select
+        value={roleFilter}
+        onChange={(e) =>
+            setRoleFilter(e.target.value)
+        }
+        className="border p-4 rounded-lg"
+    >
+        <option value="">
+            All Roles
+        </option>
+
+        <option value="agent">
+            Agent
+        </option>
+
+        <option value="leader">
+            Team Leader
+        </option>
+
+        <option value="manager">
+            Manager
+        </option>
+
+        <option value="hr">
+            HR
+        </option>
+
+        <option value="qa">
+            QA
+        </option>
+
+        <option value="admin">
+            Admin
+        </option>
+    </select>
+
+    {/* Status filter */}
+    <select
+        value={statusFilter}
+        onChange={(e) =>
+            setStatusFilter(e.target.value)
+        }
+        className="border p-4 rounded-lg"
+    >
+        <option value="">
+            All Statuses
+        </option>
+
+        <option value="active">
+            Active
+        </option>
+
+        <option value="inactive">
+            Inactive
+        </option>
+
+        <option value="suspended">
+            Suspended
+        </option>
+
+        <option value="terminated">
+            Terminated
+        </option>
+    </select>
+
+</div>
+                
 
                 <table className="w-full">
 
@@ -177,6 +273,10 @@ const Employees = () => {
                                             ${
                                                 employee.status === "active"
                                                     ? "bg-green-100"
+                                                    : employee.status === "inactive"
+                                                    ? "bg-gray-200"
+                                                    : employee.status === "suspended"
+                                                    ? "bg-yellow-100"
                                                     : "bg-red-100"
                                             }
                                         `}
@@ -185,9 +285,9 @@ const Employees = () => {
                                     </span>
                                 </td>
 
-                                <td className="p-4 flex gap-2">
+                                <td className="p-4 flex gap-2 items-center">
 
-                                    {/* Edit profile */}
+                                    {/* Edit employee */}
                                     <Link
                                         to={`/admin/employees/edit/${employee.id}`}
                                         className="bg-black text-white px-4 py-2 rounded-lg text-sm"
@@ -195,27 +295,33 @@ const Employees = () => {
                                         Edit
                                     </Link>
 
-                                    {/* Toggle account access */}
-                                    <button
-                                        onClick={() =>
-                                            handleStatusToggle(
+                                    {/* Enterprise status dropdown */}
+                                    <select
+                                        value={employee.status}
+                                        onChange={(e) =>
+                                            handleStatusChange(
                                                 employee.id,
-                                                employee.status
+                                                e.target.value
                                             )
                                         }
-                                        className={`
-                                            px-4 py-2 rounded-lg text-sm text-white
-                                            ${
-                                                employee.status === "active"
-                                                    ? "bg-red-600"
-                                                    : "bg-green-600"
-                                            }
-                                        `}
+                                        className="border px-3 py-2 rounded-lg text-sm"
                                     >
-                                        {employee.status === "active"
-                                            ? "Deactivate"
-                                            : "Activate"}
-                                    </button>
+                                        <option value="active">
+                                            Active
+                                        </option>
+
+                                        <option value="inactive">
+                                            Inactive
+                                        </option>
+
+                                        <option value="suspended">
+                                            Suspended
+                                        </option>
+
+                                        <option value="terminated">
+                                            Terminated
+                                        </option>
+                                    </select>
 
                                 </td>
                             </tr>

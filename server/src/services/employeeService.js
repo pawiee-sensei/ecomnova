@@ -6,13 +6,18 @@ const bcrypt = require("bcryptjs");
   Business logic goes here
 */
 
-const getEmployees = async () => {
+const getEmployees = async (search, role, status) => {
     return new Promise((resolve, reject) => {
-        employeeModel.getAllEmployees((err, results) => {
-            if (err) return reject(err);
+        employeeModel.getAllEmployees(
+            search,
+            role,
+            status,
+            (err, results) => {
+                if (err) return reject(err);
 
-            resolve(results);
-        });
+                resolve(results);
+            }
+        );
     });
 };
 

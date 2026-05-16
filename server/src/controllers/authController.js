@@ -55,6 +55,16 @@ const login = (req, res) => {
 
         const user = result[0];
 
+                /*
+        Only active employees can authenticate
+        */
+        if (user.status !== "active") {
+            return res.status(403).json({
+                message:
+                    "Account access restricted. Contact administrator."
+            });
+        }
+
         const isMatch = await bcrypt.compare(
             password,
             user.password
