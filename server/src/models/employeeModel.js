@@ -52,7 +52,60 @@ const createEmployee = (
     );
 };
 
+/*
+  Fetch single employee
+*/
+
+const getEmployeeById = (
+    id,
+    callback
+) => {
+    const sql = `
+        SELECT
+            id,
+            employee_id,
+            fullname,
+            email,
+            role,
+            status
+        FROM users
+        WHERE id = ?
+    `;
+
+    db.query(sql, [id], callback);
+};
+
+/*
+  Update employee basic profile
+*/
+
+const updateEmployee = (
+    id,
+    employeeData,
+    callback
+) => {
+    const sql = `
+        UPDATE users
+        SET
+            fullname = ?,
+            email = ?
+        WHERE id = ?
+    `;
+
+    db.query(
+        sql,
+        [
+            employeeData.fullname,
+            employeeData.email,
+            id
+        ],
+        callback
+    );
+};
+
 module.exports = {
     getAllEmployees,
-    createEmployee
+    createEmployee,
+    getEmployeeById,
+    updateEmployee
 };

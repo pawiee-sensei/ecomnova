@@ -48,7 +48,57 @@ const createEmployee = async (req, res) => {
     }
 };
 
+/*
+  Fetch one employee
+*/
+
+const getEmployeeById = async (
+    req,
+    res
+) => {
+    try {
+        const employee =
+            await employeeService.getEmployeeById(
+                req.params.id
+            );
+
+        res.status(200).json(employee);
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Employee fetch failed"
+        });
+    }
+};
+
+/*
+  Update employee profile
+*/
+
+const updateEmployee = async (
+    req,
+    res
+) => {
+    try {
+        await employeeService.updateEmployee(
+            req.params.id,
+            req.body
+        );
+
+        res.status(200).json({
+            message: "Employee updated"
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Update failed"
+        });
+    }
+};
+
 module.exports = {
     getEmployees,
-    createEmployee
+    createEmployee,
+    getEmployeeById,
+    updateEmployee
 };

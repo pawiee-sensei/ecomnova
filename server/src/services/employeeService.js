@@ -53,7 +53,47 @@ const createEmployee = async (data) => {
     });
 };
 
+/*
+  Fetch single employee
+*/
+
+const getEmployeeById = async (id) => {
+    return new Promise((resolve, reject) => {
+        employeeModel.getEmployeeById(
+            id,
+            (err, results) => {
+                if (err) return reject(err);
+
+                resolve(results[0]);
+            }
+        );
+    });
+};
+
+/*
+  Update profile
+*/
+
+const updateEmployee = async (
+    id,
+    data
+) => {
+    return new Promise((resolve, reject) => {
+        employeeModel.updateEmployee(
+            id,
+            data,
+            (err, result) => {
+                if (err) return reject(err);
+
+                resolve(result);
+            }
+        );
+    });
+};
+
 module.exports = {
     getEmployees,
-    createEmployee
+    createEmployee,
+    getEmployeeById,
+    updateEmployee
 };
