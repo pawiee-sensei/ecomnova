@@ -97,6 +97,10 @@ const Employees = () => {
                             <th className="text-left p-4">
                                 Status
                             </th>
+
+                            <th className="text-left p-4">
+                                Actions
+                            </th>
                         </tr>
                     </thead>
 
@@ -135,6 +139,16 @@ const Employees = () => {
                                     >
                                         {employee.status}
                                     </span>
+                                </td>
+
+                                <td className="p-4">
+                                    {/* Navigate to edit page */}
+                                    <Link
+                                        to={`/admin/employees/edit/${employee.id}`}
+                                        className="bg-black text-white px-4 py-2 rounded-lg text-sm"
+                                    >
+                                        Edit
+                                    </Link>
                                 </td>
                             </tr>
                         ))}

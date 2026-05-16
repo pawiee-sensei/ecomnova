@@ -79,6 +79,10 @@ const getEmployeeById = (
   Update employee basic profile
 */
 
+/*
+  Update employee profile + role
+*/
+
 const updateEmployee = (
     id,
     employeeData,
@@ -88,7 +92,8 @@ const updateEmployee = (
         UPDATE users
         SET
             fullname = ?,
-            email = ?
+            email = ?,
+            role = ?
         WHERE id = ?
     `;
 
@@ -97,6 +102,7 @@ const updateEmployee = (
         [
             employeeData.fullname,
             employeeData.email,
+            employeeData.role,
             id
         ],
         callback

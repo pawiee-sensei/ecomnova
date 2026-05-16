@@ -12,6 +12,7 @@ import ManagerDashboard from "./pages/ManagerDashboard";
 import AgentDashboard from "./pages/AgentDashboard";
 import Employees from "./pages/Employees";
 import CreateEmployee from "./pages/CreateEmployee";
+import EditEmployee from "./pages/EditEmployee";
 
 import AuthLoader from "./components/AuthLoader";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -23,6 +24,15 @@ function App() {
 
             <AuthLoader />
                 <Routes>
+
+                    <Route
+                        path="/admin/employees/edit/:id"
+                        element={
+                            <ProtectedRoute roles={["admin"]}>
+                                <EditEmployee />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     <Route
                         path="/admin/employees/create"
