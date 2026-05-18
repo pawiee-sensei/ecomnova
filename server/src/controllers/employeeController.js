@@ -148,10 +148,48 @@ const updateEmployeeStatus = async (
     }
 };
 
+/*
+  Admin resets employee password
+*/
+
+const resetEmployeePassword = async (
+    req,
+    res
+) => {
+    try {
+        const { newPassword } = req.body;
+
+        /*
+          Basic validation
+        */
+        if (!newPassword || newPassword.length < 6) {
+            return res.status(400).json({
+                message:
+                    "Password must be at least 6 characters"
+            });
+        }
+
+        await employeeService.resetEmployeePassword(
+            req.params.id,
+            newPassword
+        );
+
+        res.status(200).json({
+            message: "Password reset successful"
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Password reset failed"
+        });
+    }
+};
+
 module.exports = {
     getEmployees,
     createEmployee,
     getEmployeeById,
     updateEmployee,
-    updateEmployeeStatus
+    updateEmployeeStatus,
+    resetEmployeePassword
 };

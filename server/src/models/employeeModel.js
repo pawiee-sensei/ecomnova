@@ -114,7 +114,7 @@ const createEmployee = (
 };
 
 /*
-  Fetch single employee
+  Fetch single employee profile
 */
 
 const getEmployeeById = (
@@ -128,18 +128,14 @@ const getEmployeeById = (
             fullname,
             email,
             role,
-            status
+            status,
+            created_at
         FROM users
         WHERE id = ?
     `;
 
     db.query(sql, [id], callback);
 };
-
-/*
-  Update employee basic profile
-*/
-
 /*
   Update employee profile + role
 */
@@ -192,10 +188,33 @@ const updateEmployeeStatus = (
     );
 };
 
+/*
+  Reset employee password
+*/
+
+const resetEmployeePassword = (
+    id,
+    hashedPassword,
+    callback
+) => {
+    const sql = `
+        UPDATE users
+        SET password = ?
+        WHERE id = ?
+    `;
+
+    db.query(
+        sql,
+        [hashedPassword, id],
+        callback
+    );
+};
+
 module.exports = {
     getAllEmployees,
     createEmployee,
     getEmployeeById,
     updateEmployee,
-    updateEmployeeStatus
+    updateEmployeeStatus,
+    resetEmployeePassword
 };

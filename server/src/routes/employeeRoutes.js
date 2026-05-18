@@ -8,7 +8,8 @@ const { getEmployees,
         createEmployee,
         getEmployeeById,
         updateEmployee,
-        updateEmployeeStatus
+        updateEmployeeStatus,
+        resetEmployeePassword
     } = require("../controllers/employeeController");
 
 const router = express.Router();
@@ -50,6 +51,13 @@ router.patch(
     verifyToken,
     authorizeRoles("admin", "super_admin"),
     updateEmployeeStatus
+);
+
+router.patch(
+    "/:id/reset-password",
+    verifyToken,
+    authorizeRoles("admin", "super_admin"),
+    resetEmployeePassword
 );
 
 module.exports = router;

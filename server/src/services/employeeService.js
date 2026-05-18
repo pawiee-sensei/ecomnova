@@ -117,10 +117,39 @@ const updateEmployeeStatus = async (
     });
 };
 
+/*
+  Admin password reset
+*/
+
+const resetEmployeePassword = async (
+    id,
+    newPassword
+) => {
+    return new Promise(async (resolve, reject) => {
+
+        /*
+          Hash new password
+        */
+        const hashedPassword =
+            await bcrypt.hash(newPassword, 10);
+
+        employeeModel.resetEmployeePassword(
+            id,
+            hashedPassword,
+            (err, result) => {
+                if (err) return reject(err);
+
+                resolve(result);
+            }
+        );
+    });
+};
+
 module.exports = {
     getEmployees,
     createEmployee,
     getEmployeeById,
     updateEmployee,
-    updateEmployeeStatus
+    updateEmployeeStatus,
+    resetEmployeePassword
 };
