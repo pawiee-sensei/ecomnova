@@ -209,6 +209,93 @@ const resetEmployeePassword = (
         callback
     );
 };
+/*
+  Insert audit log record
+*/
+const createAuditLog = (
+    auditData,
+    callback
+) => {
+    const sql = `
+        INSERT INTO audit_logs (
+            actor_id,
+            target_user_id,
+            action,
+            details
+        )
+        VALUES (?, ?, ?, ?)
+    `;
+
+    db.query(
+        sql,
+        [
+            auditData.actor_id,
+            auditData.target_user_id,
+            auditData.action,
+            auditData.details
+        ],
+        callback
+    );
+};
+
+/*
+  Fetch audit logs
+*/
+
+const getAuditLogs = (callback) => {
+    const sql = `
+        SELECT
+            audit_logs.id,
+            audit_logs.action,
+            audit_logs.details,
+            audit_logs.created_at,
+
+            actor.fullname AS actor_name,
+            target.fullname AS target_name
+
+        FROM audit_logs
+
+        JOIN users AS actor
+            ON audit_logs.actor_id = actor.id
+
+        JOIN users AS target
+            ON audit_logs.target_user_id = target.id
+
+        ORDER BY audit_logs.created_at DESC
+    `;
+
+    db.query(sql, callback);
+};
+
+/*
+  Fetch audit logs for one employee
+*/
+
+const getEmployeeAuditLogs = (
+    employeeId,
+    callback
+) => {
+    const sql = `
+        SELECT
+            audit_logs.id,
+            audit_logs.action,
+            audit_logs.details,
+            audit_logs.created_at,
+
+            actor.fullname AS actor_name
+
+        FROM audit_logs
+
+        JOIN users AS actor
+            ON audit_logs.actor_id = actor.id
+
+        WHERE audit_logs.target_user_id = ?
+
+        ORDER BY audit_logs.created_at DESC
+    `;
+
+    db.query(sql, [employeeId], callback);
+};
 
 module.exports = {
     getAllEmployees,
@@ -216,5 +303,8 @@ module.exports = {
     getEmployeeById,
     updateEmployee,
     updateEmployeeStatus,
-    resetEmployeePassword
+    resetEmployeePassword,
+    createAuditLog,
+    getAuditLogs,
+    getEmployeeAuditLogs
 };

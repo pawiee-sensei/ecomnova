@@ -145,11 +145,67 @@ const resetEmployeePassword = async (
     });
 };
 
+/*
+  Audit logger
+*/
+
+const createAuditLog = async (
+    auditData
+) => {
+    return new Promise((resolve, reject) => {
+        employeeModel.createAuditLog(
+            auditData,
+            (err, result) => {
+                if (err) return reject(err);
+
+                resolve(result);
+            }
+        );
+    });
+};
+
+/*
+  Fetch audit logs
+*/
+
+const getAuditLogs = async () => {
+    return new Promise((resolve, reject) => {
+        employeeModel.getAuditLogs(
+            (err, results) => {
+                if (err) return reject(err);
+
+                resolve(results);
+            }
+        );
+    });
+};
+/*
+  Fetch one employee audit history
+*/
+
+const getEmployeeAuditLogs = async (
+    employeeId
+) => {
+    return new Promise((resolve, reject) => {
+        employeeModel.getEmployeeAuditLogs(
+            employeeId,
+            (err, results) => {
+                if (err) return reject(err);
+
+                resolve(results);
+            }
+        );
+    });
+};
+
 module.exports = {
     getEmployees,
     createEmployee,
     getEmployeeById,
     updateEmployee,
     updateEmployeeStatus,
-    resetEmployeePassword
+    resetEmployeePassword,
+    createAuditLog,
+    getAuditLogs,
+    getEmployeeAuditLogs
 };

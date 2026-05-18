@@ -9,7 +9,11 @@ const getEmployees = async (req, res) => {
         const { search, role, status } = req.query;
 
         const employees =
-            await employeeService.getEmployees(search, role, status);
+            await employeeService.getEmployees(
+                search,
+                role,
+                status
+            );
 
         res.status(200).json(employees);
 
@@ -20,11 +24,12 @@ const getEmployees = async (req, res) => {
     }
 };
 
+/*
+  Create employee account
+*/
+
 const createEmployee = async (req, res) => {
     try {
-        /*
-          Receive admin form data
-        */
         const {
             fullname,
             email,
@@ -32,11 +37,25 @@ const createEmployee = async (req, res) => {
             role
         } = req.body;
 
-        await employeeService.createEmployee({
-            fullname,
-            email,
-            password,
-            role
+        /*
+          Create employee
+        */
+        const result =
+            await employeeService.createEmployee({
+                fullname,
+                email,
+                password,
+                role
+            });
+
+        /*
+          Audit log
+        */
+        await employeeService.createAuditLog({
+            actor_id: req.user.id,
+            target_user_id: result.insertId,
+            action: "EMPLOYEE_CREATED",
+            details: "Admin created employee account"
         });
 
         res.status(201).json({
@@ -87,6 +106,16 @@ const updateEmployee = async (
             req.body
         );
 
+        /*
+          Audit log
+        */
+        await employeeService.createAuditLog({
+            actor_id: req.user.id,
+            target_user_id: req.params.id,
+            action: "PROFILE_UPDATED",
+            details: "Employee profile updated"
+        });
+
         res.status(200).json({
             message: "Employee updated"
         });
@@ -97,10 +126,6 @@ const updateEmployee = async (
         });
     }
 };
-
-/*
-  Change employee access status
-*/
 
 /*
   Change employee account status
@@ -136,6 +161,16 @@ const updateEmployeeStatus = async (
             req.params.id,
             status
         );
+
+        /*
+          Audit log
+        */
+        await employeeService.createAuditLog({
+            actor_id: req.user.id,
+            target_user_id: req.params.id,
+            action: "STATUS_CHANGED",
+            details: `Changed status to ${status}`
+        });
 
         res.status(200).json({
             message: "Employee status updated"
@@ -174,6 +209,16 @@ const resetEmployeePassword = async (
             newPassword
         );
 
+        /*
+          Audit log
+        */
+        await employeeService.createAuditLog({
+            actor_id: req.user.id,
+            target_user_id: req.params.id,
+            action: "PASSWORD_RESET",
+            details: "Admin reset employee password"
+        });
+
         res.status(200).json({
             message: "Password reset successful"
         });
@@ -185,11 +230,58 @@ const resetEmployeePassword = async (
     }
 };
 
+/*
+  Fetch audit history
+*/
+
+const getAuditLogs = async (
+    req,
+    res
+) => {
+    try {
+        const logs =
+            await employeeService.getAuditLogs();
+
+        res.status(200).json(logs);
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Failed to fetch audit logs"
+        });
+    }
+};
+
+/*
+  Employee-specific audit logs
+*/
+
+const getEmployeeAuditLogs = async (
+    req,
+    res
+) => {
+    try {
+        const logs =
+            await employeeService.getEmployeeAuditLogs(
+                req.params.id
+            );
+
+        res.status(200).json(logs);
+
+    } catch (error) {
+        res.status(500).json({
+            message:
+                "Failed to fetch employee audit logs"
+        });
+    }
+};
+
 module.exports = {
     getEmployees,
     createEmployee,
     getEmployeeById,
     updateEmployee,
     updateEmployeeStatus,
-    resetEmployeePassword
+    resetEmployeePassword,
+    getAuditLogs,
+    getEmployeeAuditLogs
 };

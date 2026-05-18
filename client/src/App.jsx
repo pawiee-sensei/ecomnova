@@ -14,6 +14,7 @@ import Employees from "./pages/Employees";
 import CreateEmployee from "./pages/CreateEmployee";
 import EditEmployee from "./pages/EditEmployee";
 import EmployeeDetails from "./pages/EmployeeDetails";
+import AuditLogs from "./pages/AuditLogs";
 
 import AuthLoader from "./components/AuthLoader";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -25,6 +26,15 @@ function App() {
 
             <AuthLoader />
                 <Routes>
+
+                    <Route
+                        path="/admin/audit-logs"
+                        element={
+                            <ProtectedRoute roles={["admin"]}>
+                                <AuditLogs />
+                            </ProtectedRoute>
+                        }
+                    />
                     <Route
                         path="/admin/employees/:id"
                         element={

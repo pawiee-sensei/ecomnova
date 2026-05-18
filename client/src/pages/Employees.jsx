@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import api from "../services/api";
 import { Link } from "react-router-dom";
@@ -30,6 +30,22 @@ const Employees = () => {
     const [statusFilter, setStatusFilter] = useState("");
 
     /*
+    Employee audit activity
+    */
+    const [auditLogs, setAuditLogs] = useState([]);
+
+    /*
+      Fetch recent employee activity
+    */
+    const fetchAuditLogs = useCallback(async () => {
+        const auditResponse = await api.get(
+            "/admin/employees/audit-logs"
+        );
+
+        setAuditLogs(auditResponse.data);
+    }, []);
+
+    /*
       Fetch workforce directory
     */
     useEffect(() => {
@@ -40,6 +56,8 @@ const Employees = () => {
                 );
 
                 setEmployees(response.data);
+
+                await fetchAuditLogs();
 
             } catch (error) {
                 console.error(
@@ -54,7 +72,7 @@ const Employees = () => {
 
 
         fetchEmployees();
-    }, [search, roleFilter, statusFilter]);
+    }, [search, roleFilter, statusFilter, fetchAuditLogs]);
 
     /*
   Toggle employee account status
@@ -87,6 +105,8 @@ const Employees = () => {
                         : employee
                 )
             );
+
+            await fetchAuditLogs();
 
         } catch (error) {
             console.error(
@@ -340,6 +360,74 @@ const Employees = () => {
                 </table>
 
             </div>
+
+
+            <div className="mt-10">
+    <h2 className="text-2xl font-bold mb-4">
+        Recent Employee Activity
+    </h2>
+
+    <div className="border rounded-xl overflow-hidden">
+        <table className="w-full">
+
+            <thead className="bg-gray-100">
+                <tr>
+                    <th className="text-left p-4">
+                        Admin
+                    </th>
+
+                    <th className="text-left p-4">
+                        Action
+                    </th>
+
+                    <th className="text-left p-4">
+                        Employee
+                    </th>
+
+                    <th className="text-left p-4">
+                        Details
+                    </th>
+
+                    <th className="text-left p-4">
+                        Date
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {auditLogs.map((log) => (
+                    <tr
+                        key={log.id}
+                        className="border-t"
+                    >
+                        <td className="p-4">
+                            {log.actor_name}
+                        </td>
+
+                        <td className="p-4">
+                            {log.action}
+                        </td>
+
+                        <td className="p-4">
+                            {log.target_name}
+                        </td>
+
+                        <td className="p-4">
+                            {log.details}
+                        </td>
+
+                        <td className="p-4">
+                            {new Date(
+                                log.created_at
+                            ).toLocaleString()}
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+
+        </table>
+    </div>
+</div>
 
         </DashboardLayout>
     );
