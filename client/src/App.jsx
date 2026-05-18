@@ -10,11 +10,11 @@ import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import ManagerDashboard from "./pages/ManagerDashboard";
 import AgentDashboard from "./pages/AgentDashboard";
-import Employees from "./pages/Employees";
-import CreateEmployee from "./pages/CreateEmployee";
-import EditEmployee from "./pages/EditEmployee";
-import EmployeeDetails from "./pages/EmployeeDetails";
-import AuditLogs from "./pages/AuditLogs";
+import Employees from "./pages/employee/Employees";
+import CreateEmployee from "./pages/employee/CreateEmployee";
+import EditEmployee from "./pages/employee/EditEmployee";
+import EmployeeDetails from "./pages/employee/EmployeeDetails";
+import AuditLogs from "./pages/employee/AuditLogs";
 
 import AuthLoader from "./components/AuthLoader";
 import ProtectedRoute from "./routes/ProtectedRoute";

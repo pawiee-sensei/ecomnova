@@ -12,53 +12,64 @@ const Sidebar = () => {
         admin: [
             {
                 name: "Dashboard",
-                path: "/admin/dashboard"
+                path: "/admin/dashboard",
+                icon: "D"
             },
             {
                 name: "Employees",
-                path: "/admin/employees"
+                path: "/admin/employees",
+                icon: "E"
             },
             {
                 name: "Departments",
-                path: "/admin/departments"
+                path: "/admin/departments",
+                icon: "P"
             },
             {
                 name: "Teams",
-                path: "/admin/teams"
+                path: "/admin/teams",
+                icon: "T"
             },
             {
                 name: "Tickets",
-                path: "/admin/tickets"
+                path: "/admin/tickets",
+                icon: "K"
             },
             {
                 name: "Analytics",
-                path: "/admin/analytics"
+                path: "/admin/analytics",
+                icon: "A"
             },
             {
                 name: "Reports",
-                path: "/admin/reports"
+                path: "/admin/reports",
+                icon: "R"
             },
             {
                 name: "Audit Logs",
-                path: "/admin/audit-logs"
+                path: "/admin/audit-logs",
+                icon: "L"
             },
             {
                 name: "Settings",
-                path: "/admin/settings"
+                path: "/admin/settings",
+                icon: "S"
             }
         ],
 
         manager: [
             {
                 name: "Dashboard",
-                path: "/manager/dashboard"
+                path: "/manager/dashboard",
+                icon: "D"
             }
         ],
 
         agent: [
             {
                 name: "Dashboard",
-                path: "/agent/dashboard"
+                path: "/agent/dashboard",
+                icon: "D"
             }
         ]
     };
@@ -66,43 +77,77 @@ const Sidebar = () => {
     const links = menu[user?.role] || [];
 
     return (
-        <aside className="w-64 min-h-screen border-r bg-white p-6">
+        <aside className="min-h-screen w-64 shrink-0 border-r border-slate-200 bg-white p-5">
 
             {/* Branding */}
-            <div className="mb-10">
-                <h1 className="text-2xl font-bold">
-                    EcomNova
-                </h1>
+            <div className="mb-8 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-950 text-base font-bold text-white">
+                        EN
+                    </div>
 
-                <p className="text-sm text-gray-500">
-                    Admin Portal
-                </p>
+                    <div>
+                        <h1 className="text-xl font-bold text-slate-950">
+                            EcomNova
+                        </h1>
+
+                        <p className="text-sm text-slate-500">
+                            Workforce Console
+                        </p>
+                    </div>
+                </div>
             </div>
 
             {/* Navigation */}
-            <nav className="flex flex-col gap-2">
+            <nav className="flex flex-col gap-1">
                 {links.map((item) => {
                     const isActive =
-                        location.pathname === item.path;
+                        location.pathname === item.path ||
+                        location.pathname.startsWith(
+                            `${item.path}/`
+                        );
 
                     return (
                         <Link
                             key={item.path}
                             to={item.path}
                             className={`
-                                px-4 py-3 rounded-lg transition
+                                flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition
                                 ${
                                     isActive
-                                        ? "bg-black text-white"
-                                        : "text-gray-700 hover:bg-gray-100"
+                                        ? "bg-slate-950 text-white shadow-sm"
+                                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
                                 }
                             `}
                         >
+                            <span
+                                className={`
+                                    flex h-8 w-8 items-center justify-center rounded-md text-xs font-bold
+                                    ${
+                                        isActive
+                                            ? "bg-white text-slate-950"
+                                            : "bg-slate-100 text-slate-500"
+                                    }
+                                `}
+                            >
+                                {item.icon}
+                            </span>
+
                             {item.name}
                         </Link>
                     );
                 })}
             </nav>
+
+            <div className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-sm font-medium text-slate-950">
+                    Signed in as
+                </p>
+
+                <p className="mt-1 truncate text-sm text-slate-500">
+                    {user?.fullname || "User"}
+                </p>
+            </div>
 
         </aside>
     );

@@ -129,6 +129,9 @@ const getEmployeeById = (
             email,
             role,
             status,
+            department_id,
+            team_id,
+            manager_id,
             created_at
         FROM users
         WHERE id = ?
@@ -150,7 +153,10 @@ const updateEmployee = (
         SET
             fullname = ?,
             email = ?,
-            role = ?
+            role = ?,
+            department_id = ?,
+            team_id = ?,
+            manager_id = ?
         WHERE id = ?
     `;
 
@@ -160,6 +166,9 @@ const updateEmployee = (
             employeeData.fullname,
             employeeData.email,
             employeeData.role,
+            employeeData.department_id || null,
+            employeeData.team_id || null,
+            employeeData.manager_id || null,
             id
         ],
         callback

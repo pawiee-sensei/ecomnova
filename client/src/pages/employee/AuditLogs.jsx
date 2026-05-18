@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import DashboardLayout from "../layouts/DashboardLayout";
-import api from "../services/api";
+import DashboardLayout from "../../layouts/DashboardLayout";
+import api from "../../services/api";
 
 const AuditLogs = () => {
     const [logs, setLogs] = useState([]);
