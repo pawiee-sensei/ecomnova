@@ -3,24 +3,20 @@ const router = express.Router();
 
 const verifyToken = require("../middleware/authMiddleware");
 const authorizeRoles = require("../middleware/roleMiddleware");
-const authMiddleware = require("../middleware/authMiddleware");
-const roleMiddleware = require("../middleware/roleMiddleware");
-
-const {
-    getDepartmentById,
-    updateDepartment,
-    getDepartmentHeads
-} = require("../controllers/departmentController");
 
 const {
     getDepartments,
-    createDepartment
+    createDepartment,
+    getDepartmentById,
+    updateDepartment,
+    getDepartmentHeads,
+    getDepartmentMembers
 } = require("../controllers/departmentController");
 
 router.get(
     "/",
-    authMiddleware,
-    roleMiddleware("admin"),
+    verifyToken,
+    authorizeRoles("admin", "super_admin"),
     getDepartments
 );
 
@@ -31,10 +27,17 @@ router.get(
     getDepartmentHeads
 );
 
+router.get(
+    "/:id/members",
+    verifyToken,
+    authorizeRoles("admin", "super_admin"),
+    getDepartmentMembers
+);
+
 router.post(
     "/",
-    authMiddleware,
-    roleMiddleware("admin"),
+    verifyToken,
+    authorizeRoles("admin", "super_admin"),
     createDepartment
 );
 

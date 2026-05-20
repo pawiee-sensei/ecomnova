@@ -121,8 +121,10 @@ const updateEmployee = async (
         });
 
     } catch (error) {
-        res.status(500).json({
-            message: "Update failed"
+        res.status(error.statusCode || 500).json({
+            message: error.statusCode
+                ? error.message
+                : "Update failed"
         });
     }
 };

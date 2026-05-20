@@ -21,14 +21,20 @@ const getAllEmployees = (
 ) => {
     let sql = `
         SELECT
-            id,
-            employee_id,
-            fullname,
-            email,
-            role,
-            status,
-            created_at
+            users.id,
+            users.employee_id,
+            users.fullname,
+            users.email,
+            users.role,
+            users.status,
+            users.created_at,
+            departments.name AS department_name,
+            manager.fullname AS manager_name
         FROM users
+        LEFT JOIN departments
+            ON users.department_id = departments.id
+        LEFT JOIN users AS manager
+            ON users.manager_id = manager.id
         WHERE 1=1
     `;
 
@@ -40,9 +46,9 @@ const getAllEmployees = (
     if (search) {
         sql += `
             AND (
-                employee_id LIKE ?
-                OR fullname LIKE ?
-                OR email LIKE ?
+                users.employee_id LIKE ?
+                OR users.fullname LIKE ?
+                OR users.email LIKE ?
             )
         `;
 
@@ -60,7 +66,7 @@ const getAllEmployees = (
     */
     if (role) {
         sql += `
-            AND role = ?
+            AND users.role = ?
         `;
 
         values.push(role);
@@ -71,14 +77,14 @@ const getAllEmployees = (
     */
     if (status) {
         sql += `
-            AND status = ?
+            AND users.status = ?
         `;
 
         values.push(status);
     }
 
     sql += `
-        ORDER BY created_at DESC
+        ORDER BY users.created_at DESC
     `;
 
     db.query(sql, values, callback);
@@ -129,6 +135,9 @@ const getEmployeeById = (
             users.email,
             users.role,
             users.status,
+            users.department_id,
+            users.team_id,
+            users.manager_id,
             users.created_at,
 
             departments.name AS department_name,
@@ -185,6 +194,40 @@ const updateEmployee = (
         ],
         callback
     );
+};
+
+const getTeamById = (
+    id,
+    callback
+) => {
+    const sql = `
+        SELECT
+            id,
+            name,
+            department_id
+        FROM teams
+        WHERE id = ?
+    `;
+
+    db.query(sql, [id], callback);
+};
+
+const getManagerById = (
+    id,
+    callback
+) => {
+    const sql = `
+        SELECT
+            id,
+            fullname,
+            role,
+            department_id
+        FROM users
+        WHERE id = ?
+            AND role = 'manager'
+    `;
+
+    db.query(sql, [id], callback);
 };
 
 /*
@@ -338,9 +381,15 @@ const getDepartments = (callback) => {
 
 const getTeams = (callback) => {
     const sql = `
-        SELECT id, name
+        SELECT
+            teams.id,
+            teams.name,
+            teams.department_id,
+            departments.name AS department_name
         FROM teams
-        ORDER BY name ASC
+        LEFT JOIN departments
+            ON teams.department_id = departments.id
+        ORDER BY departments.name ASC, teams.name ASC
     `;
 
     db.query(sql, callback);
@@ -352,10 +401,16 @@ const getTeams = (callback) => {
 
 const getManagers = (callback) => {
     const sql = `
-        SELECT id, fullname
+        SELECT
+            users.id,
+            users.fullname,
+            users.department_id,
+            departments.name AS department_name
         FROM users
-        WHERE role = 'manager'
-        ORDER BY fullname ASC
+        LEFT JOIN departments
+            ON users.department_id = departments.id
+        WHERE users.role = 'manager'
+        ORDER BY users.fullname ASC
     `;
 
     db.query(sql, callback);
@@ -366,6 +421,8 @@ module.exports = {
     createEmployee,
     getEmployeeById,
     updateEmployee,
+    getTeamById,
+    getManagerById,
     updateEmployeeStatus,
     resetEmployeePassword,
     createAuditLog,

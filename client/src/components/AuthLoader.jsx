@@ -42,7 +42,7 @@ const AuthLoader = () => {
                 // Restore authenticated user
                 setUser(response.data.user);
 
-            } catch (error) {
+            } catch {
 
                 // Invalid token -> logout
                 logout();
@@ -51,7 +51,7 @@ const AuthLoader = () => {
 
         fetchUser();
 
-    }, []);
+    }, [logout, setUser, stopLoading, token]);
 
     return null;
 };

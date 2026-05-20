@@ -83,6 +83,8 @@ const updateEmployee = async (
     id,
     data
 ) => {
+    await validateEmployeeAssignment(id, data);
+
     return new Promise((resolve, reject) => {
         employeeModel.updateEmployee(
             id,
@@ -94,6 +96,101 @@ const updateEmployee = async (
             }
         );
     });
+};
+
+const getTeamById = async (id) => {
+    return new Promise((resolve, reject) => {
+        employeeModel.getTeamById(
+            id,
+            (err, results) => {
+                if (err) return reject(err);
+
+                resolve(results[0]);
+            }
+        );
+    });
+};
+
+const getManagerById = async (id) => {
+    return new Promise((resolve, reject) => {
+        employeeModel.getManagerById(
+            id,
+            (err, results) => {
+                if (err) return reject(err);
+
+                resolve(results[0]);
+            }
+        );
+    });
+};
+
+const createValidationError = (message) => {
+    const error = new Error(message);
+    error.statusCode = 400;
+    return error;
+};
+
+const validateEmployeeAssignment = async (
+    employeeId,
+    data
+) => {
+    const departmentId = data.department_id
+        ? String(data.department_id)
+        : "";
+    const teamId = data.team_id
+        ? String(data.team_id)
+        : "";
+    const managerId = data.manager_id
+        ? String(data.manager_id)
+        : "";
+
+    if (teamId && !departmentId) {
+        throw createValidationError(
+            "Select a department before assigning a team"
+        );
+    }
+
+    if (managerId && !departmentId) {
+        throw createValidationError(
+            "Select a department before assigning a manager"
+        );
+    }
+
+    if (managerId && String(employeeId) === managerId) {
+        throw createValidationError(
+            "An employee cannot report to themselves"
+        );
+    }
+
+    if (teamId) {
+        const team = await getTeamById(teamId);
+
+        if (!team) {
+            throw createValidationError("Selected team does not exist");
+        }
+
+        if (String(team.department_id || "") !== departmentId) {
+            throw createValidationError(
+                "Selected team does not belong to this department"
+            );
+        }
+    }
+
+    if (managerId) {
+        const manager = await getManagerById(managerId);
+
+        if (!manager) {
+            throw createValidationError(
+                "Selected manager does not exist"
+            );
+        }
+
+        if (String(manager.department_id || "") !== departmentId) {
+            throw createValidationError(
+                "Selected manager does not belong to this department"
+            );
+        }
+    }
 };
 
 /*

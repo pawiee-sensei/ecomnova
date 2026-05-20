@@ -17,6 +17,7 @@ import EmployeeDetails from "./pages/employee/EmployeeDetails";
 import AuditLogs from "./pages/employee/AuditLogs";
 
 import Departments from "./pages/department/Departments";
+import EditDepartment from "./pages/department/EditDepartment";
 
 import AuthLoader from "./components/AuthLoader";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -28,6 +29,15 @@ function App() {
 
             <AuthLoader />
                 <Routes>
+
+                    <Route
+                        path="/admin/departments/edit/:id"
+                        element={
+                            <ProtectedRoute roles={["admin"]}>
+                                <EditDepartment />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     <Route
                         path="/admin/departments"

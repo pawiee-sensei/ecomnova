@@ -55,9 +55,10 @@ const createDepartment = async (
         });
 
     } catch (error) {
-        res.status(500).json({
-            message:
-                "Department creation failed"
+        res.status(error.statusCode || 500).json({
+            message: error.statusCode
+                ? error.message
+                : "Department creation failed"
         });
     }
 };
@@ -98,9 +99,10 @@ const updateDepartment = async (
         });
 
     } catch (error) {
-        res.status(500).json({
-            message:
-                "Department update failed"
+        res.status(error.statusCode || 500).json({
+            message: error.statusCode
+                ? error.message
+                : "Department update failed"
         });
     }
 };
@@ -123,10 +125,31 @@ const getDepartmentHeads = async (
     }
 };
 
+const getDepartmentMembers = async (
+    req,
+    res
+) => {
+    try {
+        const members =
+            await departmentService.getDepartmentMembers(
+                req.params.id
+            );
+
+        res.status(200).json(members);
+
+    } catch (error) {
+        res.status(500).json({
+            message:
+                "Failed to fetch department members"
+        });
+    }
+};
+
 module.exports = {
     getDepartments,
     createDepartment,
     getDepartmentById,
     updateDepartment,
-    getDepartmentHeads
+    getDepartmentHeads,
+    getDepartmentMembers
 };

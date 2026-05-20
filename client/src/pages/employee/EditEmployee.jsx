@@ -25,6 +25,65 @@ const EditEmployee = () => {
 
     const [managers, setManagers] = useState([]);
 
+    const availableManagers = managers.filter((manager) => {
+        if (!formData.department_id) {
+            return false;
+        }
+
+        return (
+            String(manager.department_id || "") ===
+            String(formData.department_id)
+        );
+    });
+
+    const availableTeams = teams.filter((team) => {
+        if (!formData.department_id) {
+            return false;
+        }
+
+        return (
+            String(team.department_id || "") ===
+            String(formData.department_id)
+        );
+    });
+
+    const selectedTeam = teams.find(
+        (team) => String(team.id) === String(formData.team_id)
+    );
+
+    const selectedManager = managers.find(
+        (manager) =>
+            String(manager.id) === String(formData.manager_id)
+    );
+
+    const assignmentError = (() => {
+        if (formData.team_id && !formData.department_id) {
+            return "Select a department before assigning a team.";
+        }
+
+        if (formData.manager_id && !formData.department_id) {
+            return "Select a department before assigning a manager.";
+        }
+
+        if (
+            formData.team_id &&
+            String(selectedTeam?.department_id || "") !==
+                String(formData.department_id)
+        ) {
+            return "Selected team does not belong to this department.";
+        }
+
+        if (
+            formData.manager_id &&
+            String(selectedManager?.department_id || "") !==
+                String(formData.department_id)
+        ) {
+            return "Selected manager does not belong to this department.";
+        }
+
+        return "";
+    })();
+
 useEffect(() => {
     const fetchEmployee = async () => {
         try {
@@ -91,14 +150,93 @@ useEffect(() => {
 }, [id]);
 
     const handleChange = (e) => {
+        const { name, value } = e.target;
+
+        if (name === "department_id") {
+            const selectedManager = managers.find(
+                (manager) =>
+                    String(manager.id) ===
+                    String(formData.manager_id)
+            );
+
+            const managerBelongsToDepartment =
+                !selectedManager ||
+                !value ||
+                String(selectedManager.department_id || "") ===
+                    String(value);
+
+            setFormData({
+                ...formData,
+                department_id: value,
+                team_id:
+                    !formData.team_id ||
+                    teams.some(
+                        (team) =>
+                            String(team.id) ===
+                                String(formData.team_id) &&
+                            String(team.department_id || "") ===
+                                String(value)
+                    )
+                        ? formData.team_id
+                        : "",
+                manager_id: managerBelongsToDepartment
+                    ? formData.manager_id
+                    : ""
+            });
+
+            return;
+        }
+
+        if (name === "manager_id") {
+            const selectedManager = managers.find(
+                (manager) =>
+                    String(manager.id) === String(value)
+            );
+
+            setFormData({
+                ...formData,
+                manager_id: value,
+                department_id:
+                    !formData.department_id &&
+                    selectedManager?.department_id
+                        ? selectedManager.department_id
+                        : formData.department_id
+            });
+
+            return;
+        }
+
+        if (name === "team_id") {
+            const selectedTeam = teams.find(
+                (team) => String(team.id) === String(value)
+            );
+
+            setFormData({
+                ...formData,
+                team_id: value,
+                department_id:
+                    !formData.department_id &&
+                    selectedTeam?.department_id
+                        ? selectedTeam.department_id
+                        : formData.department_id
+            });
+
+            return;
+        }
+
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value
+            [name]: value
         });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (assignmentError) {
+            alert(assignmentError);
+            return;
+        }
 
         try {
             setSaving(true);
@@ -114,6 +252,10 @@ useEffect(() => {
             console.error(
                 "Update failed:",
                 error
+            );
+            alert(
+                error.response?.data?.message ||
+                    "Employee update failed"
             );
         } finally {
             setSaving(false);
@@ -173,6 +315,12 @@ useEffect(() => {
                     </div>
 
                     <div className="grid gap-5 p-6 md:grid-cols-2">
+                        {assignmentError && (
+                            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm font-medium text-amber-800 md:col-span-2">
+                                {assignmentError}
+                            </div>
+                        )}
+
                         <label className="space-y-2">
                             <span className="text-sm font-medium text-slate-700">
                                 Full Name
@@ -244,62 +392,79 @@ useEffect(() => {
                                         value={department.id}
                                     >
                                         {department.name}
+                                        {department.code
+                                            ? ` (${department.code})`
+                                            : ""}
                                     </option>
                                 ))}
                             </select>
                         </label>
 
-                        <label className="space-y-2">
-                            <span className="text-sm font-medium text-slate-700">
-                                Team
-                            </span>
+                        {!formData.department_id ? (
+                            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 md:col-span-2">
+                                Select a department to assign this employee to a team and manager.
+                            </div>
+                        ) : (
+                            <>
+                                <label className="space-y-2">
+                                    <span className="text-sm font-medium text-slate-700">
+                                        Team
+                                    </span>
 
-                            <select
-                                name="team_id"
-                                value={formData.team_id}
-                                onChange={handleChange}
-                                className="w-full border p-4 rounded-lg"
-                            >
-                                <option value="">
-                                    Unassigned Team
-                                </option>
-
-                                {teams.map((team) => (
-                                    <option
-                                        key={team.id}
-                                        value={team.id}
+                                    <select
+                                        name="team_id"
+                                        value={formData.team_id}
+                                        onChange={handleChange}
+                                        className="w-full border p-4 rounded-lg"
                                     >
-                                        {team.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
+                                        <option value="">
+                                            Unassigned Team
+                                        </option>
 
-                        <label className="space-y-2">
-                            <span className="text-sm font-medium text-slate-700">
-                                Manager
-                            </span>
+                                        {availableTeams.map((team) => (
+                                            <option
+                                                key={team.id}
+                                                value={team.id}
+                                            >
+                                                {team.name}
+                                                {team.department_name
+                                                    ? ` - ${team.department_name}`
+                                                    : " - no department"}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
 
-                            <select
-                                name="manager_id"
-                                value={formData.manager_id}
-                                onChange={handleChange}
-                                className="w-full border p-4 rounded-lg"
-                            >
-                                <option value="">
-                                    Unassigned Manager
-                                </option>
+                                <label className="space-y-2">
+                                    <span className="text-sm font-medium text-slate-700">
+                                        Manager
+                                    </span>
 
-                                {managers.map((manager) => (
-                                    <option
-                                        key={manager.id}
-                                        value={manager.id}
+                                    <select
+                                        name="manager_id"
+                                        value={formData.manager_id}
+                                        onChange={handleChange}
+                                        className="w-full border p-4 rounded-lg"
                                     >
-                                        {manager.fullname}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
+                                        <option value="">
+                                            Unassigned Manager
+                                        </option>
+
+                                        {availableManagers.map((manager) => (
+                                            <option
+                                                key={manager.id}
+                                                value={manager.id}
+                                            >
+                                                {manager.fullname}
+                                                {manager.department_name
+                                                    ? ` - ${manager.department_name}`
+                                                    : " - unassigned"}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+                            </>
+                        )}
                     </div>
 
                     <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 p-6 sm:flex-row sm:justify-end">
@@ -312,7 +477,7 @@ useEffect(() => {
 
                         <button
                             type="submit"
-                            disabled={saving}
+                            disabled={saving || Boolean(assignmentError)}
                             className="inline-flex justify-center rounded-lg bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {saving

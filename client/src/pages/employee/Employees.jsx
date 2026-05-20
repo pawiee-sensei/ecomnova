@@ -225,6 +225,12 @@ const Employees = () => {
                                         Role
                                     </th>
                                     <th className="px-5 py-3 text-left font-semibold">
+                                        Department
+                                    </th>
+                                    <th className="px-5 py-3 text-left font-semibold">
+                                        Manager
+                                    </th>
+                                    <th className="px-5 py-3 text-left font-semibold">
                                         Status
                                     </th>
                                     <th className="px-5 py-3 text-right font-semibold">
@@ -237,7 +243,7 @@ const Employees = () => {
                                 {employees.length === 0 ? (
                                     <tr>
                                         <td
-                                            colSpan="5"
+                                            colSpan="7"
                                             className="px-5 py-10 text-center text-sm text-slate-500"
                                         >
                                             No employees match your filters.
@@ -275,6 +281,14 @@ const Employees = () => {
 
                                             <td className="px-5 py-4 text-sm capitalize text-slate-700">
                                                 {employee.role}
+                                            </td>
+
+                                            <td className="px-5 py-4 text-sm text-slate-600">
+                                                {employee.department_name || "Unassigned"}
+                                            </td>
+
+                                            <td className="px-5 py-4 text-sm text-slate-600">
+                                                {employee.manager_name || "Unassigned"}
                                             </td>
 
                                             <td className="px-5 py-4">
