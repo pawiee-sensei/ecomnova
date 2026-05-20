@@ -28,6 +28,9 @@ const EmployeeDetails = () => {
     const [resetting, setResetting] =
         useState(false);
 
+    const [auditLogs, setAuditLogs] =
+    useState([]);
+
     useEffect(() => {
         const fetchEmployee = async () => {
             try {
@@ -36,6 +39,12 @@ const EmployeeDetails = () => {
                 );
 
                 setEmployee(response.data);
+
+        const auditResponse = await api.get(
+            `/admin/employees/${id}/audit-logs`
+        );
+
+        setAuditLogs(auditResponse.data);
 
             } catch (error) {
                 console.error(
@@ -244,6 +253,36 @@ const EmployeeDetails = () => {
                                 </span>
                             </div>
 
+                            <div>
+                                <p className="text-gray-500">
+                                    Department
+                                </p>
+
+                                <p className="text-lg font-medium">
+                                    {employee.department_name || "Unassigned"}
+                                </p>
+                            </div>
+
+                            <div>
+                                <p className="text-gray-500">
+                                    Team
+                                </p>
+
+                                <p className="text-lg font-medium">
+                                    {employee.team_name || "Unassigned"}
+                                </p>
+                            </div>
+
+                            <div>
+                                <p className="text-gray-500">
+                                    Manager
+                                </p>
+
+                                <p className="text-lg font-medium">
+                                    {employee.manager_name || "Unassigned"}
+                                </p>
+                            </div>
+
                             <div className="rounded-lg bg-slate-50 p-4">
                                 <p className="text-sm text-slate-500">
                                     Account Created
@@ -279,7 +318,68 @@ const EmployeeDetails = () => {
                     </div>
                 </div>
             </div>
+
+            <div className="mt-10">
+    <h2 className="text-2xl font-bold mb-4">
+        Recent Activity
+    </h2>
+
+    <div className="border rounded-xl overflow-hidden">
+        <table className="w-full">
+
+            <thead className="bg-gray-100">
+                <tr>
+                    <th className="text-left p-4">
+                        Admin
+                    </th>
+
+                    <th className="text-left p-4">
+                        Action
+                    </th>
+
+                    <th className="text-left p-4">
+                        Details
+                    </th>
+
+                    <th className="text-left p-4">
+                        Date
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {auditLogs.map((log) => (
+                    <tr
+                        key={log.id}
+                        className="border-t"
+                    >
+                        <td className="p-4">
+                            {log.actor_name}
+                        </td>
+
+                        <td className="p-4">
+                            {log.action}
+                        </td>
+
+                        <td className="p-4">
+                            {log.details}
+                        </td>
+
+                        <td className="p-4">
+                            {new Date(
+                                log.created_at
+                            ).toLocaleString()}
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+
+        </table>
+    </div>
+</div>
         </DashboardLayout>
+
+        
     );
 };
 

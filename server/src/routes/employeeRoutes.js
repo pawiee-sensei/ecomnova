@@ -11,7 +11,10 @@ const { getEmployees,
         updateEmployeeStatus,
         resetEmployeePassword,
         getAuditLogs,
-        getEmployeeAuditLogs
+        getEmployeeAuditLogs,
+        getDepartments,
+        getTeams,
+        getManagers
     } = require("../controllers/employeeController");
 
 const router = express.Router();
@@ -41,6 +44,26 @@ router.get(
     getEmployeeAuditLogs
 );
 
+router.get(
+    "/departments",
+    verifyToken,
+    authorizeRoles("admin", "super_admin"),
+    getDepartments
+);
+
+router.get(
+    "/teams",
+    verifyToken,
+    authorizeRoles("admin", "super_admin"),
+    getTeams
+);
+
+router.get(
+    "/managers",
+    verifyToken,
+    authorizeRoles("admin", "super_admin"),
+    getManagers
+);
 
 router.get(
     "/:id",

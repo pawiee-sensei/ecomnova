@@ -123,18 +123,30 @@ const getEmployeeById = (
 ) => {
     const sql = `
         SELECT
-            id,
-            employee_id,
-            fullname,
-            email,
-            role,
-            status,
-            department_id,
-            team_id,
-            manager_id,
-            created_at
+            users.id,
+            users.employee_id,
+            users.fullname,
+            users.email,
+            users.role,
+            users.status,
+            users.created_at,
+
+            departments.name AS department_name,
+            teams.name AS team_name,
+            manager.fullname AS manager_name
+
         FROM users
-        WHERE id = ?
+
+        LEFT JOIN departments
+            ON users.department_id = departments.id
+
+        LEFT JOIN teams
+            ON users.team_id = teams.id
+
+        LEFT JOIN users AS manager
+            ON users.manager_id = manager.id
+
+        WHERE users.id = ?
     `;
 
     db.query(sql, [id], callback);
@@ -306,6 +318,49 @@ const getEmployeeAuditLogs = (
     db.query(sql, [employeeId], callback);
 };
 
+/*
+  Fetch departments
+*/
+
+const getDepartments = (callback) => {
+    const sql = `
+        SELECT id, name
+        FROM departments
+        ORDER BY name ASC
+    `;
+
+    db.query(sql, callback);
+};
+
+/*
+  Fetch teams
+*/
+
+const getTeams = (callback) => {
+    const sql = `
+        SELECT id, name
+        FROM teams
+        ORDER BY name ASC
+    `;
+
+    db.query(sql, callback);
+};
+
+/*
+  Fetch managers
+*/
+
+const getManagers = (callback) => {
+    const sql = `
+        SELECT id, fullname
+        FROM users
+        WHERE role = 'manager'
+        ORDER BY fullname ASC
+    `;
+
+    db.query(sql, callback);
+};
+
 module.exports = {
     getAllEmployees,
     createEmployee,
@@ -315,5 +370,8 @@ module.exports = {
     resetEmployeePassword,
     createAuditLog,
     getAuditLogs,
-    getEmployeeAuditLogs
+    getEmployeeAuditLogs,
+    getDepartments,
+    getTeams,
+    getManagers
 };

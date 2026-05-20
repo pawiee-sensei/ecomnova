@@ -275,6 +275,48 @@ const getEmployeeAuditLogs = async (
     }
 };
 
+const getDepartments = async (req, res) => {
+    try {
+        const departments =
+            await employeeService.getDepartments();
+
+        res.status(200).json(departments);
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Failed to fetch departments"
+        });
+    }
+};
+
+const getTeams = async (req, res) => {
+    try {
+        const teams =
+            await employeeService.getTeams();
+
+        res.status(200).json(teams);
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Failed to fetch teams"
+        });
+    }
+};
+
+const getManagers = async (req, res) => {
+    try {
+        const managers =
+            await employeeService.getManagers();
+
+        res.status(200).json(managers);
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Failed to fetch managers"
+        });
+    }
+};
+
 module.exports = {
     getEmployees,
     createEmployee,
@@ -283,5 +325,8 @@ module.exports = {
     updateEmployeeStatus,
     resetEmployeePassword,
     getAuditLogs,
-    getEmployeeAuditLogs
+    getEmployeeAuditLogs,
+    getDepartments,
+    getTeams,
+    getManagers
 };

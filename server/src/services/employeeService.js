@@ -198,6 +198,39 @@ const getEmployeeAuditLogs = async (
     });
 };
 
+const getDepartments = async () => {
+    return new Promise((resolve, reject) => {
+        employeeModel.getDepartments(
+            (err, results) => {
+                if (err) return reject(err);
+                resolve(results);
+            }
+        );
+    });
+};
+
+const getTeams = async () => {
+    return new Promise((resolve, reject) => {
+        employeeModel.getTeams(
+            (err, results) => {
+                if (err) return reject(err);
+                resolve(results);
+            }
+        );
+    });
+};
+
+const getManagers = async () => {
+    return new Promise((resolve, reject) => {
+        employeeModel.getManagers(
+            (err, results) => {
+                if (err) return reject(err);
+                resolve(results);
+            }
+        );
+    });
+};
+
 module.exports = {
     getEmployees,
     createEmployee,
@@ -207,5 +240,8 @@ module.exports = {
     resetEmployeePassword,
     createAuditLog,
     getAuditLogs,
-    getEmployeeAuditLogs
+    getEmployeeAuditLogs,
+    getDepartments,
+    getTeams,
+    getManagers
 };

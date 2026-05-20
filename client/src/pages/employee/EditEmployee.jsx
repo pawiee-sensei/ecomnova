@@ -19,37 +19,76 @@ const EditEmployee = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
-    useEffect(() => {
-        const fetchEmployee = async () => {
-            try {
-                const response = await api.get(
-                    `/admin/employees/${id}`
-                );
+    const [departments, setDepartments] = useState([]);
 
-                setFormData({
-                    fullname: response.data.fullname || "",
-                    email: response.data.email || "",
-                    role: response.data.role || "",
-                    department_id:
-                        response.data.department_id || "",
-                    team_id:
-                        response.data.team_id || "",
-                    manager_id:
-                        response.data.manager_id || ""
-                });
+    const [teams, setTeams] = useState([]);
 
-            } catch (error) {
-                console.error(
-                    "Employee fetch failed:",
-                    error
-                );
-            } finally {
-                setLoading(false);
-            }
-        };
+    const [managers, setManagers] = useState([]);
 
-        fetchEmployee();
-    }, [id]);
+useEffect(() => {
+    const fetchEmployee = async () => {
+        try {
+            /*
+              Fetch employee profile + lookup data together
+            */
+            const [
+                employeeResponse,
+                departmentsResponse,
+                teamsResponse,
+                managersResponse
+            ] = await Promise.all([
+                api.get(`/admin/employees/${id}`),
+                api.get("/admin/employees/departments"),
+                api.get("/admin/employees/teams"),
+                api.get("/admin/employees/managers")
+            ]);
+
+            /*
+              Prefill employee form
+            */
+            setFormData({
+                fullname:
+                    employeeResponse.data.fullname || "",
+                email:
+                    employeeResponse.data.email || "",
+                role:
+                    employeeResponse.data.role || "",
+                department_id:
+                    employeeResponse.data.department_id || "",
+                team_id:
+                    employeeResponse.data.team_id || "",
+                manager_id:
+                    employeeResponse.data.manager_id || ""
+            });
+
+            /*
+              Populate dropdowns
+            */
+            setDepartments(
+                departmentsResponse.data
+            );
+
+            setTeams(
+                teamsResponse.data
+            );
+
+            setManagers(
+                managersResponse.data
+            );
+
+        } catch (error) {
+            console.error(
+                "Employee fetch failed:",
+                error
+            );
+
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    fetchEmployee();
+}, [id]);
 
     const handleChange = (e) => {
         setFormData({
@@ -193,14 +232,20 @@ const EditEmployee = () => {
                                 name="department_id"
                                 value={formData.department_id}
                                 onChange={handleChange}
-                                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                className="w-full border p-4 rounded-lg"
                             >
-                                <option value="">Unassigned Department</option>
-                                <option value="1">Technical Support</option>
-                                <option value="2">Billing</option>
-                                <option value="3">Retention</option>
-                                <option value="4">QA</option>
-                                <option value="5">HR</option>
+                                <option value="">
+                                    Unassigned Department
+                                </option>
+
+                                {departments.map((department) => (
+                                    <option
+                                        key={department.id}
+                                        value={department.id}
+                                    >
+                                        {department.name}
+                                    </option>
+                                ))}
                             </select>
                         </label>
 
@@ -213,12 +258,20 @@ const EditEmployee = () => {
                                 name="team_id"
                                 value={formData.team_id}
                                 onChange={handleChange}
-                                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                className="w-full border p-4 rounded-lg"
                             >
-                                <option value="">Unassigned Team</option>
-                                <option value="1">Team Alpha</option>
-                                <option value="2">Team Bravo</option>
-                                <option value="3">Team Charlie</option>
+                                <option value="">
+                                    Unassigned Team
+                                </option>
+
+                                {teams.map((team) => (
+                                    <option
+                                        key={team.id}
+                                        value={team.id}
+                                    >
+                                        {team.name}
+                                    </option>
+                                ))}
                             </select>
                         </label>
 
@@ -231,11 +284,20 @@ const EditEmployee = () => {
                                 name="manager_id"
                                 value={formData.manager_id}
                                 onChange={handleChange}
-                                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                className="w-full border p-4 rounded-lg"
                             >
-                                <option value="">Unassigned Manager</option>
-                                <option value="1">Admin User</option>
-                                <option value="2">John Manager</option>
+                                <option value="">
+                                    Unassigned Manager
+                                </option>
+
+                                {managers.map((manager) => (
+                                    <option
+                                        key={manager.id}
+                                        value={manager.id}
+                                    >
+                                        {manager.fullname}
+                                    </option>
+                                ))}
                             </select>
                         </label>
                     </div>
