@@ -71,7 +71,42 @@ const createTeam = (
     );
 };
 
+/*
+  Fetch departments
+*/
+
+const getDepartments = (callback) => {
+    const sql = `
+        SELECT id, name
+        FROM departments
+        WHERE status = 'active'
+        ORDER BY name ASC
+    `;
+
+    db.query(sql, callback);
+};
+
+/*
+  Fetch eligible team leaders
+*/
+
+const getTeamLeaders = (callback) => {
+    const sql = `
+        SELECT
+            id,
+            fullname
+        FROM users
+        WHERE role = 'leader'
+        AND status = 'active'
+        ORDER BY fullname ASC
+    `;
+
+    db.query(sql, callback);
+};
+
 module.exports = {
     getTeams,
-    createTeam
+    createTeam,
+    getDepartments,
+    getTeamLeaders
 };

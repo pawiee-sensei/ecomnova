@@ -4,10 +4,29 @@ const verifyToken = require("../middleware/authMiddleware");
 const authorizeRoles = require("../middleware/roleMiddleware");
 
 const {
+    getDepartments,
+    getTeamLeaders
+    } = require("../controllers/teamController");
+
+const {
     getTeams,
     createTeam
 } = require(
     "../controllers/teamController"
+);
+
+router.get(
+    "/departments",
+    verifyToken,
+    authorizeRoles("admin", "super_admin"),
+    getDepartments
+);
+
+router.get(
+    "/leaders",
+    verifyToken,
+    authorizeRoles("admin", "super_admin"),
+    getTeamLeaders
 );
 
 router.get(

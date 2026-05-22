@@ -42,7 +42,45 @@ const createTeam = async (
     }
 };
 
+const getDepartments = async (
+    req,
+    res
+) => {
+    try {
+        const departments =
+            await teamService.getDepartments();
+
+        res.status(200).json(departments);
+
+    } catch (error) {
+        res.status(500).json({
+            message:
+                "Failed to fetch departments"
+        });
+    }
+};
+
+const getTeamLeaders = async (
+    req,
+    res
+) => {
+    try {
+        const leaders =
+            await teamService.getTeamLeaders();
+
+        res.status(200).json(leaders);
+
+    } catch (error) {
+        res.status(500).json({
+            message:
+                "Failed to fetch team leaders"
+        });
+    }
+};
+
 module.exports = {
     getTeams,
-    createTeam
+    createTeam,
+    getDepartments,
+    getTeamLeaders
 };

@@ -29,7 +29,33 @@ const createTeam = async (
     });
 };
 
+const getDepartments = async () => {
+    return new Promise((resolve, reject) => {
+        teamModel.getDepartments(
+            (err, results) => {
+                if (err) return reject(err);
+
+                resolve(results);
+            }
+        );
+    });
+};
+
+const getTeamLeaders = async () => {
+    return new Promise((resolve, reject) => {
+        teamModel.getTeamLeaders(
+            (err, results) => {
+                if (err) return reject(err);
+
+                resolve(results);
+            }
+        );
+    });
+};
+
 module.exports = {
     getTeams,
-    createTeam
+    createTeam,
+    getDepartments,
+    getTeamLeaders
 };
