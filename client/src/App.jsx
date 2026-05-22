@@ -20,6 +20,7 @@ import Departments from "./pages/department/Departments";
 import EditDepartment from "./pages/department/EditDepartment";
 
 import Teams from "./pages/team/Teams";
+import EditTeam from "./pages/team/EditTeam";
 
 import AuthLoader from "./components/AuthLoader";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -31,6 +32,15 @@ function App() {
 
             <AuthLoader />
                 <Routes>
+
+                    <Route
+                        path="/admin/teams/edit/:id"
+                        element={
+                            <ProtectedRoute roles={["admin"]}>
+                                <EditTeam />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     <Route
                         path="/admin/teams"

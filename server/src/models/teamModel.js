@@ -104,9 +104,176 @@ const getTeamLeaders = (callback) => {
     db.query(sql, callback);
 };
 
+/*
+  Fetch one team
+*/
+
+const getTeamById = (
+    id,
+    callback
+) => {
+    const sql = `
+        SELECT
+            id,
+            name,
+            code,
+            department_id,
+            description,
+            leader_id,
+            status
+        FROM teams
+        WHERE id = ?
+    `;
+
+    db.query(sql, [id], callback);
+};
+
+/*
+  Update team
+*/
+
+const updateTeam = (
+    id,
+    teamData,
+    callback
+) => {
+    const sql = `
+        UPDATE teams
+        SET
+            name = ?,
+            code = ?,
+            department_id = ?,
+            description = ?,
+            leader_id = ?,
+            status = ?
+        WHERE id = ?
+    `;
+
+    db.query(
+        sql,
+        [
+            teamData.name,
+            teamData.code || null,
+            teamData.department_id || null,
+            teamData.description || null,
+            teamData.leader_id || null,
+            teamData.status,
+            id
+        ],
+        callback
+    );
+};
+
+/*
+  Fetch team members
+*/
+
+const getTeamMembers = (
+    teamId,
+    callback
+) => {
+    const sql = `
+        SELECT
+            id,
+            employee_id,
+            fullname,
+            email,
+            role,
+            status
+        FROM users
+        WHERE team_id = ?
+        ORDER BY fullname ASC
+    `;
+
+    db.query(
+        sql,
+        [teamId],
+        callback
+    );
+};
+
+/*
+  Fetch available employees
+  Employees not yet assigned to teams
+*/
+
+const getAvailableEmployees = (
+    callback
+) => {
+    const sql = `
+        SELECT
+            id,
+            employee_id,
+            fullname,
+            email,
+            role,
+            department_id
+        FROM users
+        WHERE team_id IS NULL
+        AND role IN (
+            'agent',
+            'qa',
+            'leader'
+        )
+        AND status = 'active'
+        ORDER BY fullname ASC
+    `;
+
+    db.query(sql, callback);
+};
+
+/*
+  Bulk assign employees to team
+*/
+
+const assignMembersToTeam = (
+    teamId,
+    employeeIds,
+    callback
+) => {
+    const sql = `
+        UPDATE users
+        SET team_id = ?
+        WHERE id IN (?)
+    `;
+
+    db.query(
+        sql,
+        [teamId, employeeIds],
+        callback
+    );
+};
+
+/*
+  Remove one employee from team
+*/
+
+const removeMemberFromTeam = (
+    employeeId,
+    callback
+) => {
+    const sql = `
+        UPDATE users
+        SET team_id = NULL
+        WHERE id = ?
+    `;
+
+    db.query(
+        sql,
+        [employeeId],
+        callback
+    );
+};
+
 module.exports = {
     getTeams,
     createTeam,
     getDepartments,
-    getTeamLeaders
+    getTeamLeaders,
+    getTeamById,
+    updateTeam,
+    getTeamMembers,
+    getAvailableEmployees,
+    assignMembersToTeam,
+    removeMemberFromTeam
 };
