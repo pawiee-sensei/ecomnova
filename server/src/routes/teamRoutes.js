@@ -52,17 +52,17 @@ router.post(
 );
 
 router.get(
-    "/available-employees",
-    verifyToken,
-    authorizeRoles("admin", "super_admin"),
-    getAvailableEmployees
-);
-
-router.get(
     "/:id/members",
     verifyToken,
     authorizeRoles("admin", "super_admin"),
     getTeamMembers
+);
+
+router.get(
+    "/:id/available-employees",
+    verifyToken,
+    authorizeRoles("admin", "super_admin"),
+    getAvailableEmployees
 );
 
 router.put(

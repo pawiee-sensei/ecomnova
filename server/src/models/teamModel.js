@@ -194,32 +194,72 @@ const getTeamMembers = (
 
 /*
   Fetch available employees
-  Employees not yet assigned to teams
+  Employees not yet assigned to teams in the same department
 */
 
 const getAvailableEmployees = (
+    teamId,
     callback
 ) => {
     const sql = `
         SELECT
-            id,
-            employee_id,
-            fullname,
-            email,
-            role,
-            department_id
+            users.id,
+            users.employee_id,
+            users.fullname,
+            users.email,
+            users.role,
+            users.department_id
         FROM users
-        WHERE team_id IS NULL
-        AND role IN (
+        INNER JOIN teams
+            ON teams.id = ?
+        WHERE users.team_id IS NULL
+        AND users.department_id = teams.department_id
+        AND users.role IN (
             'agent',
             'qa',
             'leader'
         )
-        AND status = 'active'
-        ORDER BY fullname ASC
+        AND users.status = 'active'
+        ORDER BY users.fullname ASC
     `;
 
-    db.query(sql, callback);
+    db.query(
+        sql,
+        [teamId],
+        callback
+    );
+};
+
+/*
+  Count employees eligible for assignment to a team
+*/
+
+const countAssignableMembers = (
+    teamId,
+    employeeIds,
+    callback
+) => {
+    const sql = `
+        SELECT COUNT(*) AS eligible_count
+        FROM users
+        INNER JOIN teams
+            ON teams.id = ?
+        WHERE users.id IN (?)
+        AND users.team_id IS NULL
+        AND users.department_id = teams.department_id
+        AND users.status = 'active'
+        AND users.role IN (
+            'agent',
+            'qa',
+            'leader'
+        )
+    `;
+
+    db.query(
+        sql,
+        [teamId, employeeIds],
+        callback
+    );
 };
 
 /*
@@ -233,8 +273,18 @@ const assignMembersToTeam = (
 ) => {
     const sql = `
         UPDATE users
-        SET team_id = ?
-        WHERE id IN (?)
+        INNER JOIN teams
+            ON teams.id = ?
+        SET users.team_id = teams.id
+        WHERE users.id IN (?)
+        AND users.team_id IS NULL
+        AND users.department_id = teams.department_id
+        AND users.status = 'active'
+        AND users.role IN (
+            'agent',
+            'qa',
+            'leader'
+        )
     `;
 
     db.query(
@@ -274,6 +324,7 @@ module.exports = {
     updateTeam,
     getTeamMembers,
     getAvailableEmployees,
+    countAssignableMembers,
     assignMembersToTeam,
     removeMemberFromTeam
 };

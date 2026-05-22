@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import api from "../../services/api";
+
+const PAGE_SIZE = 8;
 
 const Departments = () => {
     const [departments, setDepartments] = useState([]);
@@ -9,6 +11,8 @@ const Departments = () => {
     const [selectedMembers, setSelectedMembers] = useState([]);
     const [showMembers, setShowMembers] = useState(false);
     const [selectedDepartment, setSelectedDepartment] = useState("");
+    const [departmentPage, setDepartmentPage] = useState(1);
+    const [showCreateDepartment, setShowCreateDepartment] = useState(false);
 
     const [formData, setFormData] = useState({
         name: "",
@@ -26,6 +30,23 @@ const Departments = () => {
             console.error("Department fetch failed:", error);
         }
     };
+
+    const departmentPageCount = Math.max(
+        1,
+        Math.ceil(departments.length / PAGE_SIZE)
+    );
+
+    const paginatedDepartments = useMemo(() => {
+        const start = (departmentPage - 1) * PAGE_SIZE;
+
+        return departments.slice(start, start + PAGE_SIZE);
+    }, [departmentPage, departments]);
+
+    useEffect(() => {
+        setDepartmentPage((page) =>
+            Math.min(page, departmentPageCount)
+        );
+    }, [departmentPageCount]);
 
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -72,6 +93,7 @@ const Departments = () => {
                 head_id: "",
                 status: "active"
             });
+            setShowCreateDepartment(false);
         } catch (error) {
             console.error("Department creation failed:", error);
             alert(
@@ -114,176 +136,135 @@ const Departments = () => {
                 </p>
             </div>
 
-            <div className="mb-10 rounded-xl border p-6">
-                <h2 className="text-xl font-semibold">
-                    Create Department
-                </h2>
+            <div>
+                <div className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <div className="flex flex-col gap-4 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h2 className="text-lg font-semibold text-slate-950">
+                                Department Directory
+                            </h2>
 
-                <form
-                    onSubmit={handleSubmit}
-                    className="mt-5 grid gap-4 lg:grid-cols-2"
-                >
-                    <label className="space-y-2">
-                        <span className="text-sm font-medium text-gray-700">
-                            Department Name
-                        </span>
+                            <p className="text-sm text-slate-500">
+                                {departments.length} total departments
+                            </p>
+                        </div>
 
-                        <input
-                            type="text"
-                            name="name"
-                            placeholder="Sales"
-                            value={formData.name}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border p-4"
-                            required
-                        />
-                    </label>
-
-                    <label className="space-y-2">
-                        <span className="text-sm font-medium text-gray-700">
-                            Department Code
-                        </span>
-
-                        <input
-                            type="text"
-                            name="code"
-                            placeholder="SALES"
-                            value={formData.code}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border p-4"
-                        />
-                    </label>
-
-                    <label className="space-y-2">
-                        <span className="text-sm font-medium text-gray-700">
-                            Department Head
-                        </span>
-
-                        <select
-                            name="head_id"
-                            value={formData.head_id}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border bg-white p-4"
+                        <button
+                            type="button"
+                            onClick={() => setShowCreateDepartment(true)}
+                            className="rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
                         >
-                            <option value="">
-                                Unassigned Department Head
-                            </option>
-
-                            {heads.map((head) => (
-                                <option
-                                    key={head.id}
-                                    value={head.id}
-                                    disabled={Boolean(
-                                        head.headed_department_id
-                                    )}
-                                    className={
-                                        head.headed_department_id
-                                            ? "text-gray-400"
-                                            : "text-gray-900"
-                                    }
-                                >
-                                    {head.fullname} ({head.role})
-                                    {head.headed_department_name
-                                        ? ` - already heads ${head.headed_department_name}`
-                                        : ""}
-                                </option>
-                            ))}
-                        </select>
-
-                        <p className="text-xs text-gray-500">
-                            People already heading another department are shown but cannot be selected.
-                        </p>
-                    </label>
-
-                    <label className="space-y-2">
-                        <span className="text-sm font-medium text-gray-700">
-                            Status
-                        </span>
-
-                        <select
-                            name="status"
-                            value={formData.status}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border bg-white p-4"
-                        >
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="archived">Archived</option>
-                        </select>
-                    </label>
-
-                    <label className="space-y-2 lg:col-span-2">
-                        <span className="text-sm font-medium text-gray-700">
-                            Description
-                        </span>
-
-                        <textarea
-                            name="description"
-                            placeholder="Describe the department's BPO responsibility."
-                            value={formData.description}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border p-4"
-                        />
-                    </label>
-
-                    <div className="lg:col-span-2">
-                        <button className="rounded-lg bg-black px-6 py-3 text-white">
                             Create Department
                         </button>
                     </div>
-                </form>
-            </div>
 
-            <div className="overflow-hidden rounded-xl border">
-                <table className="w-full min-w-[920px]">
-                    <thead className="bg-gray-100">
-                        <tr>
-                            <th className="p-4 text-left">Name</th>
-                            <th className="p-4 text-left">Code</th>
-                            <th className="p-4 text-left">Head</th>
-                            <th className="p-4 text-left">Members</th>
-                            <th className="p-4 text-left">Status</th>
-                            <th className="p-4 text-left">Created</th>
-                            <th className="p-4 text-left">Actions</th>
-                        </tr>
-                    </thead>
+                    <div className="hidden lg:block">
+                        <table className="w-full table-fixed">
+                            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                                <tr>
+                                    <th className="w-[24%] px-4 py-3 text-left font-semibold">Name</th>
+                                    <th className="w-[12%] px-4 py-3 text-left font-semibold">Code</th>
+                                    <th className="w-[24%] px-4 py-3 text-left font-semibold">Head</th>
+                                    <th className="w-[12%] px-4 py-3 text-left font-semibold">Members</th>
+                                    <th className="w-[14%] px-4 py-3 text-left font-semibold">Status</th>
+                                    <th className="w-[14%] px-4 py-3 text-right font-semibold">Actions</th>
+                                </tr>
+                            </thead>
 
-                    <tbody>
-                        {departments.map((department) => (
-                            <tr
+                            <tbody className="divide-y divide-slate-100">
+                                {paginatedDepartments.map((department) => (
+                                    <tr
+                                        key={department.id}
+                                        className="transition hover:bg-slate-50"
+                                    >
+                                        <td className="px-4 py-4 font-medium text-slate-950">
+                                            {department.name}
+                                        </td>
+
+                                        <td className="px-4 py-4 text-sm text-slate-600">
+                                            {department.code || "-"}
+                                        </td>
+
+                                        <td className="px-4 py-4 text-sm text-slate-600">
+                                            {department.head_name || "Unassigned"}
+                                        </td>
+
+                                        <td className="px-4 py-4 text-sm text-slate-600">
+                                            {department.member_count || 0}
+                                        </td>
+
+                                        <td className="px-4 py-4">
+                                            <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold capitalize text-emerald-700">
+                                                {department.status}
+                                            </span>
+                                        </td>
+
+                                        <td className="px-4 py-4">
+                                            <div className="flex justify-end gap-2 whitespace-nowrap">
+                                                <Link
+                                                    to={`/admin/departments/edit/${department.id}`}
+                                                    className="rounded-lg bg-slate-950 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800"
+                                                >
+                                                    Edit
+                                                </Link>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleViewMembers(
+                                                            department.id,
+                                                            department.name
+                                                        )
+                                                    }
+                                                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                                                >
+                                                    Members
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div className="divide-y divide-slate-100 lg:hidden">
+                        {paginatedDepartments.map((department) => (
+                            <div
                                 key={department.id}
-                                className="border-t"
+                                className="p-5"
                             >
-                                <td className="p-4 font-medium">
-                                    {department.name}
-                                </td>
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <h3 className="font-semibold text-slate-950">
+                                            {department.name}
+                                        </h3>
 
-                                <td className="p-4">
-                                    {department.code || "-"}
-                                </td>
+                                        <p className="mt-1 text-sm text-slate-500">
+                                            {department.code || "No code"} / {department.head_name || "Unassigned"}
+                                        </p>
+                                    </div>
 
-                                <td className="p-4">
-                                    {department.head_name || "Unassigned"}
-                                </td>
+                                    <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold capitalize text-emerald-700">
+                                        {department.status}
+                                    </span>
+                                </div>
 
-                                <td className="p-4">
-                                    {department.member_count || 0}
-                                </td>
+                                <dl className="mt-4 text-sm">
+                                    <div>
+                                        <dt className="text-xs font-semibold uppercase text-slate-400">
+                                            Members
+                                        </dt>
+                                        <dd className="mt-1 text-slate-700">
+                                            {department.member_count || 0}
+                                        </dd>
+                                    </div>
+                                </dl>
 
-                                <td className="p-4 capitalize">
-                                    {department.status}
-                                </td>
-
-                                <td className="p-4">
-                                    {new Date(
-                                        department.created_at
-                                    ).toLocaleDateString()}
-                                </td>
-
-                                <td className="flex gap-2 p-4">
+                                <div className="mt-4 flex gap-2">
                                     <Link
                                         to={`/admin/departments/edit/${department.id}`}
-                                        className="rounded-lg bg-black px-4 py-2 text-sm text-white"
+                                        className="rounded-lg bg-slate-950 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800"
                                     >
                                         Edit
                                     </Link>
@@ -296,100 +277,295 @@ const Departments = () => {
                                                 department.name
                                             )
                                         }
-                                        className="rounded-lg border px-4 py-2 text-sm"
+                                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                                     >
-                                        View Members
+                                        Members
                                     </button>
-                                </td>
-                            </tr>
+                                </div>
+                            </div>
                         ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {showMembers && (
-                <div className="mt-10 rounded-xl border p-6">
-                    <div className="mb-6 flex items-center justify-between">
-                        <div>
-                            <h2 className="text-2xl font-bold">
-                                {selectedDepartment} Members
-                            </h2>
-
-                            <p className="mt-1 text-sm text-gray-500">
-                                Only employees assigned to this department are shown.
-                            </p>
-                        </div>
-
-                        <button
-                            type="button"
-                            onClick={() => setShowMembers(false)}
-                            className="rounded-lg border px-4 py-2"
-                        >
-                            Close
-                        </button>
                     </div>
 
-                    <table className="w-full min-w-[760px]">
-                        <thead className="bg-gray-100">
-                            <tr>
-                                <th className="p-4 text-left">Employee ID</th>
-                                <th className="p-4 text-left">Name</th>
-                                <th className="p-4 text-left">Email</th>
-                                <th className="p-4 text-left">Role</th>
-                                <th className="p-4 text-left">Assignment</th>
-                                <th className="p-4 text-left">Status</th>
-                            </tr>
-                        </thead>
+                    {departments.length > 0 && (
+                        <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-sm text-slate-500">
+                                Showing {(departmentPage - 1) * PAGE_SIZE + 1}-
+                                {Math.min(
+                                    departmentPage * PAGE_SIZE,
+                                    departments.length
+                                )}{" "}
+                                of {departments.length} departments
+                            </p>
 
-                        <tbody>
-                            {selectedMembers.map((member) => (
-                                <tr
-                                    key={member.id}
-                                    className="border-t"
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setDepartmentPage((page) =>
+                                            Math.max(1, page - 1)
+                                        )
+                                    }
+                                    disabled={departmentPage === 1}
+                                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50"
                                 >
-                                    <td className="p-4">
-                                        {member.employee_id}
-                                    </td>
+                                    Previous
+                                </button>
 
-                                    <td className="p-4">
-                                        <Link
-                                            to={`/admin/employees/${member.id}`}
-                                            className="font-medium text-blue-600 hover:underline"
+                                <span className="text-sm font-medium text-slate-600">
+                                    Page {departmentPage} of {departmentPageCount}
+                                </span>
+
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setDepartmentPage((page) =>
+                                            Math.min(
+                                                departmentPageCount,
+                                                page + 1
+                                            )
+                                        )
+                                    }
+                                    disabled={
+                                        departmentPage === departmentPageCount
+                                    }
+                                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {showCreateDepartment && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
+                    <div className="max-h-[88vh] w-full max-w-xl overflow-hidden rounded-xl bg-white shadow-xl">
+                        <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-5">
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-950">
+                                    Create Department
+                                </h2>
+
+                                <p className="mt-1 text-sm text-slate-500">
+                                    Add a department and assign an optional head.
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setShowCreateDepartment(false)
+                                }
+                                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                            >
+                                Close
+                            </button>
+                        </div>
+
+                        <form
+                            onSubmit={handleSubmit}
+                            className="grid max-h-[72vh] gap-4 overflow-auto p-5 sm:grid-cols-2"
+                        >
+                            <label className="space-y-2">
+                                <span className="text-sm font-medium text-slate-700">
+                                    Department Name
+                                </span>
+
+                                <input
+                                    type="text"
+                                    name="name"
+                                    placeholder="Sales"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    className="w-full rounded-lg border border-slate-200 p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                    required
+                                />
+                            </label>
+
+                            <label className="space-y-2">
+                                <span className="text-sm font-medium text-slate-700">
+                                    Department Code
+                                </span>
+
+                                <input
+                                    type="text"
+                                    name="code"
+                                    placeholder="SALES"
+                                    value={formData.code}
+                                    onChange={handleChange}
+                                    className="w-full rounded-lg border border-slate-200 p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                />
+                            </label>
+
+                            <label className="space-y-2">
+                                <span className="text-sm font-medium text-slate-700">
+                                    Department Head
+                                </span>
+
+                                <select
+                                    name="head_id"
+                                    value={formData.head_id}
+                                    onChange={handleChange}
+                                    className="w-full rounded-lg border border-slate-200 bg-white p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                >
+                                    <option value="">
+                                        Unassigned Department Head
+                                    </option>
+
+                                    {heads.map((head) => (
+                                        <option
+                                            key={head.id}
+                                            value={head.id}
+                                            disabled={Boolean(
+                                                head.headed_department_id
+                                            )}
                                         >
-                                            {member.fullname}
-                                        </Link>
-                                    </td>
+                                            {head.fullname} ({head.role})
+                                            {head.headed_department_name
+                                                ? ` - already heads ${head.headed_department_name}`
+                                                : ""}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
 
-                                    <td className="p-4">
-                                        {member.email}
-                                    </td>
+                            <label className="space-y-2">
+                                <span className="text-sm font-medium text-slate-700">
+                                    Status
+                                </span>
 
-                                    <td className="p-4 capitalize">
-                                        {member.role}
-                                    </td>
+                                <select
+                                    name="status"
+                                    value={formData.status}
+                                    onChange={handleChange}
+                                    className="w-full rounded-lg border border-slate-200 bg-white p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                >
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                    <option value="archived">Archived</option>
+                                </select>
+                            </label>
 
-                                    <td className="p-4">
-                                        {member.assignment_label}
-                                    </td>
+                            <label className="space-y-2 sm:col-span-2">
+                                <span className="text-sm font-medium text-slate-700">
+                                    Description
+                                </span>
 
-                                    <td className="p-4 capitalize">
-                                        {member.status}
-                                    </td>
-                                </tr>
-                            ))}
+                                <textarea
+                                    name="description"
+                                    rows="3"
+                                    placeholder="Describe this department."
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    className="w-full rounded-lg border border-slate-200 p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                />
+                            </label>
 
-                            {selectedMembers.length === 0 && (
-                                <tr>
-                                    <td
-                                        colSpan="6"
-                                        className="p-6 text-center text-sm text-gray-500"
-                                    >
-                                        No employees are assigned to this department yet.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                            <div className="flex justify-end gap-2 sm:col-span-2">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setShowCreateDepartment(false)
+                                    }
+                                    className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                                >
+                                    Cancel
+                                </button>
+
+                                <button className="rounded-lg bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800">
+                                    Create Department
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {showMembers && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
+                    <div className="max-h-[85vh] w-full max-w-5xl overflow-hidden rounded-xl bg-white shadow-xl">
+                        <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-5">
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-950">
+                                    {selectedDepartment} Members
+                                </h2>
+
+                                <p className="mt-1 text-sm text-slate-500">
+                                    Only employees assigned to this department are shown.
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => setShowMembers(false)}
+                                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                            >
+                                Close
+                            </button>
+                        </div>
+
+                        <div className="max-h-[65vh] overflow-auto">
+                            <table className="w-full min-w-[760px]">
+                                <thead className="sticky top-0 bg-slate-50 text-xs uppercase text-slate-500">
+                                    <tr>
+                                        <th className="px-5 py-3 text-left font-semibold">Employee ID</th>
+                                        <th className="px-5 py-3 text-left font-semibold">Name</th>
+                                        <th className="px-5 py-3 text-left font-semibold">Email</th>
+                                        <th className="px-5 py-3 text-left font-semibold">Role</th>
+                                        <th className="px-5 py-3 text-left font-semibold">Assignment</th>
+                                        <th className="px-5 py-3 text-left font-semibold">Status</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody className="divide-y divide-slate-100">
+                                    {selectedMembers.map((member) => (
+                                        <tr key={member.id}>
+                                            <td className="px-5 py-4 text-sm text-slate-600">
+                                                {member.employee_id}
+                                            </td>
+
+                                            <td className="px-5 py-4">
+                                                <Link
+                                                    to={`/admin/employees/${member.id}`}
+                                                    className="font-medium text-slate-950 hover:underline"
+                                                >
+                                                    {member.fullname}
+                                                </Link>
+                                            </td>
+
+                                            <td className="px-5 py-4 text-sm text-slate-600">
+                                                {member.email}
+                                            </td>
+
+                                            <td className="px-5 py-4 text-sm capitalize text-slate-700">
+                                                {member.role}
+                                            </td>
+
+                                            <td className="px-5 py-4 text-sm text-slate-600">
+                                                {member.assignment_label}
+                                            </td>
+
+                                            <td className="px-5 py-4 text-sm capitalize text-slate-700">
+                                                {member.status}
+                                            </td>
+                                        </tr>
+                                    ))}
+
+                                    {selectedMembers.length === 0 && (
+                                        <tr>
+                                            <td
+                                                colSpan="6"
+                                                className="px-5 py-10 text-center text-sm text-slate-500"
+                                            >
+                                                No employees are assigned to this department yet.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             )}
         </DashboardLayout>

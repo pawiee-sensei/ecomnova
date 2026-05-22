@@ -100,9 +100,12 @@ const getTeamMembers = async (
     });
 };
 
-const getAvailableEmployees = async () => {
+const getAvailableEmployees = async (
+    teamId
+) => {
     return new Promise((resolve, reject) => {
         teamModel.getAvailableEmployees(
+            teamId,
             (err, results) => {
                 if (err) return reject(err);
 
@@ -112,16 +115,71 @@ const getAvailableEmployees = async () => {
     });
 };
 
+const countAssignableMembers = async (
+    teamId,
+    employeeIds
+) => {
+    return new Promise((resolve, reject) => {
+        teamModel.countAssignableMembers(
+            teamId,
+            employeeIds,
+            (err, results) => {
+                if (err) return reject(err);
+
+                resolve(
+                    results[0].eligible_count
+                );
+            }
+        );
+    });
+};
+
 const assignMembersToTeam = async (
     teamId,
     employeeIds
 ) => {
+    if (!Array.isArray(employeeIds) || employeeIds.length === 0) {
+        const error = new Error(
+            "No employees selected"
+        );
+
+        error.statusCode = 400;
+
+        throw error;
+    }
+
+    const eligibleCount =
+        await countAssignableMembers(
+            teamId,
+            employeeIds
+        );
+
+    if (eligibleCount !== employeeIds.length) {
+        const error = new Error(
+            "One or more employees are not eligible for this team"
+        );
+
+        error.statusCode = 400;
+
+        throw error;
+    }
+
     return new Promise((resolve, reject) => {
         teamModel.assignMembersToTeam(
             teamId,
             employeeIds,
             (err, result) => {
                 if (err) return reject(err);
+
+                if (result.affectedRows !== employeeIds.length) {
+                    const error = new Error(
+                        "One or more employees are not eligible for this team"
+                    );
+
+                    error.statusCode = 400;
+
+                    return reject(error);
+                }
 
                 resolve(result);
             }

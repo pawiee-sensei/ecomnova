@@ -10,6 +10,8 @@ const statusStyles = {
     terminated: "bg-rose-50 text-rose-700 ring-rose-200"
 };
 
+const PAGE_SIZE = 10;
+
 const Employees = () => {
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -17,6 +19,8 @@ const Employees = () => {
     const [roleFilter, setRoleFilter] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
     const [auditLogs, setAuditLogs] = useState([]);
+    const [employeePage, setEmployeePage] = useState(1);
+    const [auditPage, setAuditPage] = useState(1);
 
     const stats = useMemo(() => {
         const active = employees.filter(
@@ -29,6 +33,28 @@ const Employees = () => {
             inactive: employees.length - active
         };
     }, [employees]);
+
+    const employeePageCount = Math.max(
+        1,
+        Math.ceil(employees.length / PAGE_SIZE)
+    );
+
+    const auditPageCount = Math.max(
+        1,
+        Math.ceil(auditLogs.length / PAGE_SIZE)
+    );
+
+    const paginatedEmployees = useMemo(() => {
+        const start = (employeePage - 1) * PAGE_SIZE;
+
+        return employees.slice(start, start + PAGE_SIZE);
+    }, [employeePage, employees]);
+
+    const paginatedAuditLogs = useMemo(() => {
+        const start = (auditPage - 1) * PAGE_SIZE;
+
+        return auditLogs.slice(start, start + PAGE_SIZE);
+    }, [auditLogs, auditPage]);
 
     const fetchAuditLogs = useCallback(async () => {
         const auditResponse = await api.get(
@@ -62,6 +88,22 @@ const Employees = () => {
 
         fetchEmployees();
     }, [search, roleFilter, statusFilter, fetchAuditLogs]);
+
+    useEffect(() => {
+        setEmployeePage(1);
+    }, [search, roleFilter, statusFilter]);
+
+    useEffect(() => {
+        setEmployeePage((page) =>
+            Math.min(page, employeePageCount)
+        );
+    }, [employeePageCount]);
+
+    useEffect(() => {
+        setAuditPage((page) =>
+            Math.min(page, auditPageCount)
+        );
+    }, [auditPageCount]);
 
     const handleStatusChange = async (
         employeeId,
@@ -250,7 +292,7 @@ const Employees = () => {
                                         </td>
                                     </tr>
                                 ) : (
-                                    employees.map((employee) => (
+                                    paginatedEmployees.map((employee) => (
                                         <tr
                                             key={employee.id}
                                             className="transition hover:bg-slate-50"
@@ -352,6 +394,56 @@ const Employees = () => {
                             </tbody>
                         </table>
                     </div>
+
+                    {employees.length > 0 && (
+                        <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-sm text-slate-500">
+                                Showing {(employeePage - 1) * PAGE_SIZE + 1}-
+                                {Math.min(
+                                    employeePage * PAGE_SIZE,
+                                    employees.length
+                                )}{" "}
+                                of {employees.length} employees
+                            </p>
+
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setEmployeePage((page) =>
+                                            Math.max(1, page - 1)
+                                        )
+                                    }
+                                    disabled={employeePage === 1}
+                                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50"
+                                >
+                                    Previous
+                                </button>
+
+                                <span className="text-sm font-medium text-slate-600">
+                                    Page {employeePage} of {employeePageCount}
+                                </span>
+
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setEmployeePage((page) =>
+                                            Math.min(
+                                                employeePageCount,
+                                                page + 1
+                                            )
+                                        )
+                                    }
+                                    disabled={
+                                        employeePage === employeePageCount
+                                    }
+                                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -398,7 +490,7 @@ const Employees = () => {
                                         </td>
                                     </tr>
                                 ) : (
-                                    auditLogs.map((log) => (
+                                    paginatedAuditLogs.map((log) => (
                                         <tr key={log.id}>
                                             <td className="px-5 py-4 text-sm font-medium text-slate-900">
                                                 {log.actor_name}
@@ -423,6 +515,54 @@ const Employees = () => {
                             </tbody>
                         </table>
                     </div>
+
+                    {auditLogs.length > 0 && (
+                        <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-sm text-slate-500">
+                                Showing {(auditPage - 1) * PAGE_SIZE + 1}-
+                                {Math.min(
+                                    auditPage * PAGE_SIZE,
+                                    auditLogs.length
+                                )}{" "}
+                                of {auditLogs.length} audit entries
+                            </p>
+
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setAuditPage((page) =>
+                                            Math.max(1, page - 1)
+                                        )
+                                    }
+                                    disabled={auditPage === 1}
+                                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50"
+                                >
+                                    Previous
+                                </button>
+
+                                <span className="text-sm font-medium text-slate-600">
+                                    Page {auditPage} of {auditPageCount}
+                                </span>
+
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setAuditPage((page) =>
+                                            Math.min(
+                                                auditPageCount,
+                                                page + 1
+                                            )
+                                        )
+                                    }
+                                    disabled={auditPage === auditPageCount}
+                                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </DashboardLayout>

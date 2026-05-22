@@ -147,7 +147,9 @@ const getAvailableEmployees = async (
 ) => {
     try {
         const employees =
-            await teamService.getAvailableEmployees();
+            await teamService.getAvailableEmployees(
+                req.params.id
+            );
 
         res.status(200).json(employees);
 
@@ -177,9 +179,9 @@ const assignMembersToTeam = async (
         });
 
     } catch (error) {
-        res.status(500).json({
+        res.status(error.statusCode || 500).json({
             message:
-                "Assignment failed"
+                error.message || "Assignment failed"
         });
     }
 };
