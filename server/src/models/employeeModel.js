@@ -29,12 +29,18 @@ const getAllEmployees = (
             users.status,
             users.created_at,
             departments.name AS department_name,
-            manager.fullname AS manager_name
+            teams.name AS team_name,
+            manager.fullname AS manager_name,
+            leader.fullname AS leader_name
         FROM users
         LEFT JOIN departments
             ON users.department_id = departments.id
+        LEFT JOIN teams
+            ON users.team_id = teams.id
         LEFT JOIN users AS manager
             ON users.manager_id = manager.id
+        LEFT JOIN users AS leader
+            ON teams.leader_id = leader.id
         WHERE 1=1
     `;
 

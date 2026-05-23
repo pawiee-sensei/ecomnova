@@ -94,7 +94,7 @@ const EditDepartment = () => {
 
     return (
         <DashboardLayout>
-            <div className="max-w-4xl">
+            <div className="mx-auto max-w-4xl">
                 <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                     <div>
                         <p className="text-sm font-medium text-slate-500">

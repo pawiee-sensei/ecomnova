@@ -10,6 +10,15 @@ const statusStyles = {
     terminated: "bg-rose-50 text-rose-700 ring-rose-200"
 };
 
+const roleStyles = {
+    agent: "bg-slate-100 text-slate-700 ring-slate-200",
+    leader: "bg-indigo-50 text-indigo-700 ring-indigo-200",
+    manager: "bg-sky-50 text-sky-700 ring-sky-200",
+    hr: "bg-fuchsia-50 text-fuchsia-700 ring-fuchsia-200",
+    qa: "bg-amber-50 text-amber-700 ring-amber-200",
+    admin: "bg-slate-950 text-white ring-slate-950"
+};
+
 const PAGE_SIZE = 10;
 
 const Employees = () => {
@@ -138,6 +147,18 @@ const Employees = () => {
         }
     };
 
+    const renderPlainAssignment = (value) => {
+        if (!value) {
+            return (
+                <span className="font-medium text-rose-600">
+                    Unassigned
+                </span>
+            );
+        }
+
+        return <span className="text-slate-600">{value}</span>;
+    };
+
     if (loading) {
         return (
             <DashboardLayout>
@@ -254,28 +275,28 @@ const Employees = () => {
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full min-w-[960px]">
+                        <table className="w-full min-w-[1180px] table-fixed">
                             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                                 <tr>
-                                    <th className="px-5 py-3 text-left font-semibold">
+                                    <th className="w-[18%] px-5 py-3 text-left font-semibold">
                                         Employee
                                     </th>
-                                    <th className="px-5 py-3 text-left font-semibold">
+                                    <th className="w-[18%] px-5 py-3 text-left font-semibold">
                                         Email
                                     </th>
-                                    <th className="px-5 py-3 text-left font-semibold">
+                                    <th className="w-[9%] px-5 py-3 text-center font-semibold">
                                         Role
                                     </th>
-                                    <th className="px-5 py-3 text-left font-semibold">
+                                    <th className="w-[12%] px-5 py-3 text-left font-semibold">
                                         Department
                                     </th>
-                                    <th className="px-5 py-3 text-left font-semibold">
-                                        Manager
+                                    <th className="w-[10%] px-5 py-3 text-left font-semibold">
+                                        Team
                                     </th>
-                                    <th className="px-5 py-3 text-left font-semibold">
+                                    <th className="w-[8%] px-5 py-3 text-center font-semibold">
                                         Status
                                     </th>
-                                    <th className="px-5 py-3 text-right font-semibold">
+                                    <th className="w-[25%] px-5 py-3 text-center font-semibold">
                                         Actions
                                     </th>
                                 </tr>
@@ -297,7 +318,7 @@ const Employees = () => {
                                             key={employee.id}
                                             className="transition hover:bg-slate-50"
                                         >
-                                            <td className="px-5 py-4">
+                                            <td className="px-5 py-4 align-middle">
                                                 <div className="flex items-center gap-3">
                                                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-700">
                                                         {employee.fullname
@@ -317,23 +338,37 @@ const Employees = () => {
                                                 </div>
                                             </td>
 
-                                            <td className="px-5 py-4 text-sm text-slate-600">
+                                            <td className="px-5 py-4 align-middle text-sm text-slate-600">
                                                 {employee.email}
                                             </td>
 
-                                            <td className="px-5 py-4 text-sm capitalize text-slate-700">
-                                                {employee.role}
+                                            <td className="px-5 py-4 text-center align-middle">
+                                                <span
+                                                    className={`
+                                                        inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ring-1
+                                                        ${
+                                                            roleStyles[employee.role] ||
+                                                            roleStyles.agent
+                                                        }
+                                                    `}
+                                                >
+                                                    {employee.role}
+                                                </span>
                                             </td>
 
-                                            <td className="px-5 py-4 text-sm text-slate-600">
-                                                {employee.department_name || "Unassigned"}
+                                            <td className="px-5 py-4 align-middle text-sm">
+                                                {renderPlainAssignment(
+                                                    employee.department_name
+                                                )}
                                             </td>
 
-                                            <td className="px-5 py-4 text-sm text-slate-600">
-                                                {employee.manager_name || "Unassigned"}
+                                            <td className="px-5 py-4 align-middle text-sm">
+                                                {renderPlainAssignment(
+                                                    employee.team_name
+                                                )}
                                             </td>
 
-                                            <td className="px-5 py-4">
+                                            <td className="px-5 py-4 text-center align-middle">
                                                 <span
                                                     className={`
                                                         inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ring-1
@@ -347,18 +382,18 @@ const Employees = () => {
                                                 </span>
                                             </td>
 
-                                            <td className="px-5 py-4">
-                                                <div className="flex items-center justify-end gap-2">
+                                            <td className="px-5 py-4 align-middle">
+                                                <div className="flex min-w-[260px] items-center justify-center gap-2">
                                                     <Link
                                                         to={`/admin/employees/${employee.id}`}
-                                                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-white"
+                                                        className="inline-flex h-10 w-16 items-center justify-center rounded-lg border border-slate-200 text-sm font-medium text-slate-700 transition hover:bg-white"
                                                     >
                                                         View
                                                     </Link>
 
                                                     <Link
                                                         to={`/admin/employees/edit/${employee.id}`}
-                                                        className="rounded-lg bg-slate-950 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                                                        className="inline-flex h-10 w-16 items-center justify-center rounded-lg bg-slate-950 text-sm font-medium text-white transition hover:bg-slate-800"
                                                     >
                                                         Edit
                                                     </Link>
@@ -371,7 +406,7 @@ const Employees = () => {
                                                                 e.target.value
                                                             )
                                                         }
-                                                        className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400"
+                                                        className="h-10 w-32 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-slate-400"
                                                     >
                                                         <option value="active">
                                                             Active

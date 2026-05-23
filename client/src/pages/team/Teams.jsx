@@ -5,6 +5,43 @@ import api from "../../services/api";
 
 const PAGE_SIZE = 8;
 
+const INITIAL_TEAM_FORM = {
+    name: "",
+    code: "",
+    department_id: "",
+    description: "",
+    leader_id: "",
+    status: "active"
+};
+
+const getStatusBadgeClass = (status) => {
+    const normalizedStatus = String(status || "").toLowerCase();
+
+    if (normalizedStatus === "inactive") {
+        return "bg-amber-50 text-amber-700";
+    }
+
+    if (normalizedStatus === "archived") {
+        return "bg-slate-100 text-slate-600";
+    }
+
+    return "bg-emerald-50 text-emerald-700";
+};
+
+const getRoleBadgeClass = (role) => {
+    const normalizedRole = String(role || "").toLowerCase();
+
+    if (normalizedRole.includes("leader")) {
+        return "bg-indigo-50 text-indigo-700";
+    }
+
+    if (normalizedRole.includes("manager")) {
+        return "bg-sky-50 text-sky-700";
+    }
+
+    return "bg-slate-100 text-slate-600";
+};
+
 const Teams = () => {
     const [teams, setTeams] = useState([]);
     const [departments, setDepartments] = useState([]);
@@ -17,15 +54,9 @@ const Teams = () => {
     const [selectedEmployees, setSelectedEmployees] = useState([]);
     const [teamPage, setTeamPage] = useState(1);
     const [showCreateTeam, setShowCreateTeam] = useState(false);
+    const [createError, setCreateError] = useState("");
 
-    const [formData, setFormData] = useState({
-        name: "",
-        code: "",
-        department_id: "",
-        description: "",
-        leader_id: "",
-        status: "active"
-    });
+    const [formData, setFormData] = useState(INITIAL_TEAM_FORM);
 
     const teamPageCount = Math.max(
         1,
@@ -37,6 +68,19 @@ const Teams = () => {
 
         return teams.slice(start, start + PAGE_SIZE);
     }, [teamPage, teams]);
+
+    const sortedTeamMembers = useMemo(() => {
+        return [...teamMembers].sort((firstMember, secondMember) => {
+            const firstIsLeader = String(firstMember.role || "")
+                .toLowerCase()
+                .includes("leader");
+            const secondIsLeader = String(secondMember.role || "")
+                .toLowerCase()
+                .includes("leader");
+
+            return Number(secondIsLeader) - Number(firstIsLeader);
+        });
+    }, [teamMembers]);
 
     const fetchData = async () => {
         try {
@@ -75,24 +119,32 @@ const Teams = () => {
         });
     };
 
+    const resetForm = () => {
+        setFormData(INITIAL_TEAM_FORM);
+    };
+
+    const closeCreateTeam = () => {
+        resetForm();
+        setCreateError("");
+        setShowCreateTeam(false);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setCreateError("");
 
         try {
             await api.post("/admin/teams", formData);
             await fetchData();
 
-            setFormData({
-                name: "",
-                code: "",
-                department_id: "",
-                description: "",
-                leader_id: "",
-                status: "active"
-            });
+            resetForm();
             setShowCreateTeam(false);
         } catch (error) {
             console.error("Team creation failed:", error);
+            setCreateError(
+                error.response?.data?.message ||
+                    "Team creation failed. Please check the details and try again."
+            );
         }
     };
 
@@ -122,6 +174,7 @@ const Teams = () => {
             setSelectedEmployees([]);
             setSelectedTeam(teamName);
             setSelectedTeamId(teamId);
+            setShowCreateTeam(false);
             setShowMembers(true);
         } catch (error) {
             console.error("Team member fetch failed:", error);
@@ -185,7 +238,10 @@ const Teams = () => {
 
                         <button
                             type="button"
-                            onClick={() => setShowCreateTeam(true)}
+                            onClick={() => {
+                                setShowMembers(false);
+                                setShowCreateTeam(true);
+                            }}
                             className="rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
                         >
                             Create Team
@@ -196,13 +252,13 @@ const Teams = () => {
                         <table className="w-full table-fixed">
                             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                                 <tr>
-                                    <th className="w-[20%] px-4 py-3 text-left font-semibold">Name</th>
-                                    <th className="w-[11%] px-4 py-3 text-left font-semibold">Code</th>
-                                    <th className="w-[19%] px-4 py-3 text-left font-semibold">Department</th>
-                                    <th className="w-[19%] px-4 py-3 text-left font-semibold">Leader</th>
-                                    <th className="w-[10%] px-4 py-3 text-left font-semibold">Members</th>
-                                    <th className="w-[12%] px-4 py-3 text-left font-semibold">Status</th>
-                                    <th className="w-[9%] px-4 py-3 text-right font-semibold">Actions</th>
+                                    <th className="w-[16%] px-4 py-3 text-left font-semibold">Name</th>
+                                    <th className="w-[9%] px-4 py-3 text-center font-semibold">Code</th>
+                                    <th className="w-[16%] px-4 py-3 text-left font-semibold">Department</th>
+                                    <th className="w-[16%] px-4 py-3 text-left font-semibold">Leader</th>
+                                    <th className="w-[9%] px-4 py-3 text-center font-semibold">Members</th>
+                                    <th className="w-[10%] px-4 py-3 text-center font-semibold">Status</th>
+                                    <th className="w-[24%] px-4 py-3 text-center font-semibold">Actions</th>
                                 </tr>
                             </thead>
 
@@ -212,37 +268,45 @@ const Teams = () => {
                                         key={team.id}
                                         className="transition hover:bg-slate-50"
                                     >
-                                        <td className="px-4 py-4 font-medium text-slate-950">
+                                        <td className="px-4 py-4 align-middle font-medium text-slate-950">
                                             {team.name}
                                         </td>
 
-                                        <td className="px-4 py-4 text-sm text-slate-600">
+                                        <td className="px-4 py-4 text-center align-middle text-sm text-slate-600">
                                             {team.code || "-"}
                                         </td>
 
-                                        <td className="px-4 py-4 text-sm text-slate-600">
+                                        <td className="px-4 py-4 align-middle text-sm text-slate-600">
                                             {team.department_name || "Unassigned"}
                                         </td>
 
-                                        <td className="px-4 py-4 text-sm text-slate-600">
-                                            {team.leader_name || "Unassigned"}
+                                        <td className="px-4 py-4 align-middle text-sm">
+                                            {team.leader_name ? (
+                                                <span className="inline-flex rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+                                                    {team.leader_name}
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700">
+                                                    Unassigned
+                                                </span>
+                                            )}
                                         </td>
 
-                                        <td className="px-4 py-4 text-sm text-slate-600">
+                                        <td className="px-4 py-4 text-center align-middle text-sm text-slate-600">
                                             {team.member_count}
                                         </td>
 
-                                        <td className="px-4 py-4">
-                                            <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold capitalize text-emerald-700">
+                                        <td className="px-4 py-4 text-center align-middle">
+                                            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getStatusBadgeClass(team.status)}`}>
                                                 {team.status}
                                             </span>
                                         </td>
 
-                                        <td className="px-4 py-4">
-                                            <div className="flex justify-end gap-2 whitespace-nowrap">
+                                        <td className="px-4 py-4 align-middle">
+                                            <div className="flex min-w-[230px] justify-center gap-2 whitespace-nowrap">
                                                 <Link
                                                     to={`/admin/teams/edit/${team.id}`}
-                                                    className="rounded-lg bg-slate-950 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800"
+                                                    className="inline-flex h-10 w-16 items-center justify-center rounded-lg bg-slate-950 text-sm font-medium text-white hover:bg-slate-800"
                                                 >
                                                     Edit
                                                 </Link>
@@ -255,14 +319,43 @@ const Teams = () => {
                                                             team.name
                                                         )
                                                     }
-                                                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                                                    className="inline-flex h-10 w-36 items-center justify-center rounded-lg border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50"
                                                 >
-                                                    Members
+                                                    Manage Members
                                                 </button>
                                             </div>
                                         </td>
                                     </tr>
                                 ))}
+
+                                {teams.length === 0 && (
+                                    <tr>
+                                        <td
+                                            colSpan="7"
+                                            className="px-5 py-12 text-center"
+                                        >
+                                            <div className="mx-auto max-w-sm">
+                                                <p className="text-sm font-medium text-slate-950">
+                                                    No teams yet.
+                                                </p>
+
+                                                <p className="mt-1 text-sm text-slate-500">
+                                                    Create a team to start organizing employees by department.
+                                                </p>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setShowCreateTeam(true)
+                                                    }
+                                                    className="mt-4 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+                                                >
+                                                    Create Team
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -279,12 +372,28 @@ const Teams = () => {
                                             {team.name}
                                         </h3>
 
-                                        <p className="mt-1 text-sm text-slate-500">
-                                            {team.code || "No code"} / {team.department_name || "Unassigned"}
-                                        </p>
+                                        <div className="mt-2 flex flex-wrap gap-2">
+                                            <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                                                {team.code || "No code"}
+                                            </span>
+
+                                            <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                                                {team.department_name || "No department"}
+                                            </span>
+
+                                            {team.leader_name ? (
+                                                <span className="inline-flex rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+                                                    Leader: {team.leader_name}
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700">
+                                                    Leader unassigned
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
 
-                                    <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold capitalize text-emerald-700">
+                                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getStatusBadgeClass(team.status)}`}>
                                         {team.status}
                                     </span>
                                 </div>
@@ -327,11 +436,31 @@ const Teams = () => {
                                         }
                                         className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                                     >
-                                        Members
+                                        Manage Members
                                     </button>
                                 </div>
                             </div>
                         ))}
+
+                        {teams.length === 0 && (
+                            <div className="p-6 text-center">
+                                <p className="text-sm font-medium text-slate-950">
+                                    No teams yet.
+                                </p>
+
+                                <p className="mt-1 text-sm text-slate-500">
+                                    Create a team to start organizing employees by department.
+                                </p>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCreateTeam(true)}
+                                    className="mt-4 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+                                >
+                                    Create Team
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                     {teams.length > 0 && (
@@ -397,7 +526,7 @@ const Teams = () => {
 
                             <button
                                 type="button"
-                                onClick={() => setShowCreateTeam(false)}
+                                onClick={closeCreateTeam}
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                             >
                                 Close
@@ -408,85 +537,127 @@ const Teams = () => {
                             onSubmit={handleSubmit}
                             className="grid max-h-[72vh] gap-4 overflow-auto p-5 sm:grid-cols-2"
                         >
-                            <input
-                                type="text"
-                                name="name"
-                                placeholder="Team name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                className="w-full rounded-lg border border-slate-200 p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                                required
-                            />
+                            {createError && (
+                                <p className="rounded-lg border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700 sm:col-span-2">
+                                    {createError}
+                                </p>
+                            )}
 
-                            <input
-                                type="text"
-                                name="code"
-                                placeholder="Team code"
-                                value={formData.code}
-                                onChange={handleChange}
-                                className="w-full rounded-lg border border-slate-200 p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                            />
+                            <label className="space-y-2">
+                                <span className="text-sm font-medium text-slate-700">
+                                    Team Name
+                                </span>
 
-                            <select
-                                name="department_id"
-                                value={formData.department_id}
-                                onChange={handleChange}
-                                className="w-full rounded-lg border border-slate-200 bg-white p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                            >
-                                <option value="">Select Department</option>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    placeholder="North Team"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    className="w-full rounded-lg border border-slate-200 p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                    required
+                                />
+                            </label>
 
-                                {departments.map((department) => (
-                                    <option
-                                        key={department.id}
-                                        value={department.id}
-                                    >
-                                        {department.name}
-                                    </option>
-                                ))}
-                            </select>
+                            <label className="space-y-2">
+                                <span className="text-sm font-medium text-slate-700">
+                                    Team Code
+                                </span>
 
-                            <select
-                                name="leader_id"
-                                value={formData.leader_id}
-                                onChange={handleChange}
-                                className="w-full rounded-lg border border-slate-200 bg-white p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                            >
-                                <option value="">Select Team Leader</option>
+                                <input
+                                    type="text"
+                                    name="code"
+                                    placeholder="NORTH"
+                                    value={formData.code}
+                                    onChange={handleChange}
+                                    className="w-full rounded-lg border border-slate-200 p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                />
+                            </label>
 
-                                {leaders.map((leader) => (
-                                    <option
-                                        key={leader.id}
-                                        value={leader.id}
-                                    >
-                                        {leader.fullname}
-                                    </option>
-                                ))}
-                            </select>
+                            <label className="space-y-2">
+                                <span className="text-sm font-medium text-slate-700">
+                                    Department
+                                </span>
 
-                            <select
-                                name="status"
-                                value={formData.status}
-                                onChange={handleChange}
-                                className="w-full rounded-lg border border-slate-200 bg-white p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                            >
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                                <option value="archived">Archived</option>
-                            </select>
+                                <select
+                                    name="department_id"
+                                    value={formData.department_id}
+                                    onChange={handleChange}
+                                    className="w-full rounded-lg border border-slate-200 bg-white p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                >
+                                    <option value="">Select Department</option>
 
-                            <textarea
-                                name="description"
-                                rows="3"
-                                placeholder="Description"
-                                value={formData.description}
-                                onChange={handleChange}
-                                className="w-full rounded-lg border border-slate-200 p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100 sm:col-span-2"
-                            />
+                                    {departments.map((department) => (
+                                        <option
+                                            key={department.id}
+                                            value={department.id}
+                                        >
+                                            {department.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+
+                            <label className="space-y-2">
+                                <span className="text-sm font-medium text-slate-700">
+                                    Team Leader
+                                </span>
+
+                                <select
+                                    name="leader_id"
+                                    value={formData.leader_id}
+                                    onChange={handleChange}
+                                    className="w-full rounded-lg border border-slate-200 bg-white p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                >
+                                    <option value="">Select Team Leader</option>
+
+                                    {leaders.map((leader) => (
+                                        <option
+                                            key={leader.id}
+                                            value={leader.id}
+                                        >
+                                            {leader.fullname}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+
+                            <label className="space-y-2">
+                                <span className="text-sm font-medium text-slate-700">
+                                    Status
+                                </span>
+
+                                <select
+                                    name="status"
+                                    value={formData.status}
+                                    onChange={handleChange}
+                                    className="w-full rounded-lg border border-slate-200 bg-white p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                >
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                    <option value="archived">Archived</option>
+                                </select>
+                            </label>
+
+                            <label className="space-y-2 sm:col-span-2">
+                                <span className="text-sm font-medium text-slate-700">
+                                    Description
+                                </span>
+
+                                <textarea
+                                    name="description"
+                                    rows="3"
+                                    placeholder="Describe this team."
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    className="w-full rounded-lg border border-slate-200 p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                />
+                            </label>
 
                             <div className="flex justify-end gap-2 sm:col-span-2">
                                 <button
                                     type="button"
-                                    onClick={() => setShowCreateTeam(false)}
+                                    onClick={closeCreateTeam}
                                     className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
                                 >
                                     Cancel
@@ -531,7 +702,7 @@ const Teams = () => {
                                 </h3>
 
                                 <div className="mt-4 space-y-3">
-                                    {teamMembers.map((member) => (
+                                    {sortedTeamMembers.map((member) => (
                                         <div
                                             key={member.id}
                                             className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-4"
@@ -541,7 +712,7 @@ const Teams = () => {
                                                     {member.fullname}
                                                 </p>
 
-                                                <p className="text-sm capitalize text-slate-500">
+                                                <p className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getRoleBadgeClass(member.role)}`}>
                                                     {member.role}
                                                 </p>
                                             </div>
@@ -596,7 +767,7 @@ const Teams = () => {
                                                     {employee.fullname}
                                                 </p>
 
-                                                <p className="text-sm capitalize text-slate-500">
+                                                <p className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getRoleBadgeClass(employee.role)}`}>
                                                     {employee.role}
                                                 </p>
                                             </div>

@@ -5,6 +5,38 @@ import api from "../../services/api";
 
 const PAGE_SIZE = 8;
 
+const INITIAL_DEPARTMENT_FORM = {
+    name: "",
+    code: "",
+    description: "",
+    head_id: "",
+    status: "active"
+};
+
+const getStatusBadgeClass = (status) => {
+    const normalizedStatus = String(status || "").toLowerCase();
+
+    if (normalizedStatus === "inactive") {
+        return "bg-amber-50 text-amber-700";
+    }
+
+    if (normalizedStatus === "archived") {
+        return "bg-slate-100 text-slate-600";
+    }
+
+    return "bg-emerald-50 text-emerald-700";
+};
+
+const getAssignmentBadgeClass = (assignment) => {
+    const normalizedAssignment = String(assignment || "").toLowerCase();
+
+    if (normalizedAssignment.includes("head")) {
+        return "bg-indigo-50 text-indigo-700";
+    }
+
+    return "bg-slate-100 text-slate-600";
+};
+
 const Departments = () => {
     const [departments, setDepartments] = useState([]);
     const [heads, setHeads] = useState([]);
@@ -13,14 +45,9 @@ const Departments = () => {
     const [selectedDepartment, setSelectedDepartment] = useState("");
     const [departmentPage, setDepartmentPage] = useState(1);
     const [showCreateDepartment, setShowCreateDepartment] = useState(false);
+    const [createError, setCreateError] = useState("");
 
-    const [formData, setFormData] = useState({
-        name: "",
-        code: "",
-        description: "",
-        head_id: "",
-        status: "active"
-    });
+    const [formData, setFormData] = useState(INITIAL_DEPARTMENT_FORM);
 
     const fetchDepartments = async () => {
         try {
@@ -41,6 +68,23 @@ const Departments = () => {
 
         return departments.slice(start, start + PAGE_SIZE);
     }, [departmentPage, departments]);
+
+    const sortedSelectedMembers = useMemo(() => {
+        return [...selectedMembers].sort((firstMember, secondMember) => {
+            const firstIsHead = String(
+                firstMember.assignment_label || ""
+            )
+                .toLowerCase()
+                .includes("head");
+            const secondIsHead = String(
+                secondMember.assignment_label || ""
+            )
+                .toLowerCase()
+                .includes("head");
+
+            return Number(secondIsHead) - Number(firstIsHead);
+        });
+    }, [selectedMembers]);
 
     useEffect(() => {
         setDepartmentPage((page) =>
@@ -79,26 +123,31 @@ const Departments = () => {
         });
     };
 
+    const resetForm = () => {
+        setFormData(INITIAL_DEPARTMENT_FORM);
+    };
+
+    const closeCreateDepartment = () => {
+        resetForm();
+        setCreateError("");
+        setShowCreateDepartment(false);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setCreateError("");
 
         try {
             await api.post("/admin/departments", formData);
             await fetchDepartments();
 
-            setFormData({
-                name: "",
-                code: "",
-                description: "",
-                head_id: "",
-                status: "active"
-            });
+            resetForm();
             setShowCreateDepartment(false);
         } catch (error) {
             console.error("Department creation failed:", error);
-            alert(
+            setCreateError(
                 error.response?.data?.message ||
-                    "Department creation failed"
+                    "Department creation failed. Please check the details and try again."
             );
         }
     };
@@ -114,6 +163,7 @@ const Departments = () => {
 
             setSelectedMembers(response.data);
             setSelectedDepartment(departmentName);
+            setShowCreateDepartment(false);
             setShowMembers(true);
         } catch (error) {
             console.error("Member fetch failed:", error);
@@ -151,7 +201,10 @@ const Departments = () => {
 
                         <button
                             type="button"
-                            onClick={() => setShowCreateDepartment(true)}
+                            onClick={() => {
+                                setShowMembers(false);
+                                setShowCreateDepartment(true);
+                            }}
                             className="rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
                         >
                             Create Department
@@ -162,12 +215,12 @@ const Departments = () => {
                         <table className="w-full table-fixed">
                             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                                 <tr>
-                                    <th className="w-[24%] px-4 py-3 text-left font-semibold">Name</th>
-                                    <th className="w-[12%] px-4 py-3 text-left font-semibold">Code</th>
-                                    <th className="w-[24%] px-4 py-3 text-left font-semibold">Head</th>
-                                    <th className="w-[12%] px-4 py-3 text-left font-semibold">Members</th>
-                                    <th className="w-[14%] px-4 py-3 text-left font-semibold">Status</th>
-                                    <th className="w-[14%] px-4 py-3 text-right font-semibold">Actions</th>
+                                    <th className="w-[22%] px-4 py-3 text-left font-semibold">Name</th>
+                                    <th className="w-[10%] px-4 py-3 text-center font-semibold">Code</th>
+                                    <th className="w-[20%] px-4 py-3 text-left font-semibold">Head</th>
+                                    <th className="w-[10%] px-4 py-3 text-center font-semibold">Members</th>
+                                    <th className="w-[12%] px-4 py-3 text-center font-semibold">Status</th>
+                                    <th className="w-[26%] px-4 py-3 text-center font-semibold">Actions</th>
                                 </tr>
                             </thead>
 
@@ -177,33 +230,41 @@ const Departments = () => {
                                         key={department.id}
                                         className="transition hover:bg-slate-50"
                                     >
-                                        <td className="px-4 py-4 font-medium text-slate-950">
+                                        <td className="px-4 py-4 align-middle font-medium text-slate-950">
                                             {department.name}
                                         </td>
 
-                                        <td className="px-4 py-4 text-sm text-slate-600">
+                                        <td className="px-4 py-4 text-center align-middle text-sm text-slate-600">
                                             {department.code || "-"}
                                         </td>
 
-                                        <td className="px-4 py-4 text-sm text-slate-600">
-                                            {department.head_name || "Unassigned"}
+                                        <td className="px-4 py-4 align-middle text-sm">
+                                            {department.head_name ? (
+                                                <span className="inline-flex rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+                                                    {department.head_name}
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700">
+                                                    Unassigned
+                                                </span>
+                                            )}
                                         </td>
 
-                                        <td className="px-4 py-4 text-sm text-slate-600">
+                                        <td className="px-4 py-4 text-center align-middle text-sm text-slate-600">
                                             {department.member_count || 0}
                                         </td>
 
-                                        <td className="px-4 py-4">
-                                            <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold capitalize text-emerald-700">
+                                        <td className="px-4 py-4 text-center align-middle">
+                                            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getStatusBadgeClass(department.status)}`}>
                                                 {department.status}
                                             </span>
                                         </td>
 
-                                        <td className="px-4 py-4">
-                                            <div className="flex justify-end gap-2 whitespace-nowrap">
+                                        <td className="px-4 py-4 align-middle">
+                                            <div className="flex min-w-[210px] justify-center gap-2 whitespace-nowrap">
                                                 <Link
                                                     to={`/admin/departments/edit/${department.id}`}
-                                                    className="rounded-lg bg-slate-950 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800"
+                                                    className="inline-flex h-10 w-16 items-center justify-center rounded-lg bg-slate-950 text-sm font-medium text-white hover:bg-slate-800"
                                                 >
                                                     Edit
                                                 </Link>
@@ -216,14 +277,43 @@ const Departments = () => {
                                                             department.name
                                                         )
                                                     }
-                                                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                                                    className="inline-flex h-10 w-32 items-center justify-center rounded-lg border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50"
                                                 >
-                                                    Members
+                                                    View Members
                                                 </button>
                                             </div>
                                         </td>
                                     </tr>
                                 ))}
+
+                                {departments.length === 0 && (
+                                    <tr>
+                                        <td
+                                            colSpan="6"
+                                            className="px-5 py-12 text-center"
+                                        >
+                                            <div className="mx-auto max-w-sm">
+                                                <p className="text-sm font-medium text-slate-950">
+                                                    No departments yet.
+                                                </p>
+
+                                                <p className="mt-1 text-sm text-slate-500">
+                                                    Create a department before assigning teams or members.
+                                                </p>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setShowCreateDepartment(true)
+                                                    }
+                                                    className="mt-4 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+                                                >
+                                                    Create Department
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -240,12 +330,24 @@ const Departments = () => {
                                             {department.name}
                                         </h3>
 
-                                        <p className="mt-1 text-sm text-slate-500">
-                                            {department.code || "No code"} / {department.head_name || "Unassigned"}
-                                        </p>
+                                        <div className="mt-2 flex flex-wrap gap-2">
+                                            <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                                                {department.code || "No code"}
+                                            </span>
+
+                                            {department.head_name ? (
+                                                <span className="inline-flex rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+                                                    Head: {department.head_name}
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700">
+                                                    Head unassigned
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
 
-                                    <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold capitalize text-emerald-700">
+                                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getStatusBadgeClass(department.status)}`}>
                                         {department.status}
                                     </span>
                                 </div>
@@ -279,11 +381,33 @@ const Departments = () => {
                                         }
                                         className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                                     >
-                                        Members
+                                        View Members
                                     </button>
                                 </div>
                             </div>
                         ))}
+
+                        {departments.length === 0 && (
+                            <div className="p-6 text-center">
+                                <p className="text-sm font-medium text-slate-950">
+                                    No departments yet.
+                                </p>
+
+                                <p className="mt-1 text-sm text-slate-500">
+                                    Create a department before assigning teams or members.
+                                </p>
+
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setShowCreateDepartment(true)
+                                    }
+                                    className="mt-4 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+                                >
+                                    Create Department
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                     {departments.length > 0 && (
@@ -354,9 +478,7 @@ const Departments = () => {
 
                             <button
                                 type="button"
-                                onClick={() =>
-                                    setShowCreateDepartment(false)
-                                }
+                                onClick={closeCreateDepartment}
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                             >
                                 Close
@@ -367,6 +489,12 @@ const Departments = () => {
                             onSubmit={handleSubmit}
                             className="grid max-h-[72vh] gap-4 overflow-auto p-5 sm:grid-cols-2"
                         >
+                            {createError && (
+                                <p className="rounded-lg border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700 sm:col-span-2">
+                                    {createError}
+                                </p>
+                            )}
+
                             <label className="space-y-2">
                                 <span className="text-sm font-medium text-slate-700">
                                     Department Name
@@ -465,9 +593,7 @@ const Departments = () => {
                             <div className="flex justify-end gap-2 sm:col-span-2">
                                 <button
                                     type="button"
-                                    onClick={() =>
-                                        setShowCreateDepartment(false)
-                                    }
+                                    onClick={closeCreateDepartment}
                                     className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
                                 >
                                     Cancel
@@ -506,26 +632,26 @@ const Departments = () => {
                         </div>
 
                         <div className="max-h-[65vh] overflow-auto">
-                            <table className="w-full min-w-[760px]">
+                            <table className="w-full min-w-[760px] table-fixed">
                                 <thead className="sticky top-0 bg-slate-50 text-xs uppercase text-slate-500">
                                     <tr>
-                                        <th className="px-5 py-3 text-left font-semibold">Employee ID</th>
-                                        <th className="px-5 py-3 text-left font-semibold">Name</th>
-                                        <th className="px-5 py-3 text-left font-semibold">Email</th>
-                                        <th className="px-5 py-3 text-left font-semibold">Role</th>
-                                        <th className="px-5 py-3 text-left font-semibold">Assignment</th>
-                                        <th className="px-5 py-3 text-left font-semibold">Status</th>
+                                        <th className="w-[17%] px-5 py-3 text-left font-semibold">Employee ID</th>
+                                        <th className="w-[18%] px-5 py-3 text-left font-semibold">Name</th>
+                                        <th className="w-[22%] px-5 py-3 text-left font-semibold">Email</th>
+                                        <th className="w-[12%] px-5 py-3 text-center font-semibold">Role</th>
+                                        <th className="w-[18%] px-5 py-3 text-center font-semibold">Assignment</th>
+                                        <th className="w-[13%] px-5 py-3 text-center font-semibold">Status</th>
                                     </tr>
                                 </thead>
 
                                 <tbody className="divide-y divide-slate-100">
-                                    {selectedMembers.map((member) => (
+                                    {sortedSelectedMembers.map((member) => (
                                         <tr key={member.id}>
-                                            <td className="px-5 py-4 text-sm text-slate-600">
+                                            <td className="px-5 py-4 align-middle text-sm text-slate-600">
                                                 {member.employee_id}
                                             </td>
 
-                                            <td className="px-5 py-4">
+                                            <td className="px-5 py-4 align-middle">
                                                 <Link
                                                     to={`/admin/employees/${member.id}`}
                                                     className="font-medium text-slate-950 hover:underline"
@@ -534,20 +660,24 @@ const Departments = () => {
                                                 </Link>
                                             </td>
 
-                                            <td className="px-5 py-4 text-sm text-slate-600">
+                                            <td className="px-5 py-4 align-middle text-sm text-slate-600">
                                                 {member.email}
                                             </td>
 
-                                            <td className="px-5 py-4 text-sm capitalize text-slate-700">
+                                            <td className="px-5 py-4 text-center align-middle text-sm capitalize text-slate-700">
                                                 {member.role}
                                             </td>
 
-                                            <td className="px-5 py-4 text-sm text-slate-600">
-                                                {member.assignment_label}
+                                            <td className="px-5 py-4 text-center align-middle">
+                                                <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${getAssignmentBadgeClass(member.assignment_label)}`}>
+                                                    {member.assignment_label}
+                                                </span>
                                             </td>
 
-                                            <td className="px-5 py-4 text-sm capitalize text-slate-700">
-                                                {member.status}
+                                            <td className="px-5 py-4 text-center align-middle">
+                                                <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getStatusBadgeClass(member.status)}`}>
+                                                    {member.status}
+                                                </span>
                                             </td>
                                         </tr>
                                     ))}
