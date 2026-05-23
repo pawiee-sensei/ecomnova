@@ -46,6 +46,16 @@ const Departments = () => {
     const [departmentPage, setDepartmentPage] = useState(1);
     const [showCreateDepartment, setShowCreateDepartment] = useState(false);
     const [createError, setCreateError] = useState("");
+    const [departmentSearch, setDepartmentSearch] = useState("");
+    const [departmentStatusFilter, setDepartmentStatusFilter] = useState("");
+    const [
+        departmentAssignmentFilter,
+        setDepartmentAssignmentFilter
+    ] = useState("");
+    const [memberSearch, setMemberSearch] = useState("");
+    const [creatingDepartment, setCreatingDepartment] = useState(false);
+    const [loadingMembers, setLoadingMembers] = useState(false);
+    const [toast, setToast] = useState(null);
 
     const [formData, setFormData] = useState(INITIAL_DEPARTMENT_FORM);
 
@@ -58,19 +68,75 @@ const Departments = () => {
         }
     };
 
+    const filteredDepartments = useMemo(() => {
+        const normalizedSearch = departmentSearch.trim().toLowerCase();
+
+        return departments.filter((department) => {
+            const matchesSearch =
+                !normalizedSearch ||
+                [
+                    department.name,
+                    department.code,
+                    department.head_name
+                ]
+                    .filter(Boolean)
+                    .some((value) =>
+                        String(value)
+                            .toLowerCase()
+                            .includes(normalizedSearch)
+                    );
+            const matchesStatus =
+                !departmentStatusFilter ||
+                department.status === departmentStatusFilter;
+            const matchesAssignment =
+                !departmentAssignmentFilter ||
+                (departmentAssignmentFilter === "unassigned_head" &&
+                    !department.head_name) ||
+                (departmentAssignmentFilter === "no_members" &&
+                    Number(department.member_count || 0) === 0);
+
+            return matchesSearch && matchesStatus && matchesAssignment;
+        });
+    }, [
+        departmentAssignmentFilter,
+        departmentSearch,
+        departmentStatusFilter,
+        departments
+    ]);
+
     const departmentPageCount = Math.max(
         1,
-        Math.ceil(departments.length / PAGE_SIZE)
+        Math.ceil(filteredDepartments.length / PAGE_SIZE)
     );
 
     const paginatedDepartments = useMemo(() => {
         const start = (departmentPage - 1) * PAGE_SIZE;
 
-        return departments.slice(start, start + PAGE_SIZE);
-    }, [departmentPage, departments]);
+        return filteredDepartments.slice(start, start + PAGE_SIZE);
+    }, [departmentPage, filteredDepartments]);
 
     const sortedSelectedMembers = useMemo(() => {
-        return [...selectedMembers].sort((firstMember, secondMember) => {
+        const normalizedSearch = memberSearch.trim().toLowerCase();
+
+        return [...selectedMembers].filter((member) => {
+            if (!normalizedSearch) {
+                return true;
+            }
+
+            return [
+                member.employee_id,
+                member.fullname,
+                member.email,
+                member.role,
+                member.assignment_label
+            ]
+                .filter(Boolean)
+                .some((value) =>
+                    String(value)
+                        .toLowerCase()
+                        .includes(normalizedSearch)
+                );
+        }).sort((firstMember, secondMember) => {
             const firstIsHead = String(
                 firstMember.assignment_label || ""
             )
@@ -84,13 +150,21 @@ const Departments = () => {
 
             return Number(secondIsHead) - Number(firstIsHead);
         });
-    }, [selectedMembers]);
+    }, [memberSearch, selectedMembers]);
 
     useEffect(() => {
         setDepartmentPage((page) =>
             Math.min(page, departmentPageCount)
         );
     }, [departmentPageCount]);
+
+    useEffect(() => {
+        setDepartmentPage(1);
+    }, [
+        departmentAssignmentFilter,
+        departmentSearch,
+        departmentStatusFilter
+    ]);
 
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -123,6 +197,11 @@ const Departments = () => {
         });
     };
 
+    const showToast = (message, type = "success") => {
+        setToast({ message, type });
+        window.setTimeout(() => setToast(null), 3000);
+    };
+
     const resetForm = () => {
         setFormData(INITIAL_DEPARTMENT_FORM);
     };
@@ -138,17 +217,22 @@ const Departments = () => {
         setCreateError("");
 
         try {
+            setCreatingDepartment(true);
             await api.post("/admin/departments", formData);
             await fetchDepartments();
 
             resetForm();
             setShowCreateDepartment(false);
+            showToast("Department created.");
         } catch (error) {
             console.error("Department creation failed:", error);
             setCreateError(
                 error.response?.data?.message ||
                     "Department creation failed. Please check the details and try again."
             );
+            showToast("Department creation failed.", "error");
+        } finally {
+            setCreatingDepartment(false);
         }
     };
 
@@ -157,21 +241,40 @@ const Departments = () => {
         departmentName
     ) => {
         try {
+            setLoadingMembers(true);
             const response = await api.get(
                 `/admin/departments/${departmentId}/members`
             );
 
             setSelectedMembers(response.data);
             setSelectedDepartment(departmentName);
+            setMemberSearch("");
             setShowCreateDepartment(false);
             setShowMembers(true);
         } catch (error) {
             console.error("Member fetch failed:", error);
+            showToast("Department members could not be loaded.", "error");
+        } finally {
+            setLoadingMembers(false);
         }
     };
 
     return (
         <DashboardLayout>
+            {toast && (
+                <div className="fixed right-5 top-5 z-[60]">
+                    <div
+                        className={`rounded-lg border px-4 py-3 text-sm font-medium shadow-lg ${
+                            toast.type === "error"
+                                ? "border-rose-100 bg-rose-50 text-rose-700"
+                                : "border-emerald-100 bg-emerald-50 text-emerald-700"
+                        }`}
+                    >
+                        {toast.message}
+                    </div>
+                </div>
+            )}
+
             <div className="mb-8">
                 <p className="text-sm font-medium text-gray-500">
                     Workforce Structure
@@ -195,7 +298,7 @@ const Departments = () => {
                             </h2>
 
                             <p className="text-sm text-slate-500">
-                                {departments.length} total departments
+                                {filteredDepartments.length} of {departments.length} departments
                             </p>
                         </div>
 
@@ -209,6 +312,49 @@ const Departments = () => {
                         >
                             Create Department
                         </button>
+                    </div>
+
+                    <div className="grid gap-3 border-b border-slate-200 p-5 lg:grid-cols-[1fr_180px_220px]">
+                        <input
+                            type="text"
+                            value={departmentSearch}
+                            onChange={(event) =>
+                                setDepartmentSearch(event.target.value)
+                            }
+                            placeholder="Search departments, code, or head"
+                            className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                        />
+
+                        <select
+                            value={departmentStatusFilter}
+                            onChange={(event) =>
+                                setDepartmentStatusFilter(
+                                    event.target.value
+                                )
+                            }
+                            className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                        >
+                            <option value="">All Statuses</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="archived">Archived</option>
+                        </select>
+
+                        <select
+                            value={departmentAssignmentFilter}
+                            onChange={(event) =>
+                                setDepartmentAssignmentFilter(
+                                    event.target.value
+                                )
+                            }
+                            className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                        >
+                            <option value="">All Departments</option>
+                            <option value="unassigned_head">
+                                Unassigned Head
+                            </option>
+                            <option value="no_members">No Members</option>
+                        </select>
                     </div>
 
                     <div className="hidden lg:block">
@@ -277,16 +423,17 @@ const Departments = () => {
                                                             department.name
                                                         )
                                                     }
-                                                    className="inline-flex h-10 w-32 items-center justify-center rounded-lg border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                                                    disabled={loadingMembers}
+                                                    className="inline-flex h-10 w-32 items-center justify-center rounded-lg border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                                                 >
-                                                    View Members
+                                                    {loadingMembers ? "Loading..." : "View Members"}
                                                 </button>
                                             </div>
                                         </td>
                                     </tr>
                                 ))}
 
-                                {departments.length === 0 && (
+                                {filteredDepartments.length === 0 && (
                                     <tr>
                                         <td
                                             colSpan="6"
@@ -294,11 +441,11 @@ const Departments = () => {
                                         >
                                             <div className="mx-auto max-w-sm">
                                                 <p className="text-sm font-medium text-slate-950">
-                                                    No departments yet.
+                                                    No departments found.
                                                 </p>
 
                                                 <p className="mt-1 text-sm text-slate-500">
-                                                    Create a department before assigning teams or members.
+                                                    Try changing your search or filters.
                                                 </p>
 
                                                 <button
@@ -379,22 +526,23 @@ const Departments = () => {
                                                 department.name
                                             )
                                         }
-                                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                                        disabled={loadingMembers}
+                                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                                     >
-                                        View Members
+                                        {loadingMembers ? "Loading..." : "View Members"}
                                     </button>
                                 </div>
                             </div>
                         ))}
 
-                        {departments.length === 0 && (
+                        {filteredDepartments.length === 0 && (
                             <div className="p-6 text-center">
                                 <p className="text-sm font-medium text-slate-950">
-                                    No departments yet.
+                                    No departments found.
                                 </p>
 
                                 <p className="mt-1 text-sm text-slate-500">
-                                    Create a department before assigning teams or members.
+                                    Try changing your search or filters.
                                 </p>
 
                                 <button
@@ -410,15 +558,15 @@ const Departments = () => {
                         )}
                     </div>
 
-                    {departments.length > 0 && (
+                    {filteredDepartments.length > 0 && (
                         <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                             <p className="text-sm text-slate-500">
                                 Showing {(departmentPage - 1) * PAGE_SIZE + 1}-
                                 {Math.min(
                                     departmentPage * PAGE_SIZE,
-                                    departments.length
+                                    filteredDepartments.length
                                 )}{" "}
-                                of {departments.length} departments
+                                of {filteredDepartments.length} departments
                             </p>
 
                             <div className="flex items-center gap-2">
@@ -599,8 +747,13 @@ const Departments = () => {
                                     Cancel
                                 </button>
 
-                                <button className="rounded-lg bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800">
-                                    Create Department
+                                <button
+                                    disabled={creatingDepartment}
+                                    className="rounded-lg bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+                                >
+                                    {creatingDepartment
+                                        ? "Creating..."
+                                        : "Create Department"}
                                 </button>
                             </div>
                         </form>
@@ -632,6 +785,18 @@ const Departments = () => {
                         </div>
 
                         <div className="max-h-[65vh] overflow-auto">
+                            <div className="border-b border-slate-200 p-5">
+                                <input
+                                    type="text"
+                                    value={memberSearch}
+                                    onChange={(event) =>
+                                        setMemberSearch(event.target.value)
+                                    }
+                                    placeholder="Search department members"
+                                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                />
+                            </div>
+
                             <table className="w-full min-w-[760px] table-fixed">
                                 <thead className="sticky top-0 bg-slate-50 text-xs uppercase text-slate-500">
                                     <tr>
@@ -692,6 +857,18 @@ const Departments = () => {
                                             </td>
                                         </tr>
                                     )}
+
+                                    {selectedMembers.length > 0 &&
+                                        sortedSelectedMembers.length === 0 && (
+                                            <tr>
+                                                <td
+                                                    colSpan="6"
+                                                    className="px-5 py-10 text-center text-sm text-slate-500"
+                                                >
+                                                    No department members match your search.
+                                                </td>
+                                            </tr>
+                                        )}
                                 </tbody>
                             </table>
                         </div>

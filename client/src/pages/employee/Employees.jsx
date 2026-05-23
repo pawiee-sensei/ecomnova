@@ -30,6 +30,12 @@ const Employees = () => {
     const [auditLogs, setAuditLogs] = useState([]);
     const [employeePage, setEmployeePage] = useState(1);
     const [auditPage, setAuditPage] = useState(1);
+    const [selectedEmployeeIds, setSelectedEmployeeIds] = useState([]);
+    const [bulkStatus, setBulkStatus] = useState("");
+    const [bulkUpdating, setBulkUpdating] = useState(false);
+    const [updatingEmployeeId, setUpdatingEmployeeId] = useState(null);
+    const [pendingBulkStatus, setPendingBulkStatus] = useState("");
+    const [toast, setToast] = useState(null);
 
     const stats = useMemo(() => {
         const active = employees.filter(
@@ -58,6 +64,23 @@ const Employees = () => {
 
         return employees.slice(start, start + PAGE_SIZE);
     }, [employeePage, employees]);
+
+    const visibleEmployeeIds = useMemo(
+        () => paginatedEmployees.map((employee) => employee.id),
+        [paginatedEmployees]
+    );
+
+    const selectedVisibleCount = useMemo(
+        () =>
+            visibleEmployeeIds.filter((employeeId) =>
+                selectedEmployeeIds.includes(employeeId)
+            ).length,
+        [selectedEmployeeIds, visibleEmployeeIds]
+    );
+
+    const allVisibleSelected =
+        visibleEmployeeIds.length > 0 &&
+        selectedVisibleCount === visibleEmployeeIds.length;
 
     const paginatedAuditLogs = useMemo(() => {
         const start = (auditPage - 1) * PAGE_SIZE;
@@ -100,6 +123,7 @@ const Employees = () => {
 
     useEffect(() => {
         setEmployeePage(1);
+        setSelectedEmployeeIds([]);
     }, [search, roleFilter, statusFilter]);
 
     useEffect(() => {
@@ -114,11 +138,17 @@ const Employees = () => {
         );
     }, [auditPageCount]);
 
+    const showToast = (message, type = "success") => {
+        setToast({ message, type });
+        window.setTimeout(() => setToast(null), 3000);
+    };
+
     const handleStatusChange = async (
         employeeId,
         newStatus
     ) => {
         try {
+            setUpdatingEmployeeId(employeeId);
             await api.patch(
                 `/admin/employees/${employeeId}/status`,
                 {
@@ -138,13 +168,100 @@ const Employees = () => {
             );
 
             await fetchAuditLogs();
+            showToast("Employee status updated.");
 
         } catch (error) {
             console.error(
                 "Status update failed:",
                 error
             );
+            showToast("Status update failed.", "error");
+        } finally {
+            setUpdatingEmployeeId(null);
         }
+    };
+
+    const handleEmployeeSelection = (employeeId) => {
+        setSelectedEmployeeIds((currentSelection) =>
+            currentSelection.includes(employeeId)
+                ? currentSelection.filter((id) => id !== employeeId)
+                : [...currentSelection, employeeId]
+        );
+    };
+
+    const handleSelectVisibleEmployees = () => {
+        setSelectedEmployeeIds((currentSelection) => {
+            if (allVisibleSelected) {
+                return currentSelection.filter(
+                    (employeeId) =>
+                        !visibleEmployeeIds.includes(employeeId)
+                );
+            }
+
+            return Array.from(
+                new Set([
+                    ...currentSelection,
+                    ...visibleEmployeeIds
+                ])
+            );
+        });
+    };
+
+    const performBulkStatusUpdate = async (status) => {
+        if (!status || selectedEmployeeIds.length === 0) {
+            return;
+        }
+
+        try {
+            setBulkUpdating(true);
+            await Promise.all(
+                selectedEmployeeIds.map((employeeId) =>
+                    api.patch(
+                        `/admin/employees/${employeeId}/status`,
+                        {
+                            status
+                        }
+                    )
+                )
+            );
+
+            setEmployees((currentEmployees) =>
+                currentEmployees.map((employee) =>
+                    selectedEmployeeIds.includes(employee.id)
+                        ? {
+                            ...employee,
+                            status
+                        }
+                        : employee
+                )
+            );
+            setSelectedEmployeeIds([]);
+            setBulkStatus("");
+            setPendingBulkStatus("");
+            await fetchAuditLogs();
+            showToast("Bulk status update complete.");
+        } catch (error) {
+            console.error(
+                "Bulk status update failed:",
+                error
+            );
+            showToast("Bulk status update failed.", "error");
+        } finally {
+            setBulkUpdating(false);
+        }
+    };
+
+    const handleBulkStatusUpdate = async () => {
+        if (!bulkStatus || selectedEmployeeIds.length === 0) {
+            return;
+        }
+
+        if (["suspended", "terminated"].includes(bulkStatus)) {
+            setPendingBulkStatus(bulkStatus);
+            return;
+        }
+
+        await performBulkStatusUpdate(bulkStatus);
     };
 
     const renderPlainAssignment = (value) => {
@@ -173,6 +290,20 @@ const Employees = () => {
 
     return (
         <DashboardLayout>
+            {toast && (
+                <div className="fixed right-5 top-5 z-[60]">
+                    <div
+                        className={`rounded-lg border px-4 py-3 text-sm font-medium shadow-lg ${
+                            toast.type === "error"
+                                ? "border-rose-100 bg-rose-50 text-rose-700"
+                                : "border-emerald-100 bg-emerald-50 text-emerald-700"
+                        }`}
+                    >
+                        {toast.message}
+                    </div>
+                </div>
+            )}
+
             <div className="space-y-6">
                 <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
                     <div>
@@ -272,25 +403,89 @@ const Employees = () => {
                                 <option value="terminated">Terminated</option>
                             </select>
                         </div>
+
+                        {selectedEmployeeIds.length > 0 && (
+                            <div className="mt-4 flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:flex-row sm:items-center sm:justify-between">
+                                <p className="text-sm font-medium text-slate-700">
+                                    {selectedEmployeeIds.length} selected
+                                </p>
+
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                    <select
+                                        value={bulkStatus}
+                                        onChange={(event) =>
+                                            setBulkStatus(
+                                                event.target.value
+                                            )
+                                        }
+                                        className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-slate-400"
+                                    >
+                                        <option value="">
+                                            Select status
+                                        </option>
+                                        <option value="active">
+                                            Active
+                                        </option>
+                                        <option value="inactive">
+                                            Inactive
+                                        </option>
+                                        <option value="suspended">
+                                            Suspended
+                                        </option>
+                                        <option value="terminated">
+                                            Terminated
+                                        </option>
+                                    </select>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleBulkStatusUpdate}
+                                        disabled={!bulkStatus || bulkUpdating}
+                                        className="h-10 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+                                    >
+                                        {bulkUpdating ? "Updating..." : "Apply"}
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedEmployeeIds([]);
+                                            setBulkStatus("");
+                                        }}
+                                        className="h-10 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                                    >
+                                        Clear
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[1180px] table-fixed">
                             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                                 <tr>
-                                    <th className="w-[18%] px-5 py-3 text-left font-semibold">
+                                    <th className="w-[4%] px-5 py-3 text-center font-semibold">
+                                        <input
+                                            type="checkbox"
+                                            checked={allVisibleSelected}
+                                            onChange={handleSelectVisibleEmployees}
+                                            aria-label="Select visible employees"
+                                        />
+                                    </th>
+                                    <th className="w-[17%] px-5 py-3 text-left font-semibold">
                                         Employee
                                     </th>
-                                    <th className="w-[18%] px-5 py-3 text-left font-semibold">
+                                    <th className="w-[17%] px-5 py-3 text-left font-semibold">
                                         Email
                                     </th>
                                     <th className="w-[9%] px-5 py-3 text-center font-semibold">
                                         Role
                                     </th>
-                                    <th className="w-[12%] px-5 py-3 text-left font-semibold">
+                                    <th className="w-[11%] px-5 py-3 text-left font-semibold">
                                         Department
                                     </th>
-                                    <th className="w-[10%] px-5 py-3 text-left font-semibold">
+                                    <th className="w-[9%] px-5 py-3 text-left font-semibold">
                                         Team
                                     </th>
                                     <th className="w-[8%] px-5 py-3 text-center font-semibold">
@@ -306,7 +501,7 @@ const Employees = () => {
                                 {employees.length === 0 ? (
                                     <tr>
                                         <td
-                                            colSpan="7"
+                                            colSpan="8"
                                             className="px-5 py-10 text-center text-sm text-slate-500"
                                         >
                                             No employees match your filters.
@@ -318,6 +513,21 @@ const Employees = () => {
                                             key={employee.id}
                                             className="transition hover:bg-slate-50"
                                         >
+                                            <td className="px-5 py-4 text-center align-middle">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedEmployeeIds.includes(
+                                                        employee.id
+                                                    )}
+                                                    onChange={() =>
+                                                        handleEmployeeSelection(
+                                                            employee.id
+                                                        )
+                                                    }
+                                                    aria-label={`Select ${employee.fullname}`}
+                                                />
+                                            </td>
+
                                             <td className="px-5 py-4 align-middle">
                                                 <div className="flex items-center gap-3">
                                                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-700">
@@ -406,7 +616,11 @@ const Employees = () => {
                                                                 e.target.value
                                                             )
                                                         }
-                                                        className="h-10 w-32 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-slate-400"
+                                                        disabled={
+                                                            updatingEmployeeId ===
+                                                            employee.id
+                                                        }
+                                                        className="h-10 w-32 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-slate-400 disabled:opacity-60"
                                                     >
                                                         <option value="active">
                                                             Active
@@ -600,6 +814,45 @@ const Employees = () => {
                     )}
                 </div>
             </div>
+
+            {pendingBulkStatus && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
+                    <div className="w-full max-w-md rounded-xl bg-white shadow-xl">
+                        <div className="border-b border-slate-200 p-5">
+                            <h2 className="text-lg font-bold text-slate-950">
+                                Confirm Bulk Status Change
+                            </h2>
+
+                            <p className="mt-2 text-sm text-slate-500">
+                                This will mark {selectedEmployeeIds.length} selected employees as {pendingBulkStatus}.
+                            </p>
+                        </div>
+
+                        <div className="flex justify-end gap-2 p-5">
+                            <button
+                                type="button"
+                                onClick={() => setPendingBulkStatus("")}
+                                className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    performBulkStatusUpdate(
+                                        pendingBulkStatus
+                                    )
+                                }
+                                disabled={bulkUpdating}
+                                className="rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-50"
+                            >
+                                {bulkUpdating ? "Updating..." : "Confirm"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </DashboardLayout>
     );
 };

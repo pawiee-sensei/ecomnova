@@ -55,22 +55,82 @@ const Teams = () => {
     const [teamPage, setTeamPage] = useState(1);
     const [showCreateTeam, setShowCreateTeam] = useState(false);
     const [createError, setCreateError] = useState("");
+    const [teamSearch, setTeamSearch] = useState("");
+    const [teamStatusFilter, setTeamStatusFilter] = useState("");
+    const [teamAssignmentFilter, setTeamAssignmentFilter] = useState("");
+    const [memberSearch, setMemberSearch] = useState("");
+    const [creatingTeam, setCreatingTeam] = useState(false);
+    const [loadingMembers, setLoadingMembers] = useState(false);
+    const [assigningMembers, setAssigningMembers] = useState(false);
+    const [removingMemberId, setRemovingMemberId] = useState(null);
+    const [toast, setToast] = useState(null);
 
     const [formData, setFormData] = useState(INITIAL_TEAM_FORM);
 
+    const filteredTeams = useMemo(() => {
+        const normalizedSearch = teamSearch.trim().toLowerCase();
+
+        return teams.filter((team) => {
+            const matchesSearch =
+                !normalizedSearch ||
+                [
+                    team.name,
+                    team.code,
+                    team.department_name,
+                    team.leader_name
+                ]
+                    .filter(Boolean)
+                    .some((value) =>
+                        String(value)
+                            .toLowerCase()
+                            .includes(normalizedSearch)
+                    );
+            const matchesStatus =
+                !teamStatusFilter ||
+                team.status === teamStatusFilter;
+            const matchesAssignment =
+                !teamAssignmentFilter ||
+                (teamAssignmentFilter === "unassigned_leader" &&
+                    !team.leader_name) ||
+                (teamAssignmentFilter === "no_members" &&
+                    Number(team.member_count || 0) === 0);
+
+            return matchesSearch && matchesStatus && matchesAssignment;
+        });
+    }, [
+        teamAssignmentFilter,
+        teamSearch,
+        teamStatusFilter,
+        teams
+    ]);
+
     const teamPageCount = Math.max(
         1,
-        Math.ceil(teams.length / PAGE_SIZE)
+        Math.ceil(filteredTeams.length / PAGE_SIZE)
     );
 
     const paginatedTeams = useMemo(() => {
         const start = (teamPage - 1) * PAGE_SIZE;
 
-        return teams.slice(start, start + PAGE_SIZE);
-    }, [teamPage, teams]);
+        return filteredTeams.slice(start, start + PAGE_SIZE);
+    }, [filteredTeams, teamPage]);
 
     const sortedTeamMembers = useMemo(() => {
-        return [...teamMembers].sort((firstMember, secondMember) => {
+        const normalizedSearch = memberSearch.trim().toLowerCase();
+
+        return [...teamMembers].filter((member) => {
+            if (!normalizedSearch) {
+                return true;
+            }
+
+            return [member.fullname, member.role]
+                .filter(Boolean)
+                .some((value) =>
+                    String(value)
+                        .toLowerCase()
+                        .includes(normalizedSearch)
+                );
+        }).sort((firstMember, secondMember) => {
             const firstIsLeader = String(firstMember.role || "")
                 .toLowerCase()
                 .includes("leader");
@@ -80,7 +140,25 @@ const Teams = () => {
 
             return Number(secondIsLeader) - Number(firstIsLeader);
         });
-    }, [teamMembers]);
+    }, [memberSearch, teamMembers]);
+
+    const filteredAvailableEmployees = useMemo(() => {
+        const normalizedSearch = memberSearch.trim().toLowerCase();
+
+        if (!normalizedSearch) {
+            return availableEmployees;
+        }
+
+        return availableEmployees.filter((employee) =>
+            [employee.fullname, employee.role]
+                .filter(Boolean)
+                .some((value) =>
+                    String(value)
+                        .toLowerCase()
+                        .includes(normalizedSearch)
+                )
+        );
+    }, [availableEmployees, memberSearch]);
 
     const fetchData = async () => {
         try {
@@ -112,11 +190,20 @@ const Teams = () => {
         );
     }, [teamPageCount]);
 
+    useEffect(() => {
+        setTeamPage(1);
+    }, [teamAssignmentFilter, teamSearch, teamStatusFilter]);
+
     const handleChange = (e) => {
         setFormData({
             ...formData,
             [e.target.name]: e.target.value
         });
+    };
+
+    const showToast = (message, type = "success") => {
+        setToast({ message, type });
+        window.setTimeout(() => setToast(null), 3000);
     };
 
     const resetForm = () => {
@@ -134,17 +221,22 @@ const Teams = () => {
         setCreateError("");
 
         try {
+            setCreatingTeam(true);
             await api.post("/admin/teams", formData);
             await fetchData();
 
             resetForm();
             setShowCreateTeam(false);
+            showToast("Team created.");
         } catch (error) {
             console.error("Team creation failed:", error);
             setCreateError(
                 error.response?.data?.message ||
                     "Team creation failed. Please check the details and try again."
             );
+            showToast("Team creation failed.", "error");
+        } finally {
+            setCreatingTeam(false);
         }
     };
 
@@ -161,6 +253,7 @@ const Teams = () => {
         teamName
     ) => {
         try {
+            setLoadingMembers(true);
             const [
                 membersResponse,
                 availableResponse
@@ -172,17 +265,22 @@ const Teams = () => {
             setTeamMembers(membersResponse.data);
             setAvailableEmployees(availableResponse.data);
             setSelectedEmployees([]);
+            setMemberSearch("");
             setSelectedTeam(teamName);
             setSelectedTeamId(teamId);
             setShowCreateTeam(false);
             setShowMembers(true);
         } catch (error) {
             console.error("Team member fetch failed:", error);
+            showToast("Team members could not be loaded.", "error");
+        } finally {
+            setLoadingMembers(false);
         }
     };
 
     const handleAssignMembers = async () => {
         try {
+            setAssigningMembers(true);
             await api.put(
                 `/admin/teams/${selectedTeamId}/assign-members`,
                 {
@@ -192,23 +290,46 @@ const Teams = () => {
 
             await handleManageMembers(selectedTeamId, selectedTeam);
             await fetchData();
+            showToast("Members assigned.");
         } catch (error) {
             console.error("Assignment failed:", error);
+            showToast("Member assignment failed.", "error");
+        } finally {
+            setAssigningMembers(false);
         }
     };
 
     const handleRemoveMember = async (employeeId) => {
         try {
+            setRemovingMemberId(employeeId);
             await api.put(`/admin/teams/remove-member/${employeeId}`);
             await handleManageMembers(selectedTeamId, selectedTeam);
             await fetchData();
+            showToast("Member removed.");
         } catch (error) {
             console.error("Removal failed:", error);
+            showToast("Member removal failed.", "error");
+        } finally {
+            setRemovingMemberId(null);
         }
     };
 
     return (
         <DashboardLayout>
+            {toast && (
+                <div className="fixed right-5 top-5 z-[60]">
+                    <div
+                        className={`rounded-lg border px-4 py-3 text-sm font-medium shadow-lg ${
+                            toast.type === "error"
+                                ? "border-rose-100 bg-rose-50 text-rose-700"
+                                : "border-emerald-100 bg-emerald-50 text-emerald-700"
+                        }`}
+                    >
+                        {toast.message}
+                    </div>
+                </div>
+            )}
+
             <div className="mb-8">
                 <p className="text-sm font-medium text-slate-500">
                     Workforce Structure
@@ -232,7 +353,7 @@ const Teams = () => {
                             </h2>
 
                             <p className="text-sm text-slate-500">
-                                {teams.length} total teams
+                                {filteredTeams.length} of {teams.length} teams
                             </p>
                         </div>
 
@@ -246,6 +367,45 @@ const Teams = () => {
                         >
                             Create Team
                         </button>
+                    </div>
+
+                    <div className="grid gap-3 border-b border-slate-200 p-5 lg:grid-cols-[1fr_180px_220px]">
+                        <input
+                            type="text"
+                            value={teamSearch}
+                            onChange={(event) =>
+                                setTeamSearch(event.target.value)
+                            }
+                            placeholder="Search teams, code, department, or leader"
+                            className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                        />
+
+                        <select
+                            value={teamStatusFilter}
+                            onChange={(event) =>
+                                setTeamStatusFilter(event.target.value)
+                            }
+                            className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                        >
+                            <option value="">All Statuses</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="archived">Archived</option>
+                        </select>
+
+                        <select
+                            value={teamAssignmentFilter}
+                            onChange={(event) =>
+                                setTeamAssignmentFilter(event.target.value)
+                            }
+                            className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                        >
+                            <option value="">All Teams</option>
+                            <option value="unassigned_leader">
+                                Unassigned Leader
+                            </option>
+                            <option value="no_members">No Members</option>
+                        </select>
                     </div>
 
                     <div className="hidden lg:block">
@@ -319,16 +479,17 @@ const Teams = () => {
                                                             team.name
                                                         )
                                                     }
+                                                    disabled={loadingMembers}
                                                     className="inline-flex h-10 w-36 items-center justify-center rounded-lg border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50"
                                                 >
-                                                    Manage Members
+                                                    {loadingMembers ? "Loading..." : "Manage Members"}
                                                 </button>
                                             </div>
                                         </td>
                                     </tr>
                                 ))}
 
-                                {teams.length === 0 && (
+                                {filteredTeams.length === 0 && (
                                     <tr>
                                         <td
                                             colSpan="7"
@@ -336,11 +497,11 @@ const Teams = () => {
                                         >
                                             <div className="mx-auto max-w-sm">
                                                 <p className="text-sm font-medium text-slate-950">
-                                                    No teams yet.
+                                                    No teams found.
                                                 </p>
 
                                                 <p className="mt-1 text-sm text-slate-500">
-                                                    Create a team to start organizing employees by department.
+                                                    Try changing your search or filters.
                                                 </p>
 
                                                 <button
@@ -434,22 +595,23 @@ const Teams = () => {
                                                 team.name
                                             )
                                         }
-                                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                                        disabled={loadingMembers}
+                                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                                     >
-                                        Manage Members
+                                        {loadingMembers ? "Loading..." : "Manage Members"}
                                     </button>
                                 </div>
                             </div>
                         ))}
 
-                        {teams.length === 0 && (
+                                {filteredTeams.length === 0 && (
                             <div className="p-6 text-center">
                                 <p className="text-sm font-medium text-slate-950">
-                                    No teams yet.
+                                    No teams found.
                                 </p>
 
                                 <p className="mt-1 text-sm text-slate-500">
-                                    Create a team to start organizing employees by department.
+                                    Try changing your search or filters.
                                 </p>
 
                                 <button
@@ -463,15 +625,15 @@ const Teams = () => {
                         )}
                     </div>
 
-                    {teams.length > 0 && (
+                    {filteredTeams.length > 0 && (
                         <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                             <p className="text-sm text-slate-500">
                                 Showing {(teamPage - 1) * PAGE_SIZE + 1}-
                                 {Math.min(
                                     teamPage * PAGE_SIZE,
-                                    teams.length
+                                    filteredTeams.length
                                 )}{" "}
-                                of {teams.length} teams
+                                of {filteredTeams.length} teams
                             </p>
 
                             <div className="flex items-center gap-2">
@@ -663,8 +825,11 @@ const Teams = () => {
                                     Cancel
                                 </button>
 
-                                <button className="rounded-lg bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800">
-                                    Create Team
+                                <button
+                                    disabled={creatingTeam}
+                                    className="rounded-lg bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+                                >
+                                    {creatingTeam ? "Creating..." : "Create Team"}
                                 </button>
                             </div>
                         </form>
@@ -701,6 +866,16 @@ const Teams = () => {
                                     Current Members
                                 </h3>
 
+                                <input
+                                    type="text"
+                                    value={memberSearch}
+                                    onChange={(event) =>
+                                        setMemberSearch(event.target.value)
+                                    }
+                                    placeholder="Search members or available employees"
+                                    className="mt-4 w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                />
+
                                 <div className="mt-4 space-y-3">
                                     {sortedTeamMembers.map((member) => (
                                         <div
@@ -724,9 +899,15 @@ const Teams = () => {
                                                         member.id
                                                     )
                                                 }
-                                                className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                                                disabled={
+                                                    removingMemberId ===
+                                                    member.id
+                                                }
+                                                className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                                             >
-                                                Remove
+                                                {removingMemberId === member.id
+                                                    ? "Removing..."
+                                                    : "Remove"}
                                             </button>
                                         </div>
                                     ))}
@@ -736,6 +917,13 @@ const Teams = () => {
                                             No members assigned yet.
                                         </p>
                                     )}
+
+                                    {teamMembers.length > 0 &&
+                                        sortedTeamMembers.length === 0 && (
+                                            <p className="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
+                                                No current members match your search.
+                                            </p>
+                                        )}
                                 </div>
                             </div>
 
@@ -745,7 +933,7 @@ const Teams = () => {
                                 </h3>
 
                                 <div className="mt-4 space-y-3">
-                                    {availableEmployees.map((employee) => (
+                                    {filteredAvailableEmployees.map((employee) => (
                                         <label
                                             key={employee.id}
                                             className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 p-4 hover:bg-slate-50"
@@ -779,15 +967,27 @@ const Teams = () => {
                                             No available employees in this department.
                                         </p>
                                     )}
+
+                                    {availableEmployees.length > 0 &&
+                                        filteredAvailableEmployees.length === 0 && (
+                                            <p className="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
+                                                No available employees match your search.
+                                            </p>
+                                        )}
                                 </div>
 
                                 <button
                                     type="button"
                                     onClick={handleAssignMembers}
-                                    disabled={selectedEmployees.length === 0}
+                                    disabled={
+                                        selectedEmployees.length === 0 ||
+                                        assigningMembers
+                                    }
                                     className="mt-5 rounded-lg bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
                                 >
-                                    Assign Selected
+                                    {assigningMembers
+                                        ? "Assigning..."
+                                        : "Assign Selected"}
                                 </button>
                             </div>
                         </div>
