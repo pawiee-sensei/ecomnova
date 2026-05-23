@@ -19,6 +19,13 @@ const roleStyles = {
     admin: "bg-slate-950 text-white ring-slate-950"
 };
 
+const terminationReasons = [
+    "Resigned",
+    "Contract Ended",
+    "Policy Violation",
+    "Other"
+];
+
 const PAGE_SIZE = 10;
 
 const Employees = () => {
@@ -35,6 +42,8 @@ const Employees = () => {
     const [bulkUpdating, setBulkUpdating] = useState(false);
     const [updatingEmployeeId, setUpdatingEmployeeId] = useState(null);
     const [pendingBulkStatus, setPendingBulkStatus] = useState("");
+    const [pendingStatusChange, setPendingStatusChange] = useState(null);
+    const [lifecycleReason, setLifecycleReason] = useState("");
     const [toast, setToast] = useState(null);
 
     const stats = useMemo(() => {
@@ -152,7 +161,7 @@ const Employees = () => {
         window.setTimeout(() => setToast(null), 3000);
     };
 
-    const handleStatusChange = async (
+    const performStatusChange = async (
         employeeId,
         newStatus
     ) => {
@@ -178,6 +187,7 @@ const Employees = () => {
 
             await fetchAuditLogs();
             showToast("Employee status updated.");
+            return true;
 
         } catch (error) {
             console.error(
@@ -185,9 +195,31 @@ const Employees = () => {
                 error
             );
             showToast("Status update failed.", "error");
+            return false;
         } finally {
             setUpdatingEmployeeId(null);
         }
+    };
+
+    const handleStatusChange = async (
+        employee,
+        newStatus
+    ) => {
+        if (!newStatus || newStatus === employee.status) {
+            return;
+        }
+
+        if (["suspended", "terminated"].includes(newStatus)) {
+            setPendingStatusChange({
+                employeeId: employee.id,
+                employeeName: employee.fullname,
+                status: newStatus
+            });
+            setLifecycleReason("");
+            return;
+        }
+
+        await performStatusChange(employee.id, newStatus);
     };
 
     const handleEmployeeSelection = (employeeId) => {
@@ -247,6 +279,7 @@ const Employees = () => {
             setSelectedEmployeeIds([]);
             setBulkStatus("");
             setPendingBulkStatus("");
+            setLifecycleReason("");
             await fetchAuditLogs();
             showToast("Bulk status update complete.");
         } catch (error) {
@@ -267,6 +300,7 @@ const Employees = () => {
 
         if (["suspended", "terminated"].includes(bulkStatus)) {
             setPendingBulkStatus(bulkStatus);
+            setLifecycleReason("");
             return;
         }
 
@@ -651,7 +685,7 @@ const Employees = () => {
                                                         value={employee.status}
                                                         onChange={(e) =>
                                                             handleStatusChange(
-                                                                employee.id,
+                                                                employee,
                                                                 e.target.value
                                                             )
                                                         }
@@ -865,12 +899,46 @@ const Employees = () => {
                             <p className="mt-2 text-sm text-slate-500">
                                 This will mark {selectedEmployeeIds.length} selected employees as {pendingBulkStatus}.
                             </p>
+
+                            {pendingBulkStatus === "terminated" && (
+                                <label className="mt-4 block space-y-2">
+                                    <span className="text-sm font-medium text-slate-700">
+                                        Reason
+                                    </span>
+
+                                    <select
+                                        value={lifecycleReason}
+                                        onChange={(event) =>
+                                            setLifecycleReason(
+                                                event.target.value
+                                            )
+                                        }
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                    >
+                                        <option value="">
+                                            Select reason
+                                        </option>
+
+                                        {terminationReasons.map((reason) => (
+                                            <option
+                                                key={reason}
+                                                value={reason}
+                                            >
+                                                {reason}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+                            )}
                         </div>
 
                         <div className="flex justify-end gap-2 p-5">
                             <button
                                 type="button"
-                                onClick={() => setPendingBulkStatus("")}
+                                onClick={() => {
+                                    setPendingBulkStatus("");
+                                    setLifecycleReason("");
+                                }}
                                 className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
                             >
                                 Cancel
@@ -883,10 +951,114 @@ const Employees = () => {
                                         pendingBulkStatus
                                     )
                                 }
-                                disabled={bulkUpdating}
+                                disabled={
+                                    bulkUpdating ||
+                                    (pendingBulkStatus ===
+                                        "terminated" &&
+                                        !lifecycleReason)
+                                }
                                 className="rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-50"
                             >
                                 {bulkUpdating ? "Updating..." : "Confirm"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {pendingStatusChange && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
+                    <div className="w-full max-w-md rounded-xl bg-white shadow-xl">
+                        <div className="border-b border-slate-200 p-5">
+                            <h2 className="text-lg font-bold text-slate-950">
+                                {pendingStatusChange.status ===
+                                "terminated"
+                                    ? "Terminate Employee"
+                                    : "Suspend Employee"}
+                            </h2>
+
+                            <p className="mt-2 text-sm text-slate-500">
+                                {pendingStatusChange.status ===
+                                "terminated"
+                                    ? `Terminate employee ${pendingStatusChange.employeeName}? This marks the employee as no longer employed.`
+                                    : `Suspend employee ${pendingStatusChange.employeeName}? This may temporarily remove the employee from workforce activity.`}
+                            </p>
+
+                            {pendingStatusChange.status ===
+                                "terminated" && (
+                                <label className="mt-4 block space-y-2">
+                                    <span className="text-sm font-medium text-slate-700">
+                                        Reason
+                                    </span>
+
+                                    <select
+                                        value={lifecycleReason}
+                                        onChange={(event) =>
+                                            setLifecycleReason(
+                                                event.target.value
+                                            )
+                                        }
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                    >
+                                        <option value="">
+                                            Select reason
+                                        </option>
+
+                                        {terminationReasons.map((reason) => (
+                                            <option
+                                                key={reason}
+                                                value={reason}
+                                            >
+                                                {reason}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+                            )}
+                        </div>
+
+                        <div className="flex justify-end gap-2 p-5">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setPendingStatusChange(null);
+                                    setLifecycleReason("");
+                                }}
+                                className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    const didUpdate =
+                                        await performStatusChange(
+                                        pendingStatusChange.employeeId,
+                                        pendingStatusChange.status
+                                    );
+
+                                    if (didUpdate) {
+                                        setPendingStatusChange(null);
+                                        setLifecycleReason("");
+                                    }
+                                }}
+                                disabled={
+                                    updatingEmployeeId ===
+                                        pendingStatusChange.employeeId ||
+                                    (pendingStatusChange.status ===
+                                        "terminated" &&
+                                        !lifecycleReason)
+                                }
+                                className="rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-50"
+                            >
+                                {updatingEmployeeId ===
+                                pendingStatusChange.employeeId
+                                    ? "Updating..."
+                                    : pendingStatusChange.status ===
+                                      "terminated"
+                                      ? "Confirm Termination"
+                                      : "Confirm Suspend"}
                             </button>
                         </div>
                     </div>
