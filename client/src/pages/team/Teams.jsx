@@ -67,6 +67,26 @@ const Teams = () => {
 
     const [formData, setFormData] = useState(INITIAL_TEAM_FORM);
 
+    const teamCapacityStats = useMemo(() => {
+        const teamsWithoutLeaders = teams.filter(
+            (team) => !team.leader_name
+        ).length;
+        const teamsWithoutMembers = teams.filter(
+            (team) => Number(team.member_count || 0) === 0
+        ).length;
+        const assignedMembers = teams.reduce(
+            (total, team) => total + Number(team.member_count || 0),
+            0
+        );
+
+        return {
+            total: teams.length,
+            teamsWithoutLeaders,
+            teamsWithoutMembers,
+            assignedMembers
+        };
+    }, [teams]);
+
     const filteredTeams = useMemo(() => {
         const normalizedSearch = teamSearch.trim().toLowerCase();
 
@@ -342,6 +362,36 @@ const Teams = () => {
                 <p className="mt-2 text-sm text-slate-500">
                     Manage team governance, leaders, and department-aligned staffing.
                 </p>
+            </div>
+
+            <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="text-sm text-slate-500">Total Teams</p>
+                    <p className="mt-2 text-3xl font-bold text-slate-950">
+                        {teamCapacityStats.total}
+                    </p>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="text-sm text-slate-500">Without Leaders</p>
+                    <p className="mt-2 text-3xl font-bold text-rose-600">
+                        {teamCapacityStats.teamsWithoutLeaders}
+                    </p>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="text-sm text-slate-500">No Members</p>
+                    <p className="mt-2 text-3xl font-bold text-amber-600">
+                        {teamCapacityStats.teamsWithoutMembers}
+                    </p>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="text-sm text-slate-500">Assigned Members</p>
+                    <p className="mt-2 text-3xl font-bold text-emerald-600">
+                        {teamCapacityStats.assignedMembers}
+                    </p>
+                </div>
             </div>
 
             <div>

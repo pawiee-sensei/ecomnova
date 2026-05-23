@@ -59,6 +59,28 @@ const Departments = () => {
 
     const [formData, setFormData] = useState(INITIAL_DEPARTMENT_FORM);
 
+    const departmentCapacityStats = useMemo(() => {
+        const departmentsWithoutHeads = departments.filter(
+            (department) => !department.head_name
+        ).length;
+        const departmentsWithoutMembers = departments.filter(
+            (department) =>
+                Number(department.member_count || 0) === 0
+        ).length;
+        const assignedMembers = departments.reduce(
+            (total, department) =>
+                total + Number(department.member_count || 0),
+            0
+        );
+
+        return {
+            total: departments.length,
+            departmentsWithoutHeads,
+            departmentsWithoutMembers,
+            assignedMembers
+        };
+    }, [departments]);
+
     const fetchDepartments = async () => {
         try {
             const response = await api.get("/admin/departments");
@@ -287,6 +309,36 @@ const Departments = () => {
                 <p className="mt-2 text-sm text-gray-500">
                     Keep BPO departments, department heads, and assigned members connected.
                 </p>
+            </div>
+
+            <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="text-sm text-slate-500">Total Departments</p>
+                    <p className="mt-2 text-3xl font-bold text-slate-950">
+                        {departmentCapacityStats.total}
+                    </p>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="text-sm text-slate-500">Without Heads</p>
+                    <p className="mt-2 text-3xl font-bold text-rose-600">
+                        {departmentCapacityStats.departmentsWithoutHeads}
+                    </p>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="text-sm text-slate-500">No Members</p>
+                    <p className="mt-2 text-3xl font-bold text-amber-600">
+                        {departmentCapacityStats.departmentsWithoutMembers}
+                    </p>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p className="text-sm text-slate-500">Assigned Members</p>
+                    <p className="mt-2 text-3xl font-bold text-emerald-600">
+                        {departmentCapacityStats.assignedMembers}
+                    </p>
+                </div>
             </div>
 
             <div>

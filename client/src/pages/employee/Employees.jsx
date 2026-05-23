@@ -45,7 +45,16 @@ const Employees = () => {
         return {
             total: employees.length,
             active,
-            inactive: employees.length - active
+            inactive: employees.length - active,
+            unassignedDepartment: employees.filter(
+                (employee) => !employee.department_name
+            ).length,
+            unassignedTeam: employees.filter(
+                (employee) => !employee.team_name
+            ).length,
+            unassignedManager: employees.filter(
+                (employee) => !employee.manager_name
+            ).length
         };
     }, [employees]);
 
@@ -328,7 +337,7 @@ const Employees = () => {
                     </Link>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
                     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                         <p className="text-sm text-slate-500">
                             Total Employees
@@ -356,6 +365,36 @@ const Employees = () => {
 
                         <p className="mt-2 text-3xl font-bold text-amber-600">
                             {stats.inactive}
+                        </p>
+                    </div>
+
+                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <p className="text-sm text-slate-500">
+                            No Department
+                        </p>
+
+                        <p className="mt-2 text-3xl font-bold text-rose-600">
+                            {stats.unassignedDepartment}
+                        </p>
+                    </div>
+
+                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <p className="text-sm text-slate-500">
+                            No Team
+                        </p>
+
+                        <p className="mt-2 text-3xl font-bold text-rose-600">
+                            {stats.unassignedTeam}
+                        </p>
+                    </div>
+
+                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <p className="text-sm text-slate-500">
+                            No Manager
+                        </p>
+
+                        <p className="mt-2 text-3xl font-bold text-rose-600">
+                            {stats.unassignedManager}
                         </p>
                     </div>
                 </div>
