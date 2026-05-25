@@ -44,7 +44,15 @@ const createEmployee = async (data) => {
             email: data.email,
             password: hashedPassword,
             role: data.role,
-            status: "active"
+            department_id: data.department_id,
+            team_id: data.team_id,
+            manager_id: data.manager_id,
+            status: data.status || "active",
+            job_title: data.job_title,
+            employment_type: data.employment_type,
+            hire_date: data.hire_date,
+            work_location: data.work_location,
+            shift: data.shift
         };
 
         employeeModel.createEmployee(

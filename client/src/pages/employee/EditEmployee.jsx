@@ -3,6 +3,36 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import api from "../../services/api";
 
+const jobTitleOptions = [
+    "Customer Support Agent",
+    "QA Analyst"
+];
+
+const employmentTypeOptions = [
+    "Full-time",
+    "Part-time",
+    "Contract",
+    "Probation"
+];
+
+const workLocationOptions = [
+    "Las Piñas Site",
+    "Remote"
+];
+
+const shiftOptions = [
+    "Night Shift",
+    "Day Shift"
+];
+
+const formatDateForInput = (date) => {
+    if (!date) {
+        return "";
+    }
+
+    return new Date(date).toISOString().slice(0, 10);
+};
+
 const EditEmployee = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -11,9 +41,15 @@ const EditEmployee = () => {
         fullname: "",
         email: "",
         role: "",
+        status: "",
         department_id: "",
         team_id: "",
-        manager_id: ""
+        manager_id: "",
+        job_title: "",
+        employment_type: "",
+        hire_date: "",
+        work_location: "",
+        shift: ""
     });
 
     const [loading, setLoading] = useState(true);
@@ -112,12 +148,24 @@ useEffect(() => {
                     employeeResponse.data.email || "",
                 role:
                     employeeResponse.data.role || "",
+                status:
+                    employeeResponse.data.status || "active",
                 department_id:
                     employeeResponse.data.department_id || "",
                 team_id:
                     employeeResponse.data.team_id || "",
                 manager_id:
-                    employeeResponse.data.manager_id || ""
+                    employeeResponse.data.manager_id || "",
+                job_title:
+                    employeeResponse.data.job_title || "",
+                employment_type:
+                    employeeResponse.data.employment_type || "",
+                hire_date:
+                    formatDateForInput(employeeResponse.data.hire_date),
+                work_location:
+                    employeeResponse.data.work_location || "",
+                shift:
+                    employeeResponse.data.shift || ""
             });
 
             /*
@@ -368,6 +416,100 @@ useEffect(() => {
                                 <option value="hr">HR</option>
                                 <option value="qa">QA</option>
                                 <option value="admin">Admin</option>
+                            </select>
+                        </label>
+
+                        <label className="space-y-2">
+                            <span className="text-sm font-medium text-slate-700">
+                                Job Title
+                            </span>
+
+                            <select
+                                name="job_title"
+                                value={formData.job_title}
+                                onChange={handleChange}
+                                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                            >
+                                <option value="">Select job title</option>
+                                {jobTitleOptions.map((jobTitle) => (
+                                    <option key={jobTitle} value={jobTitle}>
+                                        {jobTitle}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+
+                        <label className="space-y-2">
+                            <span className="text-sm font-medium text-slate-700">
+                                Employment Type
+                            </span>
+
+                            <select
+                                name="employment_type"
+                                value={formData.employment_type}
+                                onChange={handleChange}
+                                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                            >
+                                <option value="">Select employment type</option>
+                                {employmentTypeOptions.map((employmentType) => (
+                                    <option key={employmentType} value={employmentType}>
+                                        {employmentType}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+
+                        <label className="space-y-2">
+                            <span className="text-sm font-medium text-slate-700">
+                                Hire Date
+                            </span>
+
+                            <input
+                                type="date"
+                                name="hire_date"
+                                value={formData.hire_date}
+                                onChange={handleChange}
+                                className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                            />
+                        </label>
+
+                        <label className="space-y-2">
+                            <span className="text-sm font-medium text-slate-700">
+                                Work Location
+                            </span>
+
+                            <select
+                                name="work_location"
+                                value={formData.work_location}
+                                onChange={handleChange}
+                                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                            >
+                                <option value="">Select work location</option>
+                                {workLocationOptions.map((workLocation) => (
+                                    <option key={workLocation} value={workLocation}>
+                                        {workLocation}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+
+                        <label className="space-y-2">
+                            <span className="text-sm font-medium text-slate-700">
+                                Shift
+                            </span>
+
+                            <select
+                                name="shift"
+                                value={formData.shift}
+                                onChange={handleChange}
+                                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                            >
+                                <option value="">Select shift</option>
+                                {shiftOptions.map((shift) => (
+                                    <option key={shift} value={shift}>
+                                        {shift}
+                                    </option>
+                                ))}
                             </select>
                         </label>
 

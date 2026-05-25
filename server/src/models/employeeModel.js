@@ -106,9 +106,17 @@ const createEmployee = (
             email,
             password,
             role,
-            status
+            department_id,
+            team_id,
+            manager_id,
+            status,
+            job_title,
+            employment_type,
+            hire_date,
+            work_location,
+            shift
         )
-        VALUES (?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     db.query(
@@ -119,7 +127,15 @@ const createEmployee = (
             employeeData.email,
             employeeData.password,
             employeeData.role,
-            employeeData.status
+            employeeData.department_id || null,
+            employeeData.team_id || null,
+            employeeData.manager_id || null,
+            employeeData.status || "active",
+            employeeData.job_title || null,
+            employeeData.employment_type || null,
+            employeeData.hire_date || null,
+            employeeData.work_location || null,
+            employeeData.shift || null
         ],
         callback
     );
@@ -145,6 +161,11 @@ const getEmployeeById = (
             users.team_id,
             users.manager_id,
             users.created_at,
+            users.job_title,
+            users.employment_type,
+            users.hire_date,
+            users.work_location,
+            users.shift,
 
             departments.name AS department_name,
             teams.name AS team_name,
@@ -183,7 +204,13 @@ const updateEmployee = (
             role = ?,
             department_id = ?,
             team_id = ?,
-            manager_id = ?
+            manager_id = ?,
+            status = ?,
+            job_title = ?,
+            employment_type = ?,
+            hire_date = ?,
+            work_location = ?,
+            shift = ?
         WHERE id = ?
     `;
 
@@ -196,6 +223,12 @@ const updateEmployee = (
             employeeData.department_id || null,
             employeeData.team_id || null,
             employeeData.manager_id || null,
+            employeeData.status,
+            employeeData.job_title || null,
+            employeeData.employment_type || null,
+            employeeData.hire_date || null,
+            employeeData.work_location || null,
+            employeeData.shift || null,
             id
         ],
         callback

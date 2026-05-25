@@ -31,10 +31,20 @@ const getEmployees = async (req, res) => {
 const createEmployee = async (req, res) => {
     try {
         const {
+            employee_id,
             fullname,
             email,
             password,
-            role
+            role,
+            department_id,
+            team_id,
+            manager_id,
+            status,
+            job_title,
+            employment_type,
+            hire_date,
+            work_location,
+            shift
         } = req.body;
 
         /*
@@ -42,10 +52,20 @@ const createEmployee = async (req, res) => {
         */
         const result =
             await employeeService.createEmployee({
+                employee_id,
                 fullname,
                 email,
                 password,
-                role
+                role,
+                department_id,
+                team_id,
+                manager_id,
+                status,
+                job_title,
+                employment_type,
+                hire_date,
+                work_location,
+                shift
             });
 
         /*

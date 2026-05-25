@@ -10,6 +10,14 @@ const statusStyles = {
     terminated: "bg-rose-50 text-rose-700 ring-rose-200"
 };
 
+const formatDate = (date) => {
+    if (!date) {
+        return "Not set";
+    }
+
+    return new Date(date).toLocaleDateString();
+};
+
 const EmployeeDetails = () => {
     const { id } = useParams();
 
@@ -280,6 +288,56 @@ const EmployeeDetails = () => {
 
                                 <p className="text-lg font-medium">
                                     {employee.manager_name || "Unassigned"}
+                                </p>
+                            </div>
+
+                            <div className="rounded-lg bg-slate-50 p-4">
+                                <p className="text-sm text-slate-500">
+                                    Job Title
+                                </p>
+
+                                <p className="mt-1 font-semibold text-slate-950">
+                                    {employee.job_title || "Not set"}
+                                </p>
+                            </div>
+
+                            <div className="rounded-lg bg-slate-50 p-4">
+                                <p className="text-sm text-slate-500">
+                                    Employment Type
+                                </p>
+
+                                <p className="mt-1 font-semibold text-slate-950">
+                                    {employee.employment_type || "Not set"}
+                                </p>
+                            </div>
+
+                            <div className="rounded-lg bg-slate-50 p-4">
+                                <p className="text-sm text-slate-500">
+                                    Hire Date
+                                </p>
+
+                                <p className="mt-1 font-semibold text-slate-950">
+                                    {formatDate(employee.hire_date)}
+                                </p>
+                            </div>
+
+                            <div className="rounded-lg bg-slate-50 p-4">
+                                <p className="text-sm text-slate-500">
+                                    Work Location
+                                </p>
+
+                                <p className="mt-1 font-semibold text-slate-950">
+                                    {employee.work_location || "Not set"}
+                                </p>
+                            </div>
+
+                            <div className="rounded-lg bg-slate-50 p-4">
+                                <p className="text-sm text-slate-500">
+                                    Shift
+                                </p>
+
+                                <p className="mt-1 font-semibold text-slate-950">
+                                    {employee.shift || "Not set"}
                                 </p>
                             </div>
 
