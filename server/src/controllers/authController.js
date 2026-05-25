@@ -75,6 +75,13 @@ const login = (req, res) => {
             });
         }
 
+        if (user.security_status === "locked") {
+            return res.status(403).json({
+                message:
+                    "Account locked. Contact system administrator."
+            });
+        }
+
         const isMatch = await bcrypt.compare(
             password,
             user.password
