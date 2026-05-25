@@ -11,6 +11,7 @@ const teamRoutes = require("./routes/teamRoutes");
 
 
 const systemUserRoutes = require("./routes/systemUserRoutes");
+const auditLogRoutes = require("./routes/auditLogRoutes");
 
 
 const app = express();
@@ -27,5 +28,5 @@ app.use("/api/hr/departments", departmentRoutes);
 app.use("/api/hr/teams", teamRoutes);
 
 app.use("/api/system/users", systemUserRoutes);
-
+app.use("/api/system/audit-logs", auditLogRoutes);
 module.exports = app;

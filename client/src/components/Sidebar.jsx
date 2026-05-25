@@ -19,6 +19,11 @@ const Sidebar = () => {
                 name: "System Users",
                 path: "/admin/system/users",
                 icon: "U"
+            },
+            {
+                name: "Audit Logs",
+                path: "/admin/audit-logs",
+                icon: "L"
             }
         ],
 
@@ -57,11 +62,6 @@ const Sidebar = () => {
                 name: "Reports",
                 path: "/admin/reports",
                 icon: "R"
-            },
-            {
-                name: "Audit Logs",
-                path: "/hr/audit-logs",
-                icon: "L"
             }
         ],
 

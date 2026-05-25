@@ -15,7 +15,7 @@ import Employees from "./pages/HR/employee/Employees";
 import CreateEmployee from "./pages/HR/employee/CreateEmployee";
 import EditEmployee from "./pages/HR/employee/EditEmployee";
 import EmployeeDetails from "./pages/HR/employee/EmployeeDetails";
-import AuditLogs from "./pages/HR/employee/AuditLogs";
+import HRAuditLogs from "./pages/HR/employee/AuditLogs";
 
 import Departments from "./pages/HR/department/Departments";
 import EditDepartment from "./pages/HR/department/EditDepartment";
@@ -26,6 +26,7 @@ import EditTeam from "./pages/HR/team/EditTeam";
 // System admin pages
 import SystemUsers from "./pages/admin/SystemUsers";
 import SystemDashboard from "./pages/admin/SystemDashboard";
+import AuditLogs from "./pages/admin/AuditLogs";
 
 import AuthLoader from "./components/AuthLoader";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -37,6 +38,15 @@ function App() {
 
             <AuthLoader />
                 <Routes>
+
+                    <Route
+                            path="/admin/audit-logs"
+                            element={
+                                <ProtectedRoute roles={["admin"]}>
+                                    <AuditLogs />
+                                </ProtectedRoute>
+                            }
+                        />
 
                     <Route
                         path="/admin/system/users"

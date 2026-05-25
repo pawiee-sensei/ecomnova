@@ -2,6 +2,10 @@ const systemUserService = require(
     "../services/systemUserService"
 );
 
+const auditLogService = require(
+    "../services/auditLogService"
+);
+
 /*
   Fetch system users
 */
@@ -40,6 +44,14 @@ const updateUserRole = async (
             role
         );
 
+        await auditLogService.createAuditLog({
+            actor_id: req.user.id,
+            target_user_id: req.params.id,
+            action: "CHANGE_ROLE",
+            module: "ACCESS_CONTROL",
+            details: `Role changed to ${role}`
+        }); 
+
         res.status(200).json({
             message:
                 "Role updated successfully"
@@ -68,6 +80,20 @@ const updateSecurityStatus = async (
             req.params.id,
             security_status
         );
+
+        await auditLogService.createAuditLog({
+            actor_id: req.user.id,
+            target_user_id: req.params.id,
+            action:
+                security_status === "locked"
+                    ? "LOCK_ACCOUNT"
+                    : "UNLOCK_ACCOUNT",
+            module: "SECURITY",
+            details:
+                security_status === "locked"
+                    ? "Account locked"
+                    : "Account unlocked"
+        });
 
         res.status(200).json({
             message:
