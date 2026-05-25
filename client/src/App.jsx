@@ -7,20 +7,25 @@ import {
 
 import Login from "./pages/Login";
 
-import AdminDashboard from "./pages/AdminDashboard";
+// HR pages
+import AdminDashboard from "./pages/HR/AdminDashboard";
 import ManagerDashboard from "./pages/ManagerDashboard";
 import AgentDashboard from "./pages/AgentDashboard";
-import Employees from "./pages/employee/Employees";
-import CreateEmployee from "./pages/employee/CreateEmployee";
-import EditEmployee from "./pages/employee/EditEmployee";
-import EmployeeDetails from "./pages/employee/EmployeeDetails";
-import AuditLogs from "./pages/employee/AuditLogs";
+import Employees from "./pages/HR/employee/Employees";
+import CreateEmployee from "./pages/HR/employee/CreateEmployee";
+import EditEmployee from "./pages/HR/employee/EditEmployee";
+import EmployeeDetails from "./pages/HR/employee/EmployeeDetails";
+import AuditLogs from "./pages/HR/employee/AuditLogs";
 
-import Departments from "./pages/department/Departments";
-import EditDepartment from "./pages/department/EditDepartment";
+import Departments from "./pages/HR/department/Departments";
+import EditDepartment from "./pages/HR/department/EditDepartment";
 
-import Teams from "./pages/team/Teams";
-import EditTeam from "./pages/team/EditTeam";
+import Teams from "./pages/HR/team/Teams";
+import EditTeam from "./pages/HR/team/EditTeam";
+
+// System admin pages
+import SystemUsers from "./pages/admin/SystemUsers";
+import SystemDashboard from "./pages/admin/SystemDashboard";
 
 import AuthLoader from "./components/AuthLoader";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -34,80 +39,91 @@ function App() {
                 <Routes>
 
                     <Route
-                        path="/admin/teams/edit/:id"
+                        path="/admin/system/users"
                         element={
-                            <ProtectedRoute roles={["admin"]}>
+                            <ProtectedRoute
+                                roles={["admin"]}
+                            >
+                                <SystemUsers />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/hr/teams/edit/:id"
+                        element={
+                            <ProtectedRoute roles={["hr"]}>
                                 <EditTeam />
                             </ProtectedRoute>
                         }
                     />
 
                     <Route
-                        path="/admin/teams"
+                        path="/hr/teams"
                         element={
-                            <ProtectedRoute roles={["admin"]}>
+                            <ProtectedRoute roles={["hr"]}>
                                 <Teams />
                             </ProtectedRoute>
                         }
                     />
 
                     <Route
-                        path="/admin/departments/edit/:id"
+                        path="/hr/departments/edit/:id"
                         element={
-                            <ProtectedRoute roles={["admin"]}>
+                            <ProtectedRoute roles={["hr"]}>
                                 <EditDepartment />
                             </ProtectedRoute>
                         }
                     />
 
                     <Route
-                        path="/admin/departments"
+                        path="/hr/departments"
                         element={
-                            <ProtectedRoute roles={["admin"]}>
+                            <ProtectedRoute roles={["hr"]}>
                                 <Departments />
                             </ProtectedRoute>
                         }
                     />
 
                     <Route
-                        path="/admin/audit-logs"
+                        path="/hr/audit-logs"
                         element={
-                            <ProtectedRoute roles={["admin"]}>
+                            <ProtectedRoute roles={["hr"]}>
                                 <AuditLogs />
                             </ProtectedRoute>
                         }
                     />
                     <Route
-                        path="/admin/employees/:id"
+                        path="/hr/employees/:id"
                         element={
-                            <ProtectedRoute roles={["admin"]}>
+                            <ProtectedRoute roles={["hr"]}>
                                 <EmployeeDetails />
                             </ProtectedRoute>
                         }
                     />
 
                     <Route
-                        path="/admin/employees/edit/:id"
+                        path="/hr/employees/edit/:id"
                         element={
-                            <ProtectedRoute roles={["admin"]}>
+                            <ProtectedRoute roles={["hr"]}>
                                 <EditEmployee />
                             </ProtectedRoute>
                         }
                     />
 
                     <Route
-                        path="/admin/employees/create"
+                        path="/hr/employees/create"
                         element={
-                            <ProtectedRoute roles={["admin"]}>
+                            <ProtectedRoute roles={["hr"]}>
                                 <CreateEmployee />
                             </ProtectedRoute>
                         }
                     />
 
                     <Route
-                        path="/admin/employees"
+                        path="/hr/employees"
                         element={
-                            <ProtectedRoute roles={["admin"]}>
+                            <ProtectedRoute roles={["hr"]}>
                                 <Employees />
                             </ProtectedRoute>
                         }
@@ -135,12 +151,23 @@ function App() {
                     />
 
                     <Route
+                        path="/hr/dashboard"
+                        element={
+                            <ProtectedRoute
+                                roles={["hr"]}
+                            >
+                                <AdminDashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
                         path="/admin/dashboard"
                         element={
                             <ProtectedRoute
                                 roles={["admin"]}
                             >
-                                <AdminDashboard />
+                                <SystemDashboard />
                             </ProtectedRoute>
                         }
                     />

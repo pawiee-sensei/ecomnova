@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import DashboardLayout from "../../layouts/DashboardLayout";
-import api from "../../services/api";
+import DashboardLayout from "../../../layouts/DashboardLayout";
+import api from "../../../services/api";
 
 const statusStyles = {
     active: "bg-emerald-50 text-emerald-700 ring-emerald-200",
@@ -108,7 +108,7 @@ const Employees = () => {
 
     const fetchAuditLogs = useCallback(async () => {
         const auditResponse = await api.get(
-            "/admin/employees/audit-logs"
+            "/hr/employees/audit-logs"
         );
 
         setAuditLogs(auditResponse.data);
@@ -120,7 +120,7 @@ const Employees = () => {
                 setLoading(true);
 
                 const response = await api.get(
-                    `/admin/employees?search=${search}&role=${roleFilter}&status=${statusFilter}`
+                    `/hr/employees?search=${search}&role=${roleFilter}&status=${statusFilter}`
                 );
 
                 setEmployees(response.data);
@@ -168,7 +168,7 @@ const Employees = () => {
         try {
             setUpdatingEmployeeId(employeeId);
             await api.patch(
-                `/admin/employees/${employeeId}/status`,
+                `/hr/employees/${employeeId}/status`,
                 {
                     status: newStatus
                 }
@@ -258,7 +258,7 @@ const Employees = () => {
             await Promise.all(
                 selectedEmployeeIds.map((employeeId) =>
                     api.patch(
-                        `/admin/employees/${employeeId}/status`,
+                        `/hr/employees/${employeeId}/status`,
                         {
                             status
                         }
@@ -364,7 +364,7 @@ const Employees = () => {
                     </div>
 
                     <Link
-                        to="/admin/employees/create"
+                        to="/hr/employees/create"
                         className="inline-flex items-center justify-center rounded-lg bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
                     >
                         Create Employee
@@ -459,7 +459,6 @@ const Employees = () => {
                                 <option value="manager">Manager</option>
                                 <option value="hr">HR</option>
                                 <option value="qa">QA</option>
-                                <option value="admin">Admin</option>
                             </select>
 
                             <select
@@ -668,14 +667,14 @@ const Employees = () => {
                                             <td className="px-5 py-4 align-middle">
                                                 <div className="flex min-w-[260px] items-center justify-center gap-2">
                                                     <Link
-                                                        to={`/admin/employees/${employee.id}`}
+                                                        to={`/hr/employees/${employee.id}`}
                                                         className="inline-flex h-10 w-16 items-center justify-center rounded-lg border border-slate-200 text-sm font-medium text-slate-700 transition hover:bg-white"
                                                     >
                                                         View
                                                     </Link>
 
                                                     <Link
-                                                        to={`/admin/employees/edit/${employee.id}`}
+                                                        to={`/hr/employees/edit/${employee.id}`}
                                                         className="inline-flex h-10 w-16 items-center justify-center rounded-lg bg-slate-950 text-sm font-medium text-white transition hover:bg-slate-800"
                                                     >
                                                         Edit
@@ -1069,3 +1068,5 @@ const Employees = () => {
 };
 
 export default Employees;
+
+

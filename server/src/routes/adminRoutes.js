@@ -13,13 +13,13 @@ const {
 const router = express.Router();
 
 /*
-  Only admin can access dashboard stats
+  HR can access workforce dashboard stats
 */
 
 router.get(
     "/dashboard",
     verifyToken,
-    authorizeRoles("admin", "super_admin"),
+    authorizeRoles("hr", "super_admin"),
     getDashboardStats
 );
 

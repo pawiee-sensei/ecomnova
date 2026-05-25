@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import DashboardLayout from "../../layouts/DashboardLayout";
-import api from "../../services/api";
+import DashboardLayout from "../../../layouts/DashboardLayout";
+import api from "../../../services/api";
 
 const statusStyles = {
     active: "bg-emerald-50 text-emerald-700 ring-emerald-200",
@@ -43,13 +43,13 @@ const EmployeeDetails = () => {
         const fetchEmployee = async () => {
             try {
                 const response = await api.get(
-                    `/admin/employees/${id}`
+                    `/hr/employees/${id}`
                 );
 
                 setEmployee(response.data);
 
         const auditResponse = await api.get(
-            `/admin/employees/${id}/audit-logs`
+            `/hr/employees/${id}/audit-logs`
         );
 
         setAuditLogs(auditResponse.data);
@@ -72,7 +72,7 @@ const EmployeeDetails = () => {
             setResetting(true);
 
             await api.patch(
-                `/admin/employees/${id}/reset-password`,
+                `/hr/employees/${id}/reset-password`,
                 {
                     newPassword
                 }
@@ -124,14 +124,14 @@ const EmployeeDetails = () => {
 
                     <div className="flex flex-col gap-3 sm:flex-row">
                         <Link
-                            to="/admin/employees"
+                            to="/hr/employees"
                             className="inline-flex justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
                         >
                             Back to Directory
                         </Link>
 
                         <Link
-                            to={`/admin/employees/edit/${id}`}
+                            to={`/hr/employees/edit/${id}`}
                             className="inline-flex justify-center rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
                         >
                             Edit Profile
@@ -442,3 +442,5 @@ const EmployeeDetails = () => {
 };
 
 export default EmployeeDetails;
+
+

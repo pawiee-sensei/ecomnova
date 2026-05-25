@@ -41,7 +41,7 @@ const getAllEmployees = (
             ON users.manager_id = manager.id
         LEFT JOIN users AS leader
             ON teams.leader_id = leader.id
-        WHERE 1=1
+        WHERE users.role NOT IN ('admin', 'super_admin')
     `;
 
     const values = [];

@@ -5,7 +5,7 @@ const getTotalEmployees = (callback) => {
         `
         SELECT COUNT(*) AS totalEmployees
         FROM users
-        WHERE role IN ('admin', 'manager', 'agent')
+        WHERE role IN ('hr', 'manager', 'leader', 'agent', 'qa')
         `,
         callback
     );
@@ -16,7 +16,8 @@ const getActiveEmployees = (callback) => {
         `
         SELECT COUNT(*) AS activeEmployees
         FROM users
-        WHERE role IN ('admin', 'manager', 'agent')
+        WHERE role IN ('hr', 'manager', 'leader', 'agent', 'qa')
+            AND status = 'active'
         `,
 
     callback

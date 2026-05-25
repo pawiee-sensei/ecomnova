@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import DashboardLayout from "../../layouts/DashboardLayout";
-import api from "../../services/api";
+import DashboardLayout from "../../../layouts/DashboardLayout";
+import api from "../../../services/api";
 
 const PAGE_SIZE = 8;
 
-const INITIAL_DEPARTMENT_FORM = {
+const INITIAL_TEAM_FORM = {
     name: "",
     code: "",
+    department_id: "",
     description: "",
-    head_id: "",
+    leader_id: "",
     status: "active"
 };
 
@@ -27,79 +28,76 @@ const getStatusBadgeClass = (status) => {
     return "bg-emerald-50 text-emerald-700";
 };
 
-const getAssignmentBadgeClass = (assignment) => {
-    const normalizedAssignment = String(assignment || "").toLowerCase();
+const getRoleBadgeClass = (role) => {
+    const normalizedRole = String(role || "").toLowerCase();
 
-    if (normalizedAssignment.includes("head")) {
+    if (normalizedRole.includes("leader")) {
         return "bg-indigo-50 text-indigo-700";
+    }
+
+    if (normalizedRole.includes("manager")) {
+        return "bg-sky-50 text-sky-700";
     }
 
     return "bg-slate-100 text-slate-600";
 };
 
-const Departments = () => {
+const Teams = () => {
+    const [teams, setTeams] = useState([]);
     const [departments, setDepartments] = useState([]);
-    const [heads, setHeads] = useState([]);
-    const [selectedMembers, setSelectedMembers] = useState([]);
+    const [leaders, setLeaders] = useState([]);
     const [showMembers, setShowMembers] = useState(false);
-    const [selectedDepartment, setSelectedDepartment] = useState("");
-    const [departmentPage, setDepartmentPage] = useState(1);
-    const [showCreateDepartment, setShowCreateDepartment] = useState(false);
+    const [selectedTeam, setSelectedTeam] = useState("");
+    const [selectedTeamId, setSelectedTeamId] = useState(null);
+    const [teamMembers, setTeamMembers] = useState([]);
+    const [availableEmployees, setAvailableEmployees] = useState([]);
+    const [selectedEmployees, setSelectedEmployees] = useState([]);
+    const [teamPage, setTeamPage] = useState(1);
+    const [showCreateTeam, setShowCreateTeam] = useState(false);
     const [createError, setCreateError] = useState("");
-    const [departmentSearch, setDepartmentSearch] = useState("");
-    const [departmentStatusFilter, setDepartmentStatusFilter] = useState("");
-    const [
-        departmentAssignmentFilter,
-        setDepartmentAssignmentFilter
-    ] = useState("");
+    const [teamSearch, setTeamSearch] = useState("");
+    const [teamStatusFilter, setTeamStatusFilter] = useState("");
+    const [teamAssignmentFilter, setTeamAssignmentFilter] = useState("");
     const [memberSearch, setMemberSearch] = useState("");
-    const [creatingDepartment, setCreatingDepartment] = useState(false);
+    const [creatingTeam, setCreatingTeam] = useState(false);
     const [loadingMembers, setLoadingMembers] = useState(false);
+    const [assigningMembers, setAssigningMembers] = useState(false);
+    const [removingMemberId, setRemovingMemberId] = useState(null);
     const [toast, setToast] = useState(null);
 
-    const [formData, setFormData] = useState(INITIAL_DEPARTMENT_FORM);
+    const [formData, setFormData] = useState(INITIAL_TEAM_FORM);
 
-    const departmentCapacityStats = useMemo(() => {
-        const departmentsWithoutHeads = departments.filter(
-            (department) => !department.head_name
+    const teamCapacityStats = useMemo(() => {
+        const teamsWithoutLeaders = teams.filter(
+            (team) => !team.leader_name
         ).length;
-        const departmentsWithoutMembers = departments.filter(
-            (department) =>
-                Number(department.member_count || 0) === 0
+        const teamsWithoutMembers = teams.filter(
+            (team) => Number(team.member_count || 0) === 0
         ).length;
-        const assignedMembers = departments.reduce(
-            (total, department) =>
-                total + Number(department.member_count || 0),
+        const assignedMembers = teams.reduce(
+            (total, team) => total + Number(team.member_count || 0),
             0
         );
 
         return {
-            total: departments.length,
-            departmentsWithoutHeads,
-            departmentsWithoutMembers,
+            total: teams.length,
+            teamsWithoutLeaders,
+            teamsWithoutMembers,
             assignedMembers
         };
-    }, [departments]);
+    }, [teams]);
 
-    const fetchDepartments = async () => {
-        try {
-            const response = await api.get("/admin/departments");
-            setDepartments(response.data);
-        } catch (error) {
-            console.error("Department fetch failed:", error);
-        }
-    };
+    const filteredTeams = useMemo(() => {
+        const normalizedSearch = teamSearch.trim().toLowerCase();
 
-    const filteredDepartments = useMemo(() => {
-        const normalizedSearch = departmentSearch.trim().toLowerCase();
-
-        return departments.filter((department) => {
+        return teams.filter((team) => {
             const matchesSearch =
                 !normalizedSearch ||
                 [
-                    department.name,
-                    department.code,
-                    department.head_name
+                    team.name,
+                    team.code,
+                    team.department_name,
+                    team.leader_name
                 ]
                     .filter(Boolean)
                     .some((value) =>
@@ -108,50 +106,44 @@ const Departments = () => {
                             .includes(normalizedSearch)
                     );
             const matchesStatus =
-                !departmentStatusFilter ||
-                department.status === departmentStatusFilter;
+                !teamStatusFilter ||
+                team.status === teamStatusFilter;
             const matchesAssignment =
-                !departmentAssignmentFilter ||
-                (departmentAssignmentFilter === "unassigned_head" &&
-                    !department.head_name) ||
-                (departmentAssignmentFilter === "no_members" &&
-                    Number(department.member_count || 0) === 0);
+                !teamAssignmentFilter ||
+                (teamAssignmentFilter === "unassigned_leader" &&
+                    !team.leader_name) ||
+                (teamAssignmentFilter === "no_members" &&
+                    Number(team.member_count || 0) === 0);
 
             return matchesSearch && matchesStatus && matchesAssignment;
         });
     }, [
-        departmentAssignmentFilter,
-        departmentSearch,
-        departmentStatusFilter,
-        departments
+        teamAssignmentFilter,
+        teamSearch,
+        teamStatusFilter,
+        teams
     ]);
 
-    const departmentPageCount = Math.max(
+    const teamPageCount = Math.max(
         1,
-        Math.ceil(filteredDepartments.length / PAGE_SIZE)
+        Math.ceil(filteredTeams.length / PAGE_SIZE)
     );
 
-    const paginatedDepartments = useMemo(() => {
-        const start = (departmentPage - 1) * PAGE_SIZE;
+    const paginatedTeams = useMemo(() => {
+        const start = (teamPage - 1) * PAGE_SIZE;
 
-        return filteredDepartments.slice(start, start + PAGE_SIZE);
-    }, [departmentPage, filteredDepartments]);
+        return filteredTeams.slice(start, start + PAGE_SIZE);
+    }, [filteredTeams, teamPage]);
 
-    const sortedSelectedMembers = useMemo(() => {
+    const sortedTeamMembers = useMemo(() => {
         const normalizedSearch = memberSearch.trim().toLowerCase();
 
-        return [...selectedMembers].filter((member) => {
+        return [...teamMembers].filter((member) => {
             if (!normalizedSearch) {
                 return true;
             }
 
-            return [
-                member.employee_id,
-                member.fullname,
-                member.email,
-                member.role,
-                member.assignment_label
-            ]
+            return [member.fullname, member.role]
                 .filter(Boolean)
                 .some((value) =>
                     String(value)
@@ -159,58 +151,68 @@ const Departments = () => {
                         .includes(normalizedSearch)
                 );
         }).sort((firstMember, secondMember) => {
-            const firstIsHead = String(
-                firstMember.assignment_label || ""
-            )
+            const firstIsLeader = String(firstMember.role || "")
                 .toLowerCase()
-                .includes("head");
-            const secondIsHead = String(
-                secondMember.assignment_label || ""
-            )
+                .includes("leader");
+            const secondIsLeader = String(secondMember.role || "")
                 .toLowerCase()
-                .includes("head");
+                .includes("leader");
 
-            return Number(secondIsHead) - Number(firstIsHead);
+            return Number(secondIsLeader) - Number(firstIsLeader);
         });
-    }, [memberSearch, selectedMembers]);
+    }, [memberSearch, teamMembers]);
 
-    useEffect(() => {
-        setDepartmentPage((page) =>
-            Math.min(page, departmentPageCount)
+    const filteredAvailableEmployees = useMemo(() => {
+        const normalizedSearch = memberSearch.trim().toLowerCase();
+
+        if (!normalizedSearch) {
+            return availableEmployees;
+        }
+
+        return availableEmployees.filter((employee) =>
+            [employee.fullname, employee.role]
+                .filter(Boolean)
+                .some((value) =>
+                    String(value)
+                        .toLowerCase()
+                        .includes(normalizedSearch)
+                )
         );
-    }, [departmentPageCount]);
+    }, [availableEmployees, memberSearch]);
+
+    const fetchData = async () => {
+        try {
+            const [
+                teamsResponse,
+                departmentsResponse,
+                leadersResponse
+            ] = await Promise.all([
+                api.get("/hr/teams"),
+                api.get("/hr/teams/departments"),
+                api.get("/hr/teams/leaders")
+            ]);
+
+            setTeams(teamsResponse.data);
+            setDepartments(departmentsResponse.data);
+            setLeaders(leadersResponse.data);
+        } catch (error) {
+            console.error("Team fetch failed:", error);
+        }
+    };
 
     useEffect(() => {
-        setDepartmentPage(1);
-    }, [
-        departmentAssignmentFilter,
-        departmentSearch,
-        departmentStatusFilter
-    ]);
-
-    useEffect(() => {
-        const fetchInitialData = async () => {
-            try {
-                const [
-                    departmentsResponse,
-                    headsResponse
-                ] = await Promise.all([
-                    api.get("/admin/departments"),
-                    api.get("/admin/departments/heads")
-                ]);
-
-                setDepartments(departmentsResponse.data);
-                setHeads(headsResponse.data);
-            } catch (error) {
-                console.error(
-                    "Department setup fetch failed:",
-                    error
-                );
-            }
-        };
-
-        fetchInitialData();
+        fetchData();
     }, []);
+
+    useEffect(() => {
+        setTeamPage((page) =>
+            Math.min(page, teamPageCount)
+        );
+    }, [teamPageCount]);
+
+    useEffect(() => {
+        setTeamPage(1);
+    }, [teamAssignmentFilter, teamSearch, teamStatusFilter]);
 
     const handleChange = (e) => {
         setFormData({
@@ -225,13 +227,13 @@ const Departments = () => {
     };
 
     const resetForm = () => {
-        setFormData(INITIAL_DEPARTMENT_FORM);
+        setFormData(INITIAL_TEAM_FORM);
     };
 
-    const closeCreateDepartment = () => {
+    const closeCreateTeam = () => {
         resetForm();
         setCreateError("");
-        setShowCreateDepartment(false);
+        setShowCreateTeam(false);
     };
 
     const handleSubmit = async (e) => {
@@ -239,45 +241,96 @@ const Departments = () => {
         setCreateError("");
 
         try {
-            setCreatingDepartment(true);
-            await api.post("/admin/departments", formData);
-            await fetchDepartments();
+            setCreatingTeam(true);
+            await api.post("/hr/teams", formData);
+            await fetchData();
 
             resetForm();
-            setShowCreateDepartment(false);
-            showToast("Department created.");
+            setShowCreateTeam(false);
+            showToast("Team created.");
         } catch (error) {
-            console.error("Department creation failed:", error);
+            console.error("Team creation failed:", error);
             setCreateError(
                 error.response?.data?.message ||
-                    "Department creation failed. Please check the details and try again."
+                    "Team creation failed. Please check the details and try again."
             );
-            showToast("Department creation failed.", "error");
+            showToast("Team creation failed.", "error");
         } finally {
-            setCreatingDepartment(false);
+            setCreatingTeam(false);
         }
     };
 
-    const handleViewMembers = async (
-        departmentId,
-        departmentName
+    const handleCheckboxChange = (employeeId) => {
+        setSelectedEmployees((prev) =>
+            prev.includes(employeeId)
+                ? prev.filter((id) => id !== employeeId)
+                : [...prev, employeeId]
+        );
+    };
+
+    const handleManageMembers = async (
+        teamId,
+        teamName
     ) => {
         try {
             setLoadingMembers(true);
-            const response = await api.get(
-                `/admin/departments/${departmentId}/members`
-            );
+            const [
+                membersResponse,
+                availableResponse
+            ] = await Promise.all([
+                api.get(`/hr/teams/${teamId}/members`),
+                api.get(`/hr/teams/${teamId}/available-employees`)
+            ]);
 
-            setSelectedMembers(response.data);
-            setSelectedDepartment(departmentName);
+            setTeamMembers(membersResponse.data);
+            setAvailableEmployees(availableResponse.data);
+            setSelectedEmployees([]);
             setMemberSearch("");
-            setShowCreateDepartment(false);
+            setSelectedTeam(teamName);
+            setSelectedTeamId(teamId);
+            setShowCreateTeam(false);
             setShowMembers(true);
         } catch (error) {
-            console.error("Member fetch failed:", error);
-            showToast("Department members could not be loaded.", "error");
+            console.error("Team member fetch failed:", error);
+            showToast("Team members could not be loaded.", "error");
         } finally {
             setLoadingMembers(false);
+        }
+    };
+
+    const handleAssignMembers = async () => {
+        try {
+            setAssigningMembers(true);
+            await api.put(
+                `/hr/teams/${selectedTeamId}/assign-members`,
+                {
+                    employeeIds: selectedEmployees
+                }
+            );
+
+            await handleManageMembers(selectedTeamId, selectedTeam);
+            await fetchData();
+            showToast("Members assigned.");
+        } catch (error) {
+            console.error("Assignment failed:", error);
+            showToast("Member assignment failed.", "error");
+        } finally {
+            setAssigningMembers(false);
+        }
+    };
+
+    const handleRemoveMember = async (employeeId) => {
+        try {
+            setRemovingMemberId(employeeId);
+            await api.put(`/hr/teams/remove-member/${employeeId}`);
+            await handleManageMembers(selectedTeamId, selectedTeam);
+            await fetchData();
+            showToast("Member removed.");
+        } catch (error) {
+            console.error("Removal failed:", error);
+            showToast("Member removal failed.", "error");
+        } finally {
+            setRemovingMemberId(null);
         }
     };
 
@@ -298,45 +351,45 @@ const Departments = () => {
             )}
 
             <div className="mb-8">
-                <p className="text-sm font-medium text-gray-500">
+                <p className="text-sm font-medium text-slate-500">
                     Workforce Structure
                 </p>
 
-                <h1 className="mt-1 text-3xl font-bold">
-                    Department Management
+                <h1 className="mt-1 text-3xl font-bold text-slate-950">
+                    Team Management
                 </h1>
 
-                <p className="mt-2 text-sm text-gray-500">
-                    Keep BPO departments, department heads, and assigned members connected.
+                <p className="mt-2 text-sm text-slate-500">
+                    Manage team governance, leaders, and department-aligned staffing.
                 </p>
             </div>
 
             <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <p className="text-sm text-slate-500">Total Departments</p>
+                    <p className="text-sm text-slate-500">Total Teams</p>
                     <p className="mt-2 text-3xl font-bold text-slate-950">
-                        {departmentCapacityStats.total}
+                        {teamCapacityStats.total}
                     </p>
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <p className="text-sm text-slate-500">Without Heads</p>
+                    <p className="text-sm text-slate-500">Without Leaders</p>
                     <p className="mt-2 text-3xl font-bold text-rose-600">
-                        {departmentCapacityStats.departmentsWithoutHeads}
+                        {teamCapacityStats.teamsWithoutLeaders}
                     </p>
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                     <p className="text-sm text-slate-500">No Members</p>
                     <p className="mt-2 text-3xl font-bold text-amber-600">
-                        {departmentCapacityStats.departmentsWithoutMembers}
+                        {teamCapacityStats.teamsWithoutMembers}
                     </p>
                 </div>
 
                 <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                     <p className="text-sm text-slate-500">Assigned Members</p>
                     <p className="mt-2 text-3xl font-bold text-emerald-600">
-                        {departmentCapacityStats.assignedMembers}
+                        {teamCapacityStats.assignedMembers}
                     </p>
                 </div>
             </div>
@@ -346,11 +399,11 @@ const Departments = () => {
                     <div className="flex flex-col gap-4 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h2 className="text-lg font-semibold text-slate-950">
-                                Department Directory
+                                Team Directory
                             </h2>
 
                             <p className="text-sm text-slate-500">
-                                {filteredDepartments.length} of {departments.length} departments
+                                {filteredTeams.length} of {teams.length} teams
                             </p>
                         </div>
 
@@ -358,31 +411,29 @@ const Departments = () => {
                             type="button"
                             onClick={() => {
                                 setShowMembers(false);
-                                setShowCreateDepartment(true);
+                                setShowCreateTeam(true);
                             }}
                             className="rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
                         >
-                            Create Department
+                            Create Team
                         </button>
                     </div>
 
                     <div className="grid gap-3 border-b border-slate-200 p-5 lg:grid-cols-[1fr_180px_220px]">
                         <input
                             type="text"
-                            value={departmentSearch}
+                            value={teamSearch}
                             onChange={(event) =>
-                                setDepartmentSearch(event.target.value)
+                                setTeamSearch(event.target.value)
                             }
-                            placeholder="Search departments, code, or head"
+                            placeholder="Search teams, code, department, or leader"
                             className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
                         />
 
                         <select
-                            value={departmentStatusFilter}
+                            value={teamStatusFilter}
                             onChange={(event) =>
-                                setDepartmentStatusFilter(
-                                    event.target.value
-                                )
+                                setTeamStatusFilter(event.target.value)
                             }
                             className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
                         >
@@ -393,17 +444,15 @@ const Departments = () => {
                         </select>
 
                         <select
-                            value={departmentAssignmentFilter}
+                            value={teamAssignmentFilter}
                             onChange={(event) =>
-                                setDepartmentAssignmentFilter(
-                                    event.target.value
-                                )
+                                setTeamAssignmentFilter(event.target.value)
                             }
                             className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
                         >
-                            <option value="">All Departments</option>
-                            <option value="unassigned_head">
-                                Unassigned Head
+                            <option value="">All Teams</option>
+                            <option value="unassigned_leader">
+                                Unassigned Leader
                             </option>
                             <option value="no_members">No Members</option>
                         </select>
@@ -413,33 +462,38 @@ const Departments = () => {
                         <table className="w-full table-fixed">
                             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                                 <tr>
-                                    <th className="w-[22%] px-4 py-3 text-left font-semibold">Name</th>
-                                    <th className="w-[10%] px-4 py-3 text-center font-semibold">Code</th>
-                                    <th className="w-[20%] px-4 py-3 text-left font-semibold">Head</th>
-                                    <th className="w-[10%] px-4 py-3 text-center font-semibold">Members</th>
-                                    <th className="w-[12%] px-4 py-3 text-center font-semibold">Status</th>
-                                    <th className="w-[26%] px-4 py-3 text-center font-semibold">Actions</th>
+                                    <th className="w-[16%] px-4 py-3 text-left font-semibold">Name</th>
+                                    <th className="w-[9%] px-4 py-3 text-center font-semibold">Code</th>
+                                    <th className="w-[16%] px-4 py-3 text-left font-semibold">Department</th>
+                                    <th className="w-[16%] px-4 py-3 text-left font-semibold">Leader</th>
+                                    <th className="w-[9%] px-4 py-3 text-center font-semibold">Members</th>
+                                    <th className="w-[10%] px-4 py-3 text-center font-semibold">Status</th>
+                                    <th className="w-[24%] px-4 py-3 text-center font-semibold">Actions</th>
                                 </tr>
                             </thead>
 
                             <tbody className="divide-y divide-slate-100">
-                                {paginatedDepartments.map((department) => (
+                                {paginatedTeams.map((team) => (
                                     <tr
-                                        key={department.id}
+                                        key={team.id}
                                         className="transition hover:bg-slate-50"
                                     >
                                         <td className="px-4 py-4 align-middle font-medium text-slate-950">
-                                            {department.name}
+                                            {team.name}
                                         </td>
 
                                         <td className="px-4 py-4 text-center align-middle text-sm text-slate-600">
-                                            {department.code || "-"}
+                                            {team.code || "-"}
+                                        </td>
+
+                                        <td className="px-4 py-4 align-middle text-sm text-slate-600">
+                                            {team.department_name || "Unassigned"}
                                         </td>
 
                                         <td className="px-4 py-4 align-middle text-sm">
-                                            {department.head_name ? (
+                                            {team.leader_name ? (
                                                 <span className="inline-flex rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
-                                                    {department.head_name}
+                                                    {team.leader_name}
                                                 </span>
                                             ) : (
                                                 <span className="inline-flex rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700">
@@ -449,19 +503,19 @@ const Departments = () => {
                                         </td>
 
                                         <td className="px-4 py-4 text-center align-middle text-sm text-slate-600">
-                                            {department.member_count || 0}
+                                            {team.member_count}
                                         </td>
 
                                         <td className="px-4 py-4 text-center align-middle">
-                                            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getStatusBadgeClass(department.status)}`}>
-                                                {department.status}
+                                            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getStatusBadgeClass(team.status)}`}>
+                                                {team.status}
                                             </span>
                                         </td>
 
                                         <td className="px-4 py-4 align-middle">
-                                            <div className="flex min-w-[210px] justify-center gap-2 whitespace-nowrap">
+                                            <div className="flex min-w-[230px] justify-center gap-2 whitespace-nowrap">
                                                 <Link
-                                                    to={`/admin/departments/edit/${department.id}`}
+                                                    to={`/hr/teams/edit/${team.id}`}
                                                     className="inline-flex h-10 w-16 items-center justify-center rounded-lg bg-slate-950 text-sm font-medium text-white hover:bg-slate-800"
                                                 >
                                                     Edit
@@ -470,30 +524,30 @@ const Departments = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() =>
-                                                        handleViewMembers(
-                                                            department.id,
-                                                            department.name
+                                                        handleManageMembers(
+                                                            team.id,
+                                                            team.name
                                                         )
                                                     }
                                                     disabled={loadingMembers}
-                                                    className="inline-flex h-10 w-32 items-center justify-center rounded-lg border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                                                    className="inline-flex h-10 w-36 items-center justify-center rounded-lg border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50"
                                                 >
-                                                    {loadingMembers ? "Loading..." : "View Members"}
+                                                    {loadingMembers ? "Loading..." : "Manage Members"}
                                                 </button>
                                             </div>
                                         </td>
                                     </tr>
                                 ))}
 
-                                {filteredDepartments.length === 0 && (
+                                {filteredTeams.length === 0 && (
                                     <tr>
                                         <td
-                                            colSpan="6"
+                                            colSpan="7"
                                             className="px-5 py-12 text-center"
                                         >
                                             <div className="mx-auto max-w-sm">
                                                 <p className="text-sm font-medium text-slate-950">
-                                                    No departments found.
+                                                    No teams found.
                                                 </p>
 
                                                 <p className="mt-1 text-sm text-slate-500">
@@ -503,11 +557,11 @@ const Departments = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() =>
-                                                        setShowCreateDepartment(true)
+                                                        setShowCreateTeam(true)
                                                     }
                                                     className="mt-4 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
                                                 >
-                                                    Create Department
+                                                    Create Team
                                                 </button>
                                             </div>
                                         </td>
@@ -518,53 +572,66 @@ const Departments = () => {
                     </div>
 
                     <div className="divide-y divide-slate-100 lg:hidden">
-                        {paginatedDepartments.map((department) => (
+                        {paginatedTeams.map((team) => (
                             <div
-                                key={department.id}
+                                key={team.id}
                                 className="p-5"
                             >
                                 <div className="flex items-start justify-between gap-4">
                                     <div>
                                         <h3 className="font-semibold text-slate-950">
-                                            {department.name}
+                                            {team.name}
                                         </h3>
 
                                         <div className="mt-2 flex flex-wrap gap-2">
                                             <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
-                                                {department.code || "No code"}
+                                                {team.code || "No code"}
                                             </span>
 
-                                            {department.head_name ? (
+                                            <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                                                {team.department_name || "No department"}
+                                            </span>
+
+                                            {team.leader_name ? (
                                                 <span className="inline-flex rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
-                                                    Head: {department.head_name}
+                                                    Leader: {team.leader_name}
                                                 </span>
                                             ) : (
                                                 <span className="inline-flex rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700">
-                                                    Head unassigned
+                                                    Leader unassigned
                                                 </span>
                                             )}
                                         </div>
                                     </div>
 
-                                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getStatusBadgeClass(department.status)}`}>
-                                        {department.status}
+                                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getStatusBadgeClass(team.status)}`}>
+                                        {team.status}
                                     </span>
                                 </div>
 
-                                <dl className="mt-4 text-sm">
+                                <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <dt className="text-xs font-semibold uppercase text-slate-400">
+                                            Leader
+                                        </dt>
+                                        <dd className="mt-1 text-slate-700">
+                                            {team.leader_name || "Unassigned"}
+                                        </dd>
+                                    </div>
+
                                     <div>
                                         <dt className="text-xs font-semibold uppercase text-slate-400">
                                             Members
                                         </dt>
                                         <dd className="mt-1 text-slate-700">
-                                            {department.member_count || 0}
+                                            {team.member_count}
                                         </dd>
                                     </div>
                                 </dl>
 
                                 <div className="mt-4 flex gap-2">
                                     <Link
-                                        to={`/admin/departments/edit/${department.id}`}
+                                        to={`/hr/teams/edit/${team.id}`}
                                         className="rounded-lg bg-slate-950 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800"
                                     >
                                         Edit
@@ -573,24 +640,24 @@ const Departments = () => {
                                     <button
                                         type="button"
                                         onClick={() =>
-                                            handleViewMembers(
-                                                department.id,
-                                                department.name
+                                            handleManageMembers(
+                                                team.id,
+                                                team.name
                                             )
                                         }
                                         disabled={loadingMembers}
                                         className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                                     >
-                                        {loadingMembers ? "Loading..." : "View Members"}
+                                        {loadingMembers ? "Loading..." : "Manage Members"}
                                     </button>
                                 </div>
                             </div>
                         ))}
 
-                        {filteredDepartments.length === 0 && (
+                                {filteredTeams.length === 0 && (
                             <div className="p-6 text-center">
                                 <p className="text-sm font-medium text-slate-950">
-                                    No departments found.
+                                    No teams found.
                                 </p>
 
                                 <p className="mt-1 text-sm text-slate-500">
@@ -599,59 +666,52 @@ const Departments = () => {
 
                                 <button
                                     type="button"
-                                    onClick={() =>
-                                        setShowCreateDepartment(true)
-                                    }
+                                    onClick={() => setShowCreateTeam(true)}
                                     className="mt-4 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
                                 >
-                                    Create Department
+                                    Create Team
                                 </button>
                             </div>
                         )}
                     </div>
 
-                    {filteredDepartments.length > 0 && (
+                    {filteredTeams.length > 0 && (
                         <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                             <p className="text-sm text-slate-500">
-                                Showing {(departmentPage - 1) * PAGE_SIZE + 1}-
+                                Showing {(teamPage - 1) * PAGE_SIZE + 1}-
                                 {Math.min(
-                                    departmentPage * PAGE_SIZE,
-                                    filteredDepartments.length
+                                    teamPage * PAGE_SIZE,
+                                    filteredTeams.length
                                 )}{" "}
-                                of {filteredDepartments.length} departments
+                                of {filteredTeams.length} teams
                             </p>
 
                             <div className="flex items-center gap-2">
                                 <button
                                     type="button"
                                     onClick={() =>
-                                        setDepartmentPage((page) =>
+                                        setTeamPage((page) =>
                                             Math.max(1, page - 1)
                                         )
                                     }
-                                    disabled={departmentPage === 1}
+                                    disabled={teamPage === 1}
                                     className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50"
                                 >
                                     Previous
                                 </button>
 
                                 <span className="text-sm font-medium text-slate-600">
-                                    Page {departmentPage} of {departmentPageCount}
+                                    Page {teamPage} of {teamPageCount}
                                 </span>
 
                                 <button
                                     type="button"
                                     onClick={() =>
-                                        setDepartmentPage((page) =>
-                                            Math.min(
-                                                departmentPageCount,
-                                                page + 1
-                                            )
+                                        setTeamPage((page) =>
+                                            Math.min(teamPageCount, page + 1)
                                         )
                                     }
-                                    disabled={
-                                        departmentPage === departmentPageCount
-                                    }
+                                    disabled={teamPage === teamPageCount}
                                     className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50"
                                 >
                                     Next
@@ -662,23 +722,23 @@ const Departments = () => {
                 </div>
             </div>
 
-            {showCreateDepartment && (
+            {showCreateTeam && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
                     <div className="max-h-[88vh] w-full max-w-xl overflow-hidden rounded-xl bg-white shadow-xl">
                         <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-5">
                             <div>
                                 <h2 className="text-xl font-bold text-slate-950">
-                                    Create Department
+                                    Create Team
                                 </h2>
 
                                 <p className="mt-1 text-sm text-slate-500">
-                                    Add a department and assign an optional head.
+                                    Add a team and connect it to a department or leader.
                                 </p>
                             </div>
 
                             <button
                                 type="button"
-                                onClick={closeCreateDepartment}
+                                onClick={closeCreateTeam}
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                             >
                                 Close
@@ -697,13 +757,13 @@ const Departments = () => {
 
                             <label className="space-y-2">
                                 <span className="text-sm font-medium text-slate-700">
-                                    Department Name
+                                    Team Name
                                 </span>
 
                                 <input
                                     type="text"
                                     name="name"
-                                    placeholder="Sales"
+                                    placeholder="North Team"
                                     value={formData.name}
                                     onChange={handleChange}
                                     className="w-full rounded-lg border border-slate-200 p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
@@ -713,13 +773,13 @@ const Departments = () => {
 
                             <label className="space-y-2">
                                 <span className="text-sm font-medium text-slate-700">
-                                    Department Code
+                                    Team Code
                                 </span>
 
                                 <input
                                     type="text"
                                     name="code"
-                                    placeholder="SALES"
+                                    placeholder="NORTH"
                                     value={formData.code}
                                     onChange={handleChange}
                                     className="w-full rounded-lg border border-slate-200 p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
@@ -728,31 +788,47 @@ const Departments = () => {
 
                             <label className="space-y-2">
                                 <span className="text-sm font-medium text-slate-700">
-                                    Department Head
+                                    Department
                                 </span>
 
                                 <select
-                                    name="head_id"
-                                    value={formData.head_id}
+                                    name="department_id"
+                                    value={formData.department_id}
                                     onChange={handleChange}
                                     className="w-full rounded-lg border border-slate-200 bg-white p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
                                 >
-                                    <option value="">
-                                        Unassigned Department Head
-                                    </option>
+                                    <option value="">Select Department</option>
 
-                                    {heads.map((head) => (
+                                    {departments.map((department) => (
                                         <option
-                                            key={head.id}
-                                            value={head.id}
-                                            disabled={Boolean(
-                                                head.headed_department_id
-                                            )}
+                                            key={department.id}
+                                            value={department.id}
                                         >
-                                            {head.fullname} ({head.role})
-                                            {head.headed_department_name
-                                                ? ` - already heads ${head.headed_department_name}`
-                                                : ""}
+                                            {department.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+
+                            <label className="space-y-2">
+                                <span className="text-sm font-medium text-slate-700">
+                                    Team Leader
+                                </span>
+
+                                <select
+                                    name="leader_id"
+                                    value={formData.leader_id}
+                                    onChange={handleChange}
+                                    className="w-full rounded-lg border border-slate-200 bg-white p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                >
+                                    <option value="">Select Team Leader</option>
+
+                                    {leaders.map((leader) => (
+                                        <option
+                                            key={leader.id}
+                                            value={leader.id}
+                                        >
+                                            {leader.fullname}
                                         </option>
                                     ))}
                                 </select>
@@ -783,7 +859,7 @@ const Departments = () => {
                                 <textarea
                                     name="description"
                                     rows="3"
-                                    placeholder="Describe this department."
+                                    placeholder="Describe this team."
                                     value={formData.description}
                                     onChange={handleChange}
                                     className="w-full rounded-lg border border-slate-200 p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
@@ -793,19 +869,17 @@ const Departments = () => {
                             <div className="flex justify-end gap-2 sm:col-span-2">
                                 <button
                                     type="button"
-                                    onClick={closeCreateDepartment}
+                                    onClick={closeCreateTeam}
                                     className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
                                 >
                                     Cancel
                                 </button>
 
                                 <button
-                                    disabled={creatingDepartment}
+                                    disabled={creatingTeam}
                                     className="rounded-lg bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
                                 >
-                                    {creatingDepartment
-                                        ? "Creating..."
-                                        : "Create Department"}
+                                    {creatingTeam ? "Creating..." : "Create Team"}
                                 </button>
                             </div>
                         </form>
@@ -815,15 +889,15 @@ const Departments = () => {
 
             {showMembers && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
-                    <div className="max-h-[85vh] w-full max-w-5xl overflow-hidden rounded-xl bg-white shadow-xl">
+                    <div className="max-h-[88vh] w-full max-w-6xl overflow-hidden rounded-xl bg-white shadow-xl">
                         <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-5">
                             <div>
                                 <h2 className="text-xl font-bold text-slate-950">
-                                    {selectedDepartment} Members
+                                    {selectedTeam} Members
                                 </h2>
 
                                 <p className="mt-1 text-sm text-slate-500">
-                                    Only employees assigned to this department are shown.
+                                    Add only unassigned employees from this team's department.
                                 </p>
                             </div>
 
@@ -836,93 +910,136 @@ const Departments = () => {
                             </button>
                         </div>
 
-                        <div className="max-h-[65vh] overflow-auto">
-                            <div className="border-b border-slate-200 p-5">
+                        <div className="grid max-h-[70vh] gap-0 overflow-auto lg:grid-cols-2">
+                            <div className="border-b border-slate-200 p-5 lg:border-b-0 lg:border-r">
+                                <h3 className="text-base font-semibold text-slate-950">
+                                    Current Members
+                                </h3>
+
                                 <input
                                     type="text"
                                     value={memberSearch}
                                     onChange={(event) =>
                                         setMemberSearch(event.target.value)
                                     }
-                                    placeholder="Search department members"
-                                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                                    placeholder="Search members or available employees"
+                                    className="mt-4 w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
                                 />
-                            </div>
 
-                            <table className="w-full min-w-[760px] table-fixed">
-                                <thead className="sticky top-0 bg-slate-50 text-xs uppercase text-slate-500">
-                                    <tr>
-                                        <th className="w-[17%] px-5 py-3 text-left font-semibold">Employee ID</th>
-                                        <th className="w-[18%] px-5 py-3 text-left font-semibold">Name</th>
-                                        <th className="w-[22%] px-5 py-3 text-left font-semibold">Email</th>
-                                        <th className="w-[12%] px-5 py-3 text-center font-semibold">Role</th>
-                                        <th className="w-[18%] px-5 py-3 text-center font-semibold">Assignment</th>
-                                        <th className="w-[13%] px-5 py-3 text-center font-semibold">Status</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody className="divide-y divide-slate-100">
-                                    {sortedSelectedMembers.map((member) => (
-                                        <tr key={member.id}>
-                                            <td className="px-5 py-4 align-middle text-sm text-slate-600">
-                                                {member.employee_id}
-                                            </td>
-
-                                            <td className="px-5 py-4 align-middle">
-                                                <Link
-                                                    to={`/admin/employees/${member.id}`}
-                                                    className="font-medium text-slate-950 hover:underline"
-                                                >
+                                <div className="mt-4 space-y-3">
+                                    {sortedTeamMembers.map((member) => (
+                                        <div
+                                            key={member.id}
+                                            className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-4"
+                                        >
+                                            <div>
+                                                <p className="font-medium text-slate-950">
                                                     {member.fullname}
-                                                </Link>
-                                            </td>
+                                                </p>
 
-                                            <td className="px-5 py-4 align-middle text-sm text-slate-600">
-                                                {member.email}
-                                            </td>
+                                                <p className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getRoleBadgeClass(member.role)}`}>
+                                                    {member.role}
+                                                </p>
+                                            </div>
 
-                                            <td className="px-5 py-4 text-center align-middle text-sm capitalize text-slate-700">
-                                                {member.role}
-                                            </td>
-
-                                            <td className="px-5 py-4 text-center align-middle">
-                                                <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${getAssignmentBadgeClass(member.assignment_label)}`}>
-                                                    {member.assignment_label}
-                                                </span>
-                                            </td>
-
-                                            <td className="px-5 py-4 text-center align-middle">
-                                                <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getStatusBadgeClass(member.status)}`}>
-                                                    {member.status}
-                                                </span>
-                                            </td>
-                                        </tr>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    handleRemoveMember(
+                                                        member.id
+                                                    )
+                                                }
+                                                disabled={
+                                                    removingMemberId ===
+                                                    member.id
+                                                }
+                                                className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                                            >
+                                                {removingMemberId === member.id
+                                                    ? "Removing..."
+                                                    : "Remove"}
+                                            </button>
+                                        </div>
                                     ))}
 
-                                    {selectedMembers.length === 0 && (
-                                        <tr>
-                                            <td
-                                                colSpan="6"
-                                                className="px-5 py-10 text-center text-sm text-slate-500"
-                                            >
-                                                No employees are assigned to this department yet.
-                                            </td>
-                                        </tr>
+                                    {teamMembers.length === 0 && (
+                                        <p className="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
+                                            No members assigned yet.
+                                        </p>
                                     )}
 
-                                    {selectedMembers.length > 0 &&
-                                        sortedSelectedMembers.length === 0 && (
-                                            <tr>
-                                                <td
-                                                    colSpan="6"
-                                                    className="px-5 py-10 text-center text-sm text-slate-500"
-                                                >
-                                                    No department members match your search.
-                                                </td>
-                                            </tr>
+                                    {teamMembers.length > 0 &&
+                                        sortedTeamMembers.length === 0 && (
+                                            <p className="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
+                                                No current members match your search.
+                                            </p>
                                         )}
-                                </tbody>
-                            </table>
+                                </div>
+                            </div>
+
+                            <div className="p-5">
+                                <h3 className="text-base font-semibold text-slate-950">
+                                    Available Employees
+                                </h3>
+
+                                <div className="mt-4 space-y-3">
+                                    {filteredAvailableEmployees.map((employee) => (
+                                        <label
+                                            key={employee.id}
+                                            className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 p-4 hover:bg-slate-50"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedEmployees.includes(
+                                                    employee.id
+                                                )}
+                                                onChange={() =>
+                                                    handleCheckboxChange(
+                                                        employee.id
+                                                    )
+                                                }
+                                            />
+
+                                            <div>
+                                                <p className="font-medium text-slate-950">
+                                                    {employee.fullname}
+                                                </p>
+
+                                                <p className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${getRoleBadgeClass(employee.role)}`}>
+                                                    {employee.role}
+                                                </p>
+                                            </div>
+                                        </label>
+                                    ))}
+
+                                    {availableEmployees.length === 0 && (
+                                        <p className="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
+                                            No available employees in this department.
+                                        </p>
+                                    )}
+
+                                    {availableEmployees.length > 0 &&
+                                        filteredAvailableEmployees.length === 0 && (
+                                            <p className="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
+                                                No available employees match your search.
+                                            </p>
+                                        )}
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={handleAssignMembers}
+                                    disabled={
+                                        selectedEmployees.length === 0 ||
+                                        assigningMembers
+                                    }
+                                    className="mt-5 rounded-lg bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+                                >
+                                    {assigningMembers
+                                        ? "Assigning..."
+                                        : "Assign Selected"}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -931,4 +1048,6 @@ const Departments = () => {
     );
 };
 
-export default Departments;
+export default Teams;
+
+

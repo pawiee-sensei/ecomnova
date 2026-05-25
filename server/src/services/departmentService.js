@@ -127,7 +127,7 @@ const validateDepartmentHead = async (
 
     if (!candidate) {
         throw createValidationError(
-            "Selected department head must be a manager, admin, or super admin"
+            "Selected department head must be a manager, HR, or super admin"
         );
     }
 

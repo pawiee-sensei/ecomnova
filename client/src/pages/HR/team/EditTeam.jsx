@@ -1,22 +1,23 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import DashboardLayout from "../../layouts/DashboardLayout";
-import api from "../../services/api";
+import DashboardLayout from "../../../layouts/DashboardLayout";
+import api from "../../../services/api";
 
-const EditDepartment = () => {
+const EditTeam = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
         name: "",
         code: "",
+        department_id: "",
         description: "",
-        head_id: "",
+        leader_id: "",
         status: "active"
     });
 
     const [departments, setDepartments] = useState([]);
-    const [heads, setHeads] = useState([]);
+    const [leaders, setLeaders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
@@ -24,29 +25,30 @@ const EditDepartment = () => {
         const fetchData = async () => {
             try {
                 const [
-                    departmentResponse,
+                    teamResponse,
                     departmentsResponse,
-                    headsResponse
+                    leadersResponse
                 ] = await Promise.all([
-                    api.get(`/admin/departments/${id}`),
-                    api.get("/admin/departments"),
-                    api.get("/admin/departments/heads")
+                    api.get(`/hr/teams/${id}`),
+                    api.get("/hr/teams/departments"),
+                    api.get("/hr/teams/leaders")
                 ]);
 
                 setFormData({
-                    name: departmentResponse.data.name || "",
-                    code: departmentResponse.data.code || "",
+                    name: teamResponse.data.name || "",
+                    code: teamResponse.data.code || "",
+                    department_id:
+                        teamResponse.data.department_id || "",
                     description:
-                        departmentResponse.data.description || "",
-                    head_id: departmentResponse.data.head_id || "",
-                    status:
-                        departmentResponse.data.status || "active"
+                        teamResponse.data.description || "",
+                    leader_id: teamResponse.data.leader_id || "",
+                    status: teamResponse.data.status || "active"
                 });
 
                 setDepartments(departmentsResponse.data);
-                setHeads(headsResponse.data);
+                setLeaders(leadersResponse.data);
             } catch (error) {
-                console.error("Department fetch failed:", error);
+                console.error("Team fetch failed:", error);
             } finally {
                 setLoading(false);
             }
@@ -67,14 +69,10 @@ const EditDepartment = () => {
 
         try {
             setSaving(true);
-            await api.put(`/admin/departments/${id}`, formData);
-            navigate("/admin/departments");
+            await api.put(`/hr/teams/${id}`, formData);
+            navigate("/hr/teams");
         } catch (error) {
-            console.error("Department update failed:", error);
-            alert(
-                error.response?.data?.message ||
-                    "Department update failed"
-            );
+            console.error("Team update failed:", error);
         } finally {
             setSaving(false);
         }
@@ -85,7 +83,7 @@ const EditDepartment = () => {
             <DashboardLayout>
                 <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
                     <p className="text-sm font-medium text-slate-500">
-                        Loading department...
+                        Loading team...
                     </p>
                 </div>
             </DashboardLayout>
@@ -102,19 +100,19 @@ const EditDepartment = () => {
                         </p>
 
                         <h1 className="mt-1 text-3xl font-bold text-slate-950">
-                            Edit Department
+                            Edit Team
                         </h1>
 
                         <p className="mt-2 text-sm text-slate-500">
-                            Assigning a department head also connects that employee to this department.
+                            Keep this team aligned with its department, leader, and staffing workflow.
                         </p>
                     </div>
 
                     <Link
-                        to="/admin/departments"
+                        to="/hr/teams"
                         className="inline-flex items-center justify-center rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                     >
-                        Back to Departments
+                        Back to Teams
                     </Link>
                 </div>
 
@@ -123,34 +121,9 @@ const EditDepartment = () => {
                     className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
                 >
                     <div className="grid gap-4 md:grid-cols-2">
-                        <label className="space-y-2 md:col-span-2">
-                            <span className="text-sm font-medium text-slate-700">
-                                Department Record
-                            </span>
-
-                            <select
-                                value={id}
-                                onChange={(e) =>
-                                    navigate(
-                                        `/admin/departments/edit/${e.target.value}`
-                                    )
-                                }
-                                className="w-full rounded-lg border border-slate-200 bg-white p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                            >
-                                {departments.map((department) => (
-                                    <option
-                                        key={department.id}
-                                        value={department.id}
-                                    >
-                                        {department.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-
                         <label className="space-y-2">
                             <span className="text-sm font-medium text-slate-700">
-                                Department Name
+                                Team Name
                             </span>
 
                             <input
@@ -165,7 +138,7 @@ const EditDepartment = () => {
 
                         <label className="space-y-2">
                             <span className="text-sm font-medium text-slate-700">
-                                Department Code
+                                Team Code
                             </span>
 
                             <input
@@ -179,40 +152,49 @@ const EditDepartment = () => {
 
                         <label className="space-y-2">
                             <span className="text-sm font-medium text-slate-700">
-                                Department Head
+                                Department
                             </span>
 
                             <select
-                                name="head_id"
-                                value={formData.head_id}
+                                name="department_id"
+                                value={formData.department_id}
                                 onChange={handleChange}
                                 className="w-full rounded-lg border border-slate-200 bg-white p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
                             >
                                 <option value="">
-                                    Unassigned Department Head
+                                    Unassigned Department
                                 </option>
 
-                                {heads.map((head) => (
+                                {departments.map((department) => (
                                     <option
-                                        key={head.id}
-                                        value={head.id}
-                                        disabled={
-                                            Boolean(
-                                                head.headed_department_id
-                                            ) &&
-                                            String(
-                                                head.headed_department_id
-                                            ) !== String(id)
-                                        }
+                                        key={department.id}
+                                        value={department.id}
                                     >
-                                        {head.fullname} ({head.role})
-                                        {head.headed_department_name &&
-                                        String(head.headed_department_id) !==
-                                            String(id)
-                                            ? ` - already heads ${head.headed_department_name}`
-                                            : head.department_name
-                                              ? ` - ${head.department_name}`
-                                              : " - unassigned"}
+                                        {department.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+
+                        <label className="space-y-2">
+                            <span className="text-sm font-medium text-slate-700">
+                                Team Leader
+                            </span>
+
+                            <select
+                                name="leader_id"
+                                value={formData.leader_id}
+                                onChange={handleChange}
+                                className="w-full rounded-lg border border-slate-200 bg-white p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                            >
+                                <option value="">Unassigned Leader</option>
+
+                                {leaders.map((leader) => (
+                                    <option
+                                        key={leader.id}
+                                        value={leader.id}
+                                    >
+                                        {leader.fullname}
                                     </option>
                                 ))}
                             </select>
@@ -252,7 +234,7 @@ const EditDepartment = () => {
 
                     <div className="mt-6 flex justify-end gap-3 border-t border-slate-200 pt-5">
                         <Link
-                            to="/admin/departments"
+                            to="/hr/teams"
                             className="rounded-lg border border-slate-200 px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
                         >
                             Cancel
@@ -262,7 +244,7 @@ const EditDepartment = () => {
                             disabled={saving}
                             className="rounded-lg bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60"
                         >
-                            {saving ? "Saving..." : "Update Department"}
+                            {saving ? "Saving..." : "Update Team"}
                         </button>
                     </div>
                 </form>
@@ -271,4 +253,6 @@ const EditDepartment = () => {
     );
 };
 
-export default EditDepartment;
+export default EditTeam;
+
+

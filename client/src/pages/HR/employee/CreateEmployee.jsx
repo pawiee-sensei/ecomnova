@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import DashboardLayout from "../../layouts/DashboardLayout";
-import api from "../../services/api";
+import DashboardLayout from "../../../layouts/DashboardLayout";
+import api from "../../../services/api";
 
 const jobTitleOptions = [
     "Customer Support Agent",
@@ -56,11 +56,11 @@ const CreateEmployee = () => {
             setLoading(true);
 
             await api.post(
-                "/admin/employees",
+                "/hr/employees",
                 formData
             );
 
-            navigate("/admin/employees");
+            navigate("/hr/employees");
 
         } catch (error) {
             console.error(
@@ -91,7 +91,7 @@ const CreateEmployee = () => {
                     </div>
 
                     <Link
-                        to="/admin/employees"
+                        to="/hr/employees"
                         className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
                     >
                         Back to Directory
@@ -277,7 +277,7 @@ const CreateEmployee = () => {
 
                     <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 p-6 sm:flex-row sm:justify-end">
                         <Link
-                            to="/admin/employees"
+                            to="/hr/employees"
                             className="inline-flex justify-center rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                         >
                             Cancel
@@ -300,3 +300,5 @@ const CreateEmployee = () => {
 };
 
 export default CreateEmployee;
+
+

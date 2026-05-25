@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import DashboardLayout from "../../layouts/DashboardLayout";
-import api from "../../services/api";
+import DashboardLayout from "../../../layouts/DashboardLayout";
+import api from "../../../services/api";
 
 const jobTitleOptions = [
     "Customer Support Agent",
@@ -132,10 +132,10 @@ useEffect(() => {
                 teamsResponse,
                 managersResponse
             ] = await Promise.all([
-                api.get(`/admin/employees/${id}`),
-                api.get("/admin/employees/departments"),
-                api.get("/admin/employees/teams"),
-                api.get("/admin/employees/managers")
+                api.get(`/hr/employees/${id}`),
+                api.get("/hr/employees/departments"),
+                api.get("/hr/employees/teams"),
+                api.get("/hr/employees/managers")
             ]);
 
             /*
@@ -290,11 +290,11 @@ useEffect(() => {
             setSaving(true);
 
             await api.put(
-                `/admin/employees/${id}`,
+                `/hr/employees/${id}`,
                 formData
             );
 
-            navigate("/admin/employees");
+            navigate("/hr/employees");
 
         } catch (error) {
             console.error(
@@ -341,7 +341,7 @@ useEffect(() => {
                     </div>
 
                     <Link
-                        to={`/admin/employees/${id}`}
+                        to={`/hr/employees/${id}`}
                         className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
                     >
                         View Profile
@@ -415,7 +415,6 @@ useEffect(() => {
                                 <option value="manager">Manager</option>
                                 <option value="hr">HR</option>
                                 <option value="qa">QA</option>
-                                <option value="admin">Admin</option>
                             </select>
                         </label>
 
@@ -611,7 +610,7 @@ useEffect(() => {
 
                     <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 p-6 sm:flex-row sm:justify-end">
                         <Link
-                            to="/admin/employees"
+                            to="/hr/employees"
                             className="inline-flex justify-center rounded-lg border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                         >
                             Cancel
@@ -634,3 +633,5 @@ useEffect(() => {
 };
 
 export default EditEmployee;
+
+

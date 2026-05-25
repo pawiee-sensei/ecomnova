@@ -171,7 +171,7 @@ const getDepartmentHeadCandidate = (
         WHERE id = ?
             AND role IN (
                 'manager',
-                'admin',
+                'hr',
                 'super_admin'
             )
     `;
@@ -292,7 +292,7 @@ const getDepartmentHeads = (
             ON headed_department.head_id = users.id
         WHERE users.role IN (
             'manager',
-            'admin',
+            'hr',
             'super_admin'
         )
         ORDER BY users.fullname ASC

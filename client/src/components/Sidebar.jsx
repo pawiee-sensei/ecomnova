@@ -11,23 +11,36 @@ const Sidebar = () => {
     const menu = {
         admin: [
             {
-                name: "Dashboard",
+                name: "System Dashboard",
                 path: "/admin/dashboard",
                 icon: "D"
             },
             {
+                name: "System Users",
+                path: "/admin/system/users",
+                icon: "U"
+            }
+        ],
+
+        hr: [
+            {
+                name: "Dashboard",
+                path: "/hr/dashboard",
+                icon: "D"
+            },
+            {
                 name: "Employees",
-                path: "/admin/employees",
+                path: "/hr/employees",
                 icon: "E"
             },
             {
                 name: "Departments",
-                path: "/admin/departments",
+                path: "/hr/departments",
                 icon: "P"
             },
             {
                 name: "Teams",
-                path: "/admin/teams",
+                path: "/hr/teams",
                 icon: "T"
             },
             {
@@ -47,13 +60,8 @@ const Sidebar = () => {
             },
             {
                 name: "Audit Logs",
-                path: "/admin/audit-logs",
+                path: "/hr/audit-logs",
                 icon: "L"
-            },
-            {
-                name: "Settings",
-                path: "/admin/settings",
-                icon: "S"
             }
         ],
 

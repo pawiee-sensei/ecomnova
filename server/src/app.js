@@ -10,6 +10,9 @@ const departmentRoutes = require("./routes/departmentRoutes");
 const teamRoutes = require("./routes/teamRoutes");
 
 
+const systemUserRoutes = require("./routes/systemUserRoutes");
+
+
 const app = express();
 
 app.use(cors());
@@ -18,9 +21,11 @@ app.use(cookieParse());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/admin/employees", employeeRoutes);
-app.use("/api/admin/departments", departmentRoutes);
-app.use("/api/admin/teams", teamRoutes);
+app.use("/api/hr", adminRoutes);
+app.use("/api/hr/employees", employeeRoutes);
+app.use("/api/hr/departments", departmentRoutes);
+app.use("/api/hr/teams", teamRoutes);
+
+app.use("/api/system/users", systemUserRoutes);
 
 module.exports = app;

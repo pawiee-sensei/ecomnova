@@ -2,6 +2,13 @@ import { Navigate } from "react-router-dom";
 
 import useAuthStore from "../store/authStore";
 
+const roleHome = {
+    admin: "/admin/dashboard",
+    hr: "/hr/dashboard",
+    manager: "/manager/dashboard",
+    agent: "/agent/dashboard"
+};
+
 const ProtectedRoute = ({
     children,
     roles
@@ -23,7 +30,12 @@ const ProtectedRoute = ({
         roles &&
         !roles.includes(user?.role)
     ) {
-        return <Navigate to="/login" />;
+        return (
+            <Navigate
+                to={roleHome[user?.role] || "/login"}
+                replace
+            />
+        );
     }
 
     //if user has the required role, render the protected route

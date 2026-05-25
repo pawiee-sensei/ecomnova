@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import DashboardLayout from "../layouts/DashboardLayout";
-import api from "../services/api";
+import DashboardLayout from "../../layouts/DashboardLayout";
+import api from "../../services/api";
 
 const AdminDashboard = () => {
     /*
@@ -23,13 +23,13 @@ const AdminDashboard = () => {
     const [loading, setLoading] = useState(true);
 
     /*
-      Fetch admin dashboard metrics
+      Fetch HR dashboard metrics
     */
     useEffect(() => {
         const fetchDashboardStats = async () => {
             try {
                 const response = await api.get(
-                    "/admin/dashboard"
+                    "/hr/dashboard"
                 );
 
                 setStats(response.data);
@@ -63,11 +63,11 @@ const AdminDashboard = () => {
 
             <div className="mb-8">
                 <h1 className="text-3xl font-bold">
-                    Admin Dashboard
+                    HR Dashboard
                 </h1>
 
                 <p className="text-gray-500">
-                    Operations overview
+                    HR operations overview
                 </p>
             </div>
 
@@ -146,3 +146,4 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+

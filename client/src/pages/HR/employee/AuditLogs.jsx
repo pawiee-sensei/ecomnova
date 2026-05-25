@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import DashboardLayout from "../../layouts/DashboardLayout";
-import api from "../../services/api";
+import DashboardLayout from "../../../layouts/DashboardLayout";
+import api from "../../../services/api";
 
 const AuditLogs = () => {
     const [logs, setLogs] = useState([]);
@@ -13,7 +13,7 @@ const AuditLogs = () => {
         const fetchAuditLogs = async () => {
             try {
                 const response = await api.get(
-                    "/admin/employees/audit-logs"
+                    "/hr/employees/audit-logs"
                 );
 
                 setLogs(response.data);
@@ -118,3 +118,5 @@ const AuditLogs = () => {
 };
 
 export default AuditLogs;
+
+

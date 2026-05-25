@@ -16,28 +16,28 @@ const {
 router.get(
     "/",
     verifyToken,
-    authorizeRoles("admin", "super_admin"),
+    authorizeRoles("hr", "super_admin"),
     getDepartments
 );
 
 router.get(
     "/heads",
     verifyToken,
-    authorizeRoles("admin", "super_admin"),
+    authorizeRoles("hr", "super_admin"),
     getDepartmentHeads
 );
 
 router.get(
     "/:id/members",
     verifyToken,
-    authorizeRoles("admin", "super_admin"),
+    authorizeRoles("hr", "super_admin"),
     getDepartmentMembers
 );
 
 router.post(
     "/",
     verifyToken,
-    authorizeRoles("admin", "super_admin"),
+    authorizeRoles("hr", "super_admin"),
     createDepartment
 );
 
@@ -45,15 +45,16 @@ router.post(
 router.get(
     "/:id",
     verifyToken,
-    authorizeRoles("admin", "super_admin"),
+    authorizeRoles("hr", "super_admin"),
     getDepartmentById
 );
 
 router.put(
     "/:id",
     verifyToken,
-    authorizeRoles("admin", "super_admin"),
+    authorizeRoles("hr", "super_admin"),
     updateDepartment
 );
 
 module.exports = router;
+

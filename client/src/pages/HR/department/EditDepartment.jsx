@@ -1,23 +1,22 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import DashboardLayout from "../../layouts/DashboardLayout";
-import api from "../../services/api";
+import DashboardLayout from "../../../layouts/DashboardLayout";
+import api from "../../../services/api";
 
-const EditTeam = () => {
+const EditDepartment = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
         name: "",
         code: "",
-        department_id: "",
         description: "",
-        leader_id: "",
+        head_id: "",
         status: "active"
     });
 
     const [departments, setDepartments] = useState([]);
-    const [leaders, setLeaders] = useState([]);
+    const [heads, setHeads] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
@@ -25,30 +24,29 @@ const EditTeam = () => {
         const fetchData = async () => {
             try {
                 const [
-                    teamResponse,
+                    departmentResponse,
                     departmentsResponse,
-                    leadersResponse
+                    headsResponse
                 ] = await Promise.all([
-                    api.get(`/admin/teams/${id}`),
-                    api.get("/admin/teams/departments"),
-                    api.get("/admin/teams/leaders")
+                    api.get(`/hr/departments/${id}`),
+                    api.get("/hr/departments"),
+                    api.get("/hr/departments/heads")
                 ]);
 
                 setFormData({
-                    name: teamResponse.data.name || "",
-                    code: teamResponse.data.code || "",
-                    department_id:
-                        teamResponse.data.department_id || "",
+                    name: departmentResponse.data.name || "",
+                    code: departmentResponse.data.code || "",
                     description:
-                        teamResponse.data.description || "",
-                    leader_id: teamResponse.data.leader_id || "",
-                    status: teamResponse.data.status || "active"
+                        departmentResponse.data.description || "",
+                    head_id: departmentResponse.data.head_id || "",
+                    status:
+                        departmentResponse.data.status || "active"
                 });
 
                 setDepartments(departmentsResponse.data);
-                setLeaders(leadersResponse.data);
+                setHeads(headsResponse.data);
             } catch (error) {
-                console.error("Team fetch failed:", error);
+                console.error("Department fetch failed:", error);
             } finally {
                 setLoading(false);
             }
@@ -69,10 +67,14 @@ const EditTeam = () => {
 
         try {
             setSaving(true);
-            await api.put(`/admin/teams/${id}`, formData);
-            navigate("/admin/teams");
+            await api.put(`/hr/departments/${id}`, formData);
+            navigate("/hr/departments");
         } catch (error) {
-            console.error("Team update failed:", error);
+            console.error("Department update failed:", error);
+            alert(
+                error.response?.data?.message ||
+                    "Department update failed"
+            );
         } finally {
             setSaving(false);
         }
@@ -83,7 +85,7 @@ const EditTeam = () => {
             <DashboardLayout>
                 <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
                     <p className="text-sm font-medium text-slate-500">
-                        Loading team...
+                        Loading department...
                     </p>
                 </div>
             </DashboardLayout>
@@ -100,19 +102,19 @@ const EditTeam = () => {
                         </p>
 
                         <h1 className="mt-1 text-3xl font-bold text-slate-950">
-                            Edit Team
+                            Edit Department
                         </h1>
 
                         <p className="mt-2 text-sm text-slate-500">
-                            Keep this team aligned with its department, leader, and staffing workflow.
+                            Assigning a department head also connects that employee to this department.
                         </p>
                     </div>
 
                     <Link
-                        to="/admin/teams"
+                        to="/hr/departments"
                         className="inline-flex items-center justify-center rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                     >
-                        Back to Teams
+                        Back to Departments
                     </Link>
                 </div>
 
@@ -121,9 +123,34 @@ const EditTeam = () => {
                     className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
                 >
                     <div className="grid gap-4 md:grid-cols-2">
+                        <label className="space-y-2 md:col-span-2">
+                            <span className="text-sm font-medium text-slate-700">
+                                Department Record
+                            </span>
+
+                            <select
+                                value={id}
+                                onChange={(e) =>
+                                    navigate(
+                                        `/hr/departments/edit/${e.target.value}`
+                                    )
+                                }
+                                className="w-full rounded-lg border border-slate-200 bg-white p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                            >
+                                {departments.map((department) => (
+                                    <option
+                                        key={department.id}
+                                        value={department.id}
+                                    >
+                                        {department.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+
                         <label className="space-y-2">
                             <span className="text-sm font-medium text-slate-700">
-                                Team Name
+                                Department Name
                             </span>
 
                             <input
@@ -138,7 +165,7 @@ const EditTeam = () => {
 
                         <label className="space-y-2">
                             <span className="text-sm font-medium text-slate-700">
-                                Team Code
+                                Department Code
                             </span>
 
                             <input
@@ -152,49 +179,40 @@ const EditTeam = () => {
 
                         <label className="space-y-2">
                             <span className="text-sm font-medium text-slate-700">
-                                Department
+                                Department Head
                             </span>
 
                             <select
-                                name="department_id"
-                                value={formData.department_id}
+                                name="head_id"
+                                value={formData.head_id}
                                 onChange={handleChange}
                                 className="w-full rounded-lg border border-slate-200 bg-white p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
                             >
                                 <option value="">
-                                    Unassigned Department
+                                    Unassigned Department Head
                                 </option>
 
-                                {departments.map((department) => (
+                                {heads.map((head) => (
                                     <option
-                                        key={department.id}
-                                        value={department.id}
+                                        key={head.id}
+                                        value={head.id}
+                                        disabled={
+                                            Boolean(
+                                                head.headed_department_id
+                                            ) &&
+                                            String(
+                                                head.headed_department_id
+                                            ) !== String(id)
+                                        }
                                     >
-                                        {department.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-
-                        <label className="space-y-2">
-                            <span className="text-sm font-medium text-slate-700">
-                                Team Leader
-                            </span>
-
-                            <select
-                                name="leader_id"
-                                value={formData.leader_id}
-                                onChange={handleChange}
-                                className="w-full rounded-lg border border-slate-200 bg-white p-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                            >
-                                <option value="">Unassigned Leader</option>
-
-                                {leaders.map((leader) => (
-                                    <option
-                                        key={leader.id}
-                                        value={leader.id}
-                                    >
-                                        {leader.fullname}
+                                        {head.fullname} ({head.role})
+                                        {head.headed_department_name &&
+                                        String(head.headed_department_id) !==
+                                            String(id)
+                                            ? ` - already heads ${head.headed_department_name}`
+                                            : head.department_name
+                                              ? ` - ${head.department_name}`
+                                              : " - unassigned"}
                                     </option>
                                 ))}
                             </select>
@@ -234,7 +252,7 @@ const EditTeam = () => {
 
                     <div className="mt-6 flex justify-end gap-3 border-t border-slate-200 pt-5">
                         <Link
-                            to="/admin/teams"
+                            to="/hr/departments"
                             className="rounded-lg border border-slate-200 px-5 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
                         >
                             Cancel
@@ -244,7 +262,7 @@ const EditTeam = () => {
                             disabled={saving}
                             className="rounded-lg bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60"
                         >
-                            {saving ? "Saving..." : "Update Team"}
+                            {saving ? "Saving..." : "Update Department"}
                         </button>
                     </div>
                 </form>
@@ -253,4 +271,6 @@ const EditTeam = () => {
     );
 };
 
-export default EditTeam;
+export default EditDepartment;
+
+
