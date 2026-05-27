@@ -32,6 +32,8 @@ const getSystemUsers = async (
   Change role
 */
 
+
+
 const updateUserRole = async (
     req,
     res
@@ -50,17 +52,17 @@ const updateUserRole = async (
             action: "CHANGE_ROLE",
             module: "ACCESS_CONTROL",
             details: `Role changed to ${role}`
-        }); 
+        });
 
         res.status(200).json({
-            message:
-                "Role updated successfully"
+            message: "Role updated successfully"
         });
 
     } catch (error) {
+        console.error(error);
+
         res.status(500).json({
-            message:
-                "Role update failed"
+            message: "Role update failed"
         });
     }
 };

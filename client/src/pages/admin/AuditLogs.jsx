@@ -6,6 +6,15 @@ const AuditLogs = () => {
     const [logs, setLogs] =
         useState([]);
 
+const [searchTerm, setSearchTerm] =
+    useState("");
+
+const [actionFilter, setActionFilter] =
+    useState("");
+
+const [moduleFilter, setModuleFilter] =
+    useState("");
+
     const fetchLogs = async () => {
         try {
             const response =
@@ -29,6 +38,50 @@ const AuditLogs = () => {
         fetchLogs();
     }, []);
 
+    const filteredLogs = logs.filter(
+    (log) => {
+        const matchesSearch =
+            log.actor_name
+                ?.toLowerCase()
+                .includes(
+                    searchTerm.toLowerCase()
+                ) ||
+            log.target_name
+                ?.toLowerCase()
+                .includes(
+                    searchTerm.toLowerCase()
+                ) ||
+            log.action
+                ?.toLowerCase()
+                .includes(
+                    searchTerm.toLowerCase()
+                ) ||
+            log.details
+                ?.toLowerCase()
+                .includes(
+                    searchTerm.toLowerCase()
+                );
+
+        const matchesAction =
+            !actionFilter ||
+            (log.action || "")
+                .toLowerCase() ===
+                actionFilter.toLowerCase();
+
+        const matchesModule =
+            !moduleFilter ||
+            (log.module || "")
+                .toLowerCase() ===
+                moduleFilter.toLowerCase();
+
+        return (
+            matchesSearch &&
+            matchesAction &&
+            matchesModule
+        );
+    }
+);
+
     return (
         <DashboardLayout>
             <div className="mb-8">
@@ -40,6 +93,58 @@ const AuditLogs = () => {
                     Security and governance activity
                 </p>
             </div>
+
+            <div className="mt-6 flex gap-4 flex-wrap">
+
+                <input
+                    type="text"
+                    placeholder="Search logs..."
+                    value={searchTerm}
+                    onChange={(e) =>
+                        setSearchTerm(e.target.value)
+                    }
+                    className="border p-3 rounded-lg w-72"
+                />
+
+                <select
+                    value={actionFilter}
+                    onChange={(e) =>
+                        setActionFilter(
+                            e.target.value
+                        )
+                    }
+                    className="border p-3 rounded-lg"
+                >
+                    <option value="">All Actions</option>
+
+                    <option value="change_role">Change Role</option>
+
+                    <option value="lock_account">Lock Account</option>
+
+                    <option value="unlock_account">Unlock Account</option>
+
+                </select>
+
+                <select
+                    value={moduleFilter}
+                    onChange={(e) =>
+                        setModuleFilter(
+                            e.target.value
+                        )
+                    }
+                    className="border p-3 rounded-lg"
+                >
+                    <option value="">
+                        All Modules
+                    </option>
+
+                    <option value="access_control">Access Control</option>
+
+                    <option value="security">Security</option>
+                    
+                </select>
+
+            </div>  
 
             <div className="border rounded-xl overflow-hidden">
                 <table className="w-full">
@@ -72,7 +177,7 @@ const AuditLogs = () => {
                     </thead>
 
                     <tbody>
-                        {logs.map((log) => (
+                        {filteredLogs.map((log) => (
                             <tr
                                 key={log.id}
                                 className="border-t"

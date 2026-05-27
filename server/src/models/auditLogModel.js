@@ -11,7 +11,7 @@ const createAuditLog = (
     const sql = `
         INSERT INTO audit_logs (
             actor_id,
-            target_id,
+            target_user_id,
             action,
             module,
             details

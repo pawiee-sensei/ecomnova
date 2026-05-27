@@ -6,6 +6,18 @@ const SystemUsers = () => {
     const [users, setUsers] =
         useState([]);
 
+    const [searchTerm, setSearchTerm] =
+    useState("");
+
+const [roleFilter, setRoleFilter] =
+    useState("");
+
+const [securityFilter, setSecurityFilter] =
+    useState("");
+
+const [statusFilter, setStatusFilter] =
+    useState("");
+
     const fetchUsers = async () => {
         try {
             const response =
@@ -81,6 +93,47 @@ const SystemUsers = () => {
             }
         };
 
+        const filteredUsers = users.filter(
+    (user) => {
+        const matchesSearch =
+            user.fullname
+                ?.toLowerCase()
+                .includes(
+                    searchTerm.toLowerCase()
+                ) ||
+            user.email
+                ?.toLowerCase()
+                .includes(
+                    searchTerm.toLowerCase()
+                ) ||
+            user.employee_id
+                ?.toLowerCase()
+                .includes(
+                    searchTerm.toLowerCase()
+                );
+
+        const matchesRole =
+            !roleFilter ||
+            user.role === roleFilter;
+
+        const matchesSecurity =
+            !securityFilter ||
+            user.security_status ===
+                securityFilter;
+
+        const matchesStatus =
+            !statusFilter ||
+            user.status === statusFilter;
+
+        return (
+            matchesSearch &&
+            matchesRole &&
+            matchesSecurity &&
+            matchesStatus
+        );
+    }
+);
+
     return (
         <DashboardLayout>
             <div className="mb-8">
@@ -91,6 +144,108 @@ const SystemUsers = () => {
                 <p className="text-gray-500">
                     Security access governance
                 </p>
+
+                <div className="mt-6 flex gap-4 flex-wrap">
+
+                    <input
+                        type="text"
+                        placeholder="Search users..."
+                        value={searchTerm}
+                        onChange={(e) =>
+                            setSearchTerm(
+                                e.target.value
+                            )
+                        }
+                        className="border p-3 rounded-lg w-72"
+                    />
+
+                    <select
+                        value={roleFilter}
+                        onChange={(e) =>
+                            setRoleFilter(
+                                e.target.value
+                            )
+                        }
+                        className="border p-3 rounded-lg"
+                    >
+                        <option value="">
+                            All Roles
+                        </option>
+
+                        <option value="agent">
+                            Agent
+                        </option>
+
+                        <option value="leader">
+                            Leader
+                        </option>
+
+                        <option value="manager">
+                            Manager
+                        </option>
+
+                        <option value="hr">
+                            HR
+                        </option>
+
+                        <option value="admin">
+                            Admin
+                        </option>
+                    </select>
+
+                    <select
+                        value={securityFilter}
+                        onChange={(e) =>
+                            setSecurityFilter(
+                                e.target.value
+                            )
+                        }
+                        className="border p-3 rounded-lg"
+                    >
+                        <option value="">
+                            All Security
+                        </option>
+
+                        <option value="locked">
+                            Locked
+                        </option>
+
+                        <option value="unlocked">
+                            Unlocked
+                        </option>
+                    </select>
+
+                    <select
+                        value={statusFilter}
+                        onChange={(e) =>
+                            setStatusFilter(
+                                e.target.value
+                            )
+                        }
+                        className="border p-3 rounded-lg"
+                    >
+                        <option value="">
+                            All HR Status
+                        </option>
+
+                        <option value="active">
+                            Active
+                        </option>
+
+                        <option value="inactive">
+                            Inactive
+                        </option>
+
+                        <option value="suspended">
+                            Suspended
+                        </option>
+
+                        <option value="terminated">
+                            Terminated
+                        </option>
+                    </select>
+
+                </div>
             </div>
 
             <div className="border rounded-xl overflow-hidden">
@@ -124,7 +279,7 @@ const SystemUsers = () => {
                     </thead>
 
                     <tbody>
-                        {users.map((user) => (
+                        {filteredUsers.map((user) => (
                             <tr
                                 key={user.id}
                                 className="border-t"

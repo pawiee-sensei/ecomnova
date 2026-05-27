@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 
 //models for auth controller functions 
 const {createUser, findUserByEmail} = require("../models/authModel");
+const loginAttemptService = require("../services/loginAttemptService");
 
 //register user 
 const register = async (req, res) => {
@@ -58,6 +59,12 @@ const login = (req, res) => {
         }
 
         if (result.length === 0) {
+            await loginAttemptService.createLoginAttempt({
+                email,
+                status: "FAILED",
+                reason: "User not found"
+            });
+
             return res.status(404).json({
                 message: "User not found"
             });
@@ -69,6 +76,13 @@ const login = (req, res) => {
         Only active employees can authenticate
         */
         if (user.status !== "active") {
+            await loginAttemptService.createLoginAttempt({
+                user_id: user.id,
+                email,
+                status: "BLOCKED",
+                reason: "Employment status restricted"
+            });
+
             return res.status(403).json({
                 message:
                     "Account access restricted. Contact administrator."
@@ -76,6 +90,13 @@ const login = (req, res) => {
         }
 
         if (user.security_status === "locked") {
+            await loginAttemptService.createLoginAttempt({
+                user_id: user.id,
+                email,
+                status: "BLOCKED",
+                reason: "Account locked"
+            });
+
             return res.status(403).json({
                 message:
                     "Account locked. Contact system administrator."
@@ -88,6 +109,13 @@ const login = (req, res) => {
         );
 
         if (!isMatch) {
+            await loginAttemptService.createLoginAttempt({
+                user_id: user.id,
+                email,
+                status: "FAILED",
+                reason: "Wrong password"
+            });
+
             return res.status(401).json({
                 message: "Invalid credentials"
             });
@@ -103,6 +131,13 @@ const login = (req, res) => {
                 expiresIn: "7d"
             }
         );
+
+        await loginAttemptService.createLoginAttempt({
+            user_id: user.id,
+            email,
+            status: "SUCCESS",
+            reason: "Login successful"
+        });
 
         res.json({
             token,

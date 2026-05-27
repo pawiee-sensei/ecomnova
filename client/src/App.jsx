@@ -27,6 +27,7 @@ import EditTeam from "./pages/HR/team/EditTeam";
 import SystemUsers from "./pages/admin/SystemUsers";
 import SystemDashboard from "./pages/admin/SystemDashboard";
 import AuditLogs from "./pages/admin/AuditLogs";
+import LoginMonitoring from "./pages/admin/LoginMonitoring";
 
 import AuthLoader from "./components/AuthLoader";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -38,6 +39,15 @@ function App() {
 
             <AuthLoader />
                 <Routes>
+
+                    <Route
+                        path="/admin/login-monitoring"
+                        element={
+                            <ProtectedRoute roles={["admin"]}>
+                                <LoginMonitoring />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     <Route
                             path="/admin/audit-logs"

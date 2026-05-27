@@ -24,6 +24,11 @@ const Sidebar = () => {
                 name: "Audit Logs",
                 path: "/admin/audit-logs",
                 icon: "L"
+            },
+            {
+                name: "Login Monitoring",
+                path: "/admin/login-monitoring",
+                icon: "M"
             }
         ],
 
