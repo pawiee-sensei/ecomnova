@@ -150,7 +150,7 @@ const login = (req, res) => {
 
                 return res.status(403).json({
                     message:
-                        "Account locked after repeated failed login attempts."
+                        "Account locked after 5 failed login attempts within 15 minutes."
                 });
             }
 
