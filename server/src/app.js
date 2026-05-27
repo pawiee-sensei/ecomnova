@@ -13,6 +13,7 @@ const teamRoutes = require("./routes/teamRoutes");
 const systemUserRoutes = require("./routes/systemUserRoutes");
 const auditLogRoutes = require("./routes/auditLogRoutes");
 const loginAttemptRoutes = require("./routes/loginAttemptRoutes");
+const permissionRoutes = require("./routes/permissionRoutes");
 
 
 const app = express();
@@ -31,4 +32,5 @@ app.use("/api/hr/teams", teamRoutes);
 app.use("/api/system/users", systemUserRoutes);
 app.use("/api/system/audit-logs", auditLogRoutes);
 app.use("/api/system/login-monitoring", loginAttemptRoutes);
+app.use("/api/system/permissions", permissionRoutes);
 module.exports = app;

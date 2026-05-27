@@ -3,7 +3,9 @@ const router = express.Router();
 
 const verifyToken = require("../middleware/authMiddleware");
 
-const authorizeRoles = require("../middleware/roleMiddleware");
+const authorizePermission = require(
+    "../middleware/permissionMiddleware"
+);
 
 const {
     getSystemUsers,
@@ -17,28 +19,28 @@ const {
 router.get(
     "/",
     verifyToken,
-    authorizeRoles("admin", "super_admin"),
+    authorizePermission("VIEW_SYSTEM_USERS"),
     getSystemUsers
 );
 
 router.put(
     "/:id/force-logout",
     verifyToken,
-    authorizeRoles("admin", "super_admin"),
+    authorizePermission("FORCE_LOGOUT"),
     forceLogoutUser
 );
 
 router.put(
     "/:id/role",
     verifyToken,
-    authorizeRoles("admin", "super_admin"),
+    authorizePermission("MANAGE_USER_ROLES"),
     updateUserRole
 );
 
 router.put(
     "/:id/security-status",
     verifyToken,
-    authorizeRoles("admin", "super_admin"),
+    authorizePermission("LOCK_ACCOUNT"),
     updateSecurityStatus
 );
 

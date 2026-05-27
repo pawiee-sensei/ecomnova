@@ -3,7 +3,9 @@ const router = express.Router();
 
 const verifyToken = require("../middleware/authMiddleware");
 
-const authorizeRoles = require("../middleware/roleMiddleware");
+const authorizePermission = require(
+    "../middleware/permissionMiddleware"
+);
 
 const {
     getLoginAttempts
@@ -14,7 +16,7 @@ const {
 router.get(
     "/",
     verifyToken,
-    authorizeRoles("admin"),
+    authorizePermission("VIEW_LOGIN_MONITORING"),
     getLoginAttempts
 );
 

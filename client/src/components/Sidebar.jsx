@@ -26,6 +26,11 @@ const Sidebar = () => {
                 icon: "L"
             },
             {
+                name: "Permissions",
+                path: "/admin/permissions",
+                icon: "P"
+            },
+            {
                 name: "Login Monitoring",
                 path: "/admin/login-monitoring",
                 icon: "M"
@@ -47,6 +52,11 @@ const Sidebar = () => {
                 name: "Audit Logs",
                 path: "/admin/audit-logs",
                 icon: "L"
+            },
+            {
+                name: "Permissions",
+                path: "/admin/permissions",
+                icon: "P"
             },
             {
                 name: "Login Monitoring",

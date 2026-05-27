@@ -27,6 +27,19 @@ const SystemDashboard = () => {
                         Update user roles and account security status.
                     </p>
                 </Link>
+
+                <Link
+                    to="/admin/permissions"
+                    className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow"
+                >
+                    <h2 className="text-xl font-semibold text-slate-950">
+                        Permission Matrix
+                    </h2>
+
+                    <p className="mt-2 text-sm text-slate-500">
+                        Configure role-based access permissions.
+                    </p>
+                </Link>
             </div>
         </DashboardLayout>
     );
