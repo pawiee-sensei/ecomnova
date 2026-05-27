@@ -29,6 +29,7 @@ import SystemDashboard from "./pages/admin/SystemDashboard";
 import AuditLogs from "./pages/admin/AuditLogs";
 import LoginMonitoring from "./pages/admin/LoginMonitoring";
 import Permissions from "./pages/admin/Permissions";
+import SecuritySettings from "./pages/admin/SecuritySettings";
 
 import AuthLoader from "./components/AuthLoader";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -40,6 +41,15 @@ function App() {
 
             <AuthLoader />
                 <Routes>
+
+                    <Route
+                        path="/admin/security-settings"
+                        element={
+                            <ProtectedRoute roles={["admin", "super_admin"]}>
+                                <SecuritySettings />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     <Route
                         path="/admin/permissions"

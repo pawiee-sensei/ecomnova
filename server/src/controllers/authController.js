@@ -7,6 +7,7 @@ const {createUser, findUserByEmail} = require("../models/authModel");
 const auditLogService = require("../services/auditLogService");
 const systemUserService = require("../services/systemUserService");
 const loginAttemptService = require("../services/loginAttemptService");
+const securitySettingsService = require("../services/securitySettingsService");
 
 //register user 
 const register = async (req, res) => {
@@ -14,8 +15,31 @@ const register = async (req, res) => {
     try {
         const { fullname, email, password, } = req.body;
 
+        if (!fullname || !email || !password) {
+            return res.status(400).json({
+                message:
+                    "Full name, email, and password are required"
+            });
+        }
+
+        const securitySettings =
+            await securitySettingsService.getSecuritySettings();
+
+        if (
+            password.length <
+            securitySettings.password_min_length
+        ) {
+            return res.status(400).json({
+                message: `Password must be at least ${securitySettings.password_min_length} characters`
+            });
+        }
+
         //check if email already exists
         findUserByEmail(email, async (err, result) => {
+
+            if (err) {
+                return res.status(500).json(err);
+            }
             
             if (result.length > 0) {
                 return res.status(400).json({
@@ -49,6 +73,8 @@ const login = (req, res) => {
 
     const { email, password } = req.body || {};
 
+    
+
     if (!email || !password) {
         return res.status(400).json({
             message: "Email and password are required"
@@ -74,6 +100,8 @@ const login = (req, res) => {
         }
 
         const user = result[0];
+        const securitySettings =
+            await securitySettingsService.getSecuritySettings();
 
                 /*
         Only active employees can authenticate
@@ -121,11 +149,16 @@ const login = (req, res) => {
 
             const failedAttempts =
                 await loginAttemptService.countFailedAttemptsByUserId(
-                    user.id
+                    user.id,
+                    securitySettings.failed_attempt_window_minutes
                 );
                 
 
-            if (failedAttempts >= 5) {
+            if (
+                securitySettings.auto_lock_enabled &&
+                failedAttempts >=
+                    securitySettings.failed_attempt_threshold
+            ) {
                 await systemUserService.updateSecurityStatus(
                     user.id,
                     "locked"
@@ -144,13 +177,11 @@ const login = (req, res) => {
                     target_user_id: user.id,
                     action: "AUTO_LOCK_ACCOUNT",
                     module: "SECURITY",
-                    details:
-                        "System auto-locked account after 5 failed login attempts"
+                    details: `System auto-locked account after ${securitySettings.failed_attempt_threshold} failed login attempts within ${securitySettings.failed_attempt_window_minutes} minutes`
                 });
 
                 return res.status(403).json({
-                    message:
-                        "Account locked after 5 failed login attempts within 15 minutes."
+                    message: `Account locked after ${securitySettings.failed_attempt_threshold} failed login attempts within ${securitySettings.failed_attempt_window_minutes} minutes.`
                 });
             }
 
@@ -167,7 +198,8 @@ const login = (req, res) => {
             },
             process.env.JWT_SECRET,
             {
-                expiresIn: "7d"
+                expiresIn:
+                securitySettings.jwt_expiration
             }
         );
 

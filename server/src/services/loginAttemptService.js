@@ -70,34 +70,40 @@ const countFailedAttemptsByEmail =
         );
     };
 
-    const countFailedAttemptsByUserId =
-        async (userId) => {
-            return new Promise(
-                (resolve, reject) => {
-                    const sql = `
-                        SELECT COUNT(*) AS total
-                        FROM login_attempts
-                        WHERE user_id = ?
-                        AND status = 'FAILED'
-                        AND created_at >=
-                            NOW() - INTERVAL 15 MINUTE
-                    `;
+const countFailedAttemptsByUserId =
+    async (
+        userId,
+        windowMinutes
+    ) => {
+        return new Promise(
+            (resolve, reject) => {
+                const sql = `
+                    SELECT COUNT(*) AS total
+                    FROM login_attempts
+                    WHERE user_id = ?
+                    AND status = 'FAILED'
+                    AND created_at >=
+                        NOW() - INTERVAL ? MINUTE
+                `;
 
-                    db.query(
-                        sql,
-                        [userId],
-                        (err, results) => {
-                            if (err)
-                                return reject(err);
+                db.query(
+                    sql,
+                    [
+                        userId,
+                        windowMinutes
+                    ],
+                    (err, results) => {
+                        if (err)
+                            return reject(err);
 
-                            resolve(
-                                results[0].total
-                            );
-                        }
-                    );
-                }
-            );
-        };
+                        resolve(
+                            results[0].total
+                        );
+                    }
+                );
+            }
+        );
+    };
 
     
 

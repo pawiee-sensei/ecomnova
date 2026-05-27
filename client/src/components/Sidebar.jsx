@@ -34,6 +34,12 @@ const Sidebar = () => {
                 name: "Login Monitoring",
                 path: "/admin/login-monitoring",
                 icon: "M"
+            },
+
+            {
+                name: "Security Settings",
+                path: "/admin/security-settings",
+                icon: "S"
             }
         ],
 
