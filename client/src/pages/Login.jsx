@@ -40,7 +40,10 @@ const Login = () => {
 
             const role = response.data.user.role;
 
-            if (role === "admin") {
+            if (
+                role === "admin" ||
+                role === "super_admin"
+            ) {
                 navigate("/admin/dashboard");
             } else if (role === "hr") {
                 navigate("/hr/dashboard");

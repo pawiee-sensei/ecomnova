@@ -93,6 +93,26 @@ const [statusFilter, setStatusFilter] =
             }
         };
 
+    const handleForceLogout = async (userId) => {
+        try {
+            await api.put(
+                `/system/users/${userId}/force-logout`
+            );
+
+            alert(
+                "User sessions revoked successfully"
+            );
+
+            fetchUsers();
+
+        } catch (error) {
+            console.error(
+                "Force logout failed:",
+                error
+            );
+        }
+    };
+
         const filteredUsers = users.filter(
     (user) => {
         const matchesSearch =
@@ -358,6 +378,15 @@ const [statusFilter, setStatusFilter] =
                                         "locked"
                                             ? "Unlock"
                                             : "Lock"}
+                                    </button>
+
+                                    <button
+                                        onClick={() =>
+                                            handleForceLogout(user.id)
+                                        }
+                                        className="border px-4 py-2 rounded-lg"
+                                    >
+                                        Force Logout
                                     </button>
                                 </td>
                             </tr>

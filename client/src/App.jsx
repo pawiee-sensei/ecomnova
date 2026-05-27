@@ -43,7 +43,7 @@ function App() {
                     <Route
                         path="/admin/login-monitoring"
                         element={
-                            <ProtectedRoute roles={["admin"]}>
+                            <ProtectedRoute roles={["admin", "super_admin"]}>
                                 <LoginMonitoring />
                             </ProtectedRoute>
                         }
@@ -52,7 +52,7 @@ function App() {
                     <Route
                             path="/admin/audit-logs"
                             element={
-                                <ProtectedRoute roles={["admin"]}>
+                                <ProtectedRoute roles={["admin", "super_admin"]}>
                                     <AuditLogs />
                                 </ProtectedRoute>
                             }
@@ -62,7 +62,7 @@ function App() {
                         path="/admin/system/users"
                         element={
                             <ProtectedRoute
-                                roles={["admin"]}
+                                roles={["admin", "super_admin"]}
                             >
                                 <SystemUsers />
                             </ProtectedRoute>
@@ -185,7 +185,7 @@ function App() {
                         path="/admin/dashboard"
                         element={
                             <ProtectedRoute
-                                roles={["admin"]}
+                                roles={["admin", "super_admin"]}
                             >
                                 <SystemDashboard />
                             </ProtectedRoute>

@@ -28,7 +28,8 @@ const verifyToken = (req, res, next) => {
                 email,
                 role,
                 status,
-                security_status
+                security_status,
+                token_version
             FROM users
             WHERE id = ?
         `;
@@ -47,6 +48,16 @@ const verifyToken = (req, res, next) => {
             }
 
             const user = results[0];
+
+            if (
+                decoded.tokenVersion !==
+                user.token_version
+            ) {
+                return res.status(401).json({
+                    message:
+                        "Session expired. Please login again."
+                });
+            }
 
             if (user.status !== "active") {
                 return res.status(403).json({

@@ -32,6 +32,29 @@ const Sidebar = () => {
             }
         ],
 
+        super_admin: [
+            {
+                name: "System Dashboard",
+                path: "/admin/dashboard",
+                icon: "D"
+            },
+            {
+                name: "System Users",
+                path: "/admin/system/users",
+                icon: "U"
+            },
+            {
+                name: "Audit Logs",
+                path: "/admin/audit-logs",
+                icon: "L"
+            },
+            {
+                name: "Login Monitoring",
+                path: "/admin/login-monitoring",
+                icon: "M"
+            }
+        ],
+
         hr: [
             {
                 name: "Dashboard",

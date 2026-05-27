@@ -109,9 +109,40 @@ const updateSecurityStatus = async (
         });
     }
 };
+const forceLogoutUser = async (
+    req,
+    res
+) => {
+    try {
+        await systemUserService.forceLogoutUser(
+            req.params.id
+        );
+
+        await auditLogService.createAuditLog({
+            actor_id: req.user.id,
+            target_user_id: req.params.id,
+            action: "FORCE_LOGOUT",
+            module: "SECURITY",
+            details:
+                "System admin forced session logout"
+        });
+
+        res.status(200).json({
+            message:
+                "User sessions revoked successfully"
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message:
+                "Force logout failed"
+        });
+    }
+};
 
 module.exports = {
     getSystemUsers,
     updateUserRole,
-    updateSecurityStatus
+    updateSecurityStatus,
+    forceLogoutUser
 };

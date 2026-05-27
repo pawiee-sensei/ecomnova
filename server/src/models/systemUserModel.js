@@ -68,8 +68,26 @@ const updateSecurityStatus = (
     );
 };
 
+const incrementTokenVersion = (
+    userId,
+    callback
+) => {
+    const sql = `
+        UPDATE users
+        SET token_version = token_version + 1
+        WHERE id = ?
+    `;
+
+    db.query(
+        sql,
+        [userId],
+        callback
+    );
+};
+
 module.exports = {
     getSystemUsers,
     updateUserRole,
-    updateSecurityStatus
+    updateSecurityStatus,
+    incrementTokenVersion
 };

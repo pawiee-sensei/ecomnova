@@ -48,8 +48,25 @@ const updateSecurityStatus = async (
     });
 };
 
+const forceLogoutUser = async (
+    userId
+) => {
+    return new Promise((resolve, reject) => {
+        systemUserModel.incrementTokenVersion(
+            userId,
+            (err, result) => {
+                if (err)
+                    return reject(err);
+
+                resolve(result);
+            }
+        );
+    });
+};
+
 module.exports = {
     getSystemUsers,
     updateUserRole,
-    updateSecurityStatus
+    updateSecurityStatus,
+    forceLogoutUser
 };

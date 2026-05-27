@@ -4,6 +4,7 @@ import useAuthStore from "../store/authStore";
 
 const roleHome = {
     admin: "/admin/dashboard",
+    super_admin: "/admin/dashboard",
     hr: "/hr/dashboard",
     manager: "/manager/dashboard",
     agent: "/agent/dashboard"

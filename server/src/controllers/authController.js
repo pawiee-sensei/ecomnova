@@ -3,6 +3,9 @@ const jwt = require("jsonwebtoken");
 
 //models for auth controller functions 
 const {createUser, findUserByEmail} = require("../models/authModel");
+
+const auditLogService = require("../services/auditLogService");
+const systemUserService = require("../services/systemUserService");
 const loginAttemptService = require("../services/loginAttemptService");
 
 //register user 
@@ -116,6 +119,41 @@ const login = (req, res) => {
                 reason: "Wrong password"
             });
 
+            const failedAttempts =
+                await loginAttemptService.countFailedAttemptsByUserId(
+                    user.id
+                );
+                
+
+            if (failedAttempts >= 5) {
+                await systemUserService.updateSecurityStatus(
+                    user.id,
+                    "locked"
+                );
+
+                await loginAttemptService.createLoginAttempt({
+                    user_id: user.id,
+                    email,
+                    status: "BLOCKED",
+                    reason:
+                        "Auto-locked after repeated failed login attempts"
+                });
+
+                await auditLogService.createAuditLog({
+                    actor_id: user.id,
+                    target_user_id: user.id,
+                    action: "AUTO_LOCK_ACCOUNT",
+                    module: "SECURITY",
+                    details:
+                        "System auto-locked account after 5 failed login attempts"
+                });
+
+                return res.status(403).json({
+                    message:
+                        "Account locked after repeated failed login attempts."
+                });
+            }
+
             return res.status(401).json({
                 message: "Invalid credentials"
             });
@@ -124,7 +162,8 @@ const login = (req, res) => {
         const token = jwt.sign(
             {
                 id: user.id,
-                role: user.role
+                role: user.role,
+                tokenVersion: user.token_version
             },
             process.env.JWT_SECRET,
             {
