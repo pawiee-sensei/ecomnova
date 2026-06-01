@@ -336,7 +336,7 @@ useEffect(() => {
                         </h1>
 
                         <p className="mt-2 text-sm text-slate-500">
-                            Update identity, permissions, and reporting assignments.
+                            Update identity, staffing, and reporting assignments.
                         </p>
                     </div>
 
@@ -358,7 +358,7 @@ useEffect(() => {
                         </h2>
 
                         <p className="mt-1 text-sm text-slate-500">
-                            Keep account data accurate for routing, permissions, and audit records.
+                            Keep employee profile and assignment data accurate for workforce operations.
                         </p>
                     </div>
 

@@ -10,10 +10,7 @@ const AdminDashboard = () => {
     const [stats, setStats] = useState({
         totalEmployees: 0,
         activeEmployees: 0,
-        totalDepartments: 0,
-        openTickets: 0,
-        escalatedTickets: 0,
-        resolvedToday: 0
+        totalDepartments: 0
     });
 
     /*
@@ -71,7 +68,7 @@ const AdminDashboard = () => {
                 </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid gap-6 md:grid-cols-3">
 
                 {/* Total Employees */}
                 <div className="border rounded-xl p-6 shadow-sm">
@@ -103,39 +100,6 @@ const AdminDashboard = () => {
 
                     <p className="text-3xl font-bold mt-2">
                         {stats.totalDepartments}
-                    </p>
-                </div>
-
-                {/* Open Tickets */}
-                <div className="border rounded-xl p-6 shadow-sm">
-                    <h3 className="text-gray-500">
-                        Open Tickets
-                    </h3>
-
-                    <p className="text-3xl font-bold mt-2">
-                        {stats.openTickets}
-                    </p>
-                </div>
-
-                {/* Escalated */}
-                <div className="border rounded-xl p-6 shadow-sm">
-                    <h3 className="text-gray-500">
-                        Escalated Tickets
-                    </h3>
-
-                    <p className="text-3xl font-bold mt-2">
-                        {stats.escalatedTickets}
-                    </p>
-                </div>
-
-                {/* Resolved Today */}
-                <div className="border rounded-xl p-6 shadow-sm">
-                    <h3 className="text-gray-500">
-                        Resolved Today
-                    </h3>
-
-                    <p className="text-3xl font-bold mt-2">
-                        {stats.resolvedToday}
                     </p>
                 </div>
 

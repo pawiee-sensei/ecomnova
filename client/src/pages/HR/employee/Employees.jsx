@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import DashboardLayout from "../../../layouts/DashboardLayout";
 import api from "../../../services/api";
@@ -34,9 +34,7 @@ const Employees = () => {
     const [search, setSearch] = useState("");
     const [roleFilter, setRoleFilter] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
-    const [auditLogs, setAuditLogs] = useState([]);
     const [employeePage, setEmployeePage] = useState(1);
-    const [auditPage, setAuditPage] = useState(1);
     const [selectedEmployeeIds, setSelectedEmployeeIds] = useState([]);
     const [bulkStatus, setBulkStatus] = useState("");
     const [bulkUpdating, setBulkUpdating] = useState(false);
@@ -72,11 +70,6 @@ const Employees = () => {
         Math.ceil(employees.length / PAGE_SIZE)
     );
 
-    const auditPageCount = Math.max(
-        1,
-        Math.ceil(auditLogs.length / PAGE_SIZE)
-    );
-
     const paginatedEmployees = useMemo(() => {
         const start = (employeePage - 1) * PAGE_SIZE;
 
@@ -100,20 +93,6 @@ const Employees = () => {
         visibleEmployeeIds.length > 0 &&
         selectedVisibleCount === visibleEmployeeIds.length;
 
-    const paginatedAuditLogs = useMemo(() => {
-        const start = (auditPage - 1) * PAGE_SIZE;
-
-        return auditLogs.slice(start, start + PAGE_SIZE);
-    }, [auditLogs, auditPage]);
-
-    const fetchAuditLogs = useCallback(async () => {
-        const auditResponse = await api.get(
-            "/hr/employees/audit-logs"
-        );
-
-        setAuditLogs(auditResponse.data);
-    }, []);
-
     useEffect(() => {
         const fetchEmployees = async () => {
             try {
@@ -124,7 +103,6 @@ const Employees = () => {
                 );
 
                 setEmployees(response.data);
-                await fetchAuditLogs();
 
             } catch (error) {
                 console.error(
@@ -137,7 +115,7 @@ const Employees = () => {
         };
 
         fetchEmployees();
-    }, [search, roleFilter, statusFilter, fetchAuditLogs]);
+    }, [search, roleFilter, statusFilter]);
 
     useEffect(() => {
         setEmployeePage(1);
@@ -149,12 +127,6 @@ const Employees = () => {
             Math.min(page, employeePageCount)
         );
     }, [employeePageCount]);
-
-    useEffect(() => {
-        setAuditPage((page) =>
-            Math.min(page, auditPageCount)
-        );
-    }, [auditPageCount]);
 
     const showToast = (message, type = "success") => {
         setToast({ message, type });
@@ -185,7 +157,6 @@ const Employees = () => {
                 )
             );
 
-            await fetchAuditLogs();
             showToast("Employee status updated.");
             return true;
 
@@ -280,7 +251,6 @@ const Employees = () => {
             setBulkStatus("");
             setPendingBulkStatus("");
             setLifecycleReason("");
-            await fetchAuditLogs();
             showToast("Bulk status update complete.");
         } catch (error) {
             console.error(
@@ -767,124 +737,6 @@ const Employees = () => {
                     )}
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-                    <div className="border-b border-slate-200 p-5">
-                        <h2 className="text-lg font-semibold text-slate-950">
-                            Recent Employee Activity
-                        </h2>
-
-                        <p className="mt-1 text-sm text-slate-500">
-                            Latest account changes made by administrators.
-                        </p>
-                    </div>
-
-                    <div className="overflow-x-auto">
-                        <table className="w-full min-w-[860px]">
-                            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-                                <tr>
-                                    <th className="px-5 py-3 text-left font-semibold">
-                                        Admin
-                                    </th>
-                                    <th className="px-5 py-3 text-left font-semibold">
-                                        Action
-                                    </th>
-                                    <th className="px-5 py-3 text-left font-semibold">
-                                        Employee
-                                    </th>
-                                    <th className="px-5 py-3 text-left font-semibold">
-                                        Details
-                                    </th>
-                                    <th className="px-5 py-3 text-left font-semibold">
-                                        Date
-                                    </th>
-                                </tr>
-                            </thead>
-
-                            <tbody className="divide-y divide-slate-100">
-                                {auditLogs.length === 0 ? (
-                                    <tr>
-                                        <td
-                                            colSpan="5"
-                                            className="px-5 py-8 text-center text-sm text-slate-500"
-                                        >
-                                            No recent activity yet.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    paginatedAuditLogs.map((log) => (
-                                        <tr key={log.id}>
-                                            <td className="px-5 py-4 text-sm font-medium text-slate-900">
-                                                {log.actor_name}
-                                            </td>
-                                            <td className="px-5 py-4 text-sm text-slate-600">
-                                                {log.action}
-                                            </td>
-                                            <td className="px-5 py-4 text-sm text-slate-600">
-                                                {log.target_name}
-                                            </td>
-                                            <td className="px-5 py-4 text-sm text-slate-600">
-                                                {log.details}
-                                            </td>
-                                            <td className="px-5 py-4 text-sm text-slate-500">
-                                                {new Date(
-                                                    log.created_at
-                                                ).toLocaleString()}
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {auditLogs.length > 0 && (
-                        <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-                            <p className="text-sm text-slate-500">
-                                Showing {(auditPage - 1) * PAGE_SIZE + 1}-
-                                {Math.min(
-                                    auditPage * PAGE_SIZE,
-                                    auditLogs.length
-                                )}{" "}
-                                of {auditLogs.length} audit entries
-                            </p>
-
-                            <div className="flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setAuditPage((page) =>
-                                            Math.max(1, page - 1)
-                                        )
-                                    }
-                                    disabled={auditPage === 1}
-                                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50"
-                                >
-                                    Previous
-                                </button>
-
-                                <span className="text-sm font-medium text-slate-600">
-                                    Page {auditPage} of {auditPageCount}
-                                </span>
-
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setAuditPage((page) =>
-                                            Math.min(
-                                                auditPageCount,
-                                                page + 1
-                                            )
-                                        )
-                                    }
-                                    disabled={auditPage === auditPageCount}
-                                    className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50"
-                                >
-                                    Next
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
             </div>
 
             {pendingBulkStatus && (

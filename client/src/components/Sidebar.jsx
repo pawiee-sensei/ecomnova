@@ -6,70 +6,45 @@ const Sidebar = () => {
     const location = useLocation();
 
     /*
-      Role-based navigation config
+      Portal navigation config.
+      HR owns people and org structure. System Admin owns access and security.
     */
+    const systemAdminLinks = [
+        {
+            name: "System Dashboard",
+            path: "/system/dashboard",
+            icon: "D"
+        },
+        {
+            name: "System Users",
+            path: "/system/users",
+            icon: "U"
+        },
+        {
+            name: "Audit Logs",
+            path: "/system/audit-logs",
+            icon: "L"
+        },
+        {
+            name: "Permissions",
+            path: "/system/permissions",
+            icon: "P"
+        },
+        {
+            name: "Login Monitoring",
+            path: "/system/login-monitoring",
+            icon: "M"
+        },
+        {
+            name: "Security Settings",
+            path: "/system/security-settings",
+            icon: "S"
+        }
+    ];
+
     const menu = {
-        admin: [
-            {
-                name: "System Dashboard",
-                path: "/admin/dashboard",
-                icon: "D"
-            },
-            {
-                name: "System Users",
-                path: "/admin/system/users",
-                icon: "U"
-            },
-            {
-                name: "Audit Logs",
-                path: "/admin/audit-logs",
-                icon: "L"
-            },
-            {
-                name: "Permissions",
-                path: "/admin/permissions",
-                icon: "P"
-            },
-            {
-                name: "Login Monitoring",
-                path: "/admin/login-monitoring",
-                icon: "M"
-            },
-
-            {
-                name: "Security Settings",
-                path: "/admin/security-settings",
-                icon: "S"
-            }
-        ],
-
-        super_admin: [
-            {
-                name: "System Dashboard",
-                path: "/admin/dashboard",
-                icon: "D"
-            },
-            {
-                name: "System Users",
-                path: "/admin/system/users",
-                icon: "U"
-            },
-            {
-                name: "Audit Logs",
-                path: "/admin/audit-logs",
-                icon: "L"
-            },
-            {
-                name: "Permissions",
-                path: "/admin/permissions",
-                icon: "P"
-            },
-            {
-                name: "Login Monitoring",
-                path: "/admin/login-monitoring",
-                icon: "M"
-            }
-        ],
+        admin: systemAdminLinks,
+        super_admin: systemAdminLinks,
 
         hr: [
             {
@@ -91,21 +66,6 @@ const Sidebar = () => {
                 name: "Teams",
                 path: "/hr/teams",
                 icon: "T"
-            },
-            {
-                name: "Tickets",
-                path: "/admin/tickets",
-                icon: "K"
-            },
-            {
-                name: "Analytics",
-                path: "/admin/analytics",
-                icon: "A"
-            },
-            {
-                name: "Reports",
-                path: "/admin/reports",
-                icon: "R"
             }
         ],
 

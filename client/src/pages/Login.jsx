@@ -44,7 +44,7 @@ const Login = () => {
                 role === "admin" ||
                 role === "super_admin"
             ) {
-                navigate("/admin/dashboard");
+                navigate("/system/dashboard");
             } else if (role === "hr") {
                 navigate("/hr/dashboard");
             } else if (role === "manager") {

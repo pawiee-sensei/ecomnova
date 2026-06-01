@@ -16,7 +16,7 @@ const SystemDashboard = () => {
 
             <div className="grid gap-6 md:grid-cols-2">
                 <Link
-                    to="/admin/system/users"
+                    to="/system/users"
                     className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow"
                 >
                     <h2 className="text-xl font-semibold text-slate-950">
@@ -29,7 +29,7 @@ const SystemDashboard = () => {
                 </Link>
 
                 <Link
-                    to="/admin/permissions"
+                    to="/system/permissions"
                     className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow"
                 >
                     <h2 className="text-xl font-semibold text-slate-950">

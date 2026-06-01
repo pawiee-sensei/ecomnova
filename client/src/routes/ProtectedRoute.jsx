@@ -3,8 +3,8 @@ import { Navigate } from "react-router-dom";
 import useAuthStore from "../store/authStore";
 
 const roleHome = {
-    admin: "/admin/dashboard",
-    super_admin: "/admin/dashboard",
+    admin: "/system/dashboard",
+    super_admin: "/system/dashboard",
     hr: "/hr/dashboard",
     manager: "/manager/dashboard",
     agent: "/agent/dashboard"
