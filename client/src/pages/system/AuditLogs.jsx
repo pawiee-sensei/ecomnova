@@ -15,6 +15,9 @@ const [actionFilter, setActionFilter] =
 const [moduleFilter, setModuleFilter] =
     useState("");
 
+    const [dateFilter, setDateFilter] =
+    useState("all");
+
     const fetchLogs = async () => {
         try {
             const response =
@@ -37,6 +40,22 @@ const [moduleFilter, setModuleFilter] =
     useEffect(() => {
         fetchLogs();
     }, []);
+
+    const actions = [
+    ...new Set(
+        logs
+            .map((log) => log.action)
+            .filter(Boolean)
+    )
+];
+
+    const modules = [
+    ...new Set(
+        logs
+            .map((log) => log.module)
+            .filter(Boolean)
+    )
+];
 
     const filteredLogs = logs.filter(
     (log) => {
@@ -74,10 +93,49 @@ const [moduleFilter, setModuleFilter] =
                 .toLowerCase() ===
                 moduleFilter.toLowerCase();
 
+        let matchesDate = true;
+
+if (dateFilter === "today") {
+    matchesDate =
+        new Date(
+            log.created_at
+        ).toDateString() ===
+        new Date().toDateString();
+}
+
+if (dateFilter === "7days") {
+    const sevenDaysAgo =
+        new Date();
+
+    sevenDaysAgo.setDate(
+        sevenDaysAgo.getDate() - 7
+    );
+
+    matchesDate =
+        new Date(
+            log.created_at
+        ) >= sevenDaysAgo;
+}
+
+if (dateFilter === "30days") {
+    const thirtyDaysAgo =
+        new Date();
+
+    thirtyDaysAgo.setDate(
+        thirtyDaysAgo.getDate() - 30
+    );
+
+    matchesDate =
+        new Date(
+            log.created_at
+        ) >= thirtyDaysAgo;
+}
+
         return (
             matchesSearch &&
             matchesAction &&
-            matchesModule
+            matchesModule &&
+            matchesDate
         );
     }
 );
@@ -91,6 +149,10 @@ const [moduleFilter, setModuleFilter] =
 
                 <p className="text-gray-500">
                     Security and governance activity
+                </p>
+
+                <p className="mt-2 text-sm text-slate-500">
+                    Showing {filteredLogs.length} of {logs.length} audit events
                 </p>
             </div>
 
@@ -106,24 +168,31 @@ const [moduleFilter, setModuleFilter] =
                     className="border p-3 rounded-lg w-72"
                 />
 
-                <select
-                    value={actionFilter}
-                    onChange={(e) =>
-                        setActionFilter(
-                            e.target.value
-                        )
-                    }
-                    className="border p-3 rounded-lg"
-                >
-                    <option value="">All Actions</option>
+<select
+    value={actionFilter}
+    onChange={(e) =>
+        setActionFilter(
+            e.target.value
+        )
+    }
+    className="border p-3 rounded-lg"
+>
+    <option value="">
+        All Actions
+    </option>
 
-                    <option value="change_role">Change Role</option>
-
-                    <option value="lock_account">Lock Account</option>
-
-                    <option value="unlock_account">Unlock Account</option>
-
-                </select>
+    {actions.map((action) => (
+        <option
+            key={action}
+            value={action}
+        >
+            {action.replaceAll(
+                "_",
+                " "
+            )}
+        </option>
+    ))}
+</select>
 
                 <select
                     value={moduleFilter}
@@ -134,14 +203,45 @@ const [moduleFilter, setModuleFilter] =
                     }
                     className="border p-3 rounded-lg"
                 >
-                    <option value="">
-                        All Modules
+                <option value="">
+                    All Modules
+                </option>
+
+                {modules.map((module) => (
+                    <option
+                        key={module}
+                        value={module}
+                    >
+                        {module.replaceAll(
+                            "_",
+                            " "
+                        )}
                     </option>
-
-                    <option value="access_control">Access Control</option>
-
-                    <option value="security">Security</option>
+            ))}
                     
+                </select>
+
+                <select
+                    value={dateFilter}
+                    onChange={(e) =>
+                        setDateFilter(
+                            e.target.value
+                        )
+                    }
+                    className="border p-3 rounded-lg"
+                >
+                    <option value="all">
+                        All Dates
+                    </option>
+                    <option value="today">
+                        Today
+                    </option>
+                    <option value="7days">
+                        Last 7 Days
+                    </option>
+                    <option value="30days">
+                        Last 30 Days
+                    </option>
                 </select>
 
             </div>  
@@ -176,50 +276,63 @@ const [moduleFilter, setModuleFilter] =
                         </tr>
                     </thead>
 
-                    <tbody>
-                        {filteredLogs.map((log) => (
-                            <tr
-                                key={log.id}
-                                className="border-t"
-                            >
-                                <td className="p-4">
-                                    {new Date(
-                                        log.created_at
-                                    ).toLocaleString()}
-                                </td>
+ <tbody>
 
-                                <td className="p-4">
-                                    {log.actor_name ||
-                                        "System"}
-                                </td>
+    {filteredLogs.length === 0 && (
+        <tr>
+            <td
+                colSpan="6"
+                className="p-8 text-center text-gray-500"
+            >
+                No audit logs found.
+            </td>
+        </tr>
+    )}
 
-                                <td className="p-4 capitalize">
-                                    {log.action
-                                        .replaceAll(
-                                            "_",
-                                            " "
-                                        )}
-                                </td>
+{filteredLogs.map((log) => (
+    <tr
+        key={log.id}
+        className="border-t"
+    >
+        <td className="p-4">
+            {new Date(
+                log.created_at
+            ).toLocaleString()}
+        </td>
 
-                                <td className="p-4 capitalize">
-                                    {log.module
-                                        .replaceAll(
-                                            "_",
-                                            " "
-                                        )}
-                                </td>
+        <td className="p-4">
+            {log.actor_name ||
+                "System"}
+        </td>
 
-                                <td className="p-4">
-                                    {log.target_name ||
-                                        "—"}
-                                </td>
+        <td className="p-4 capitalize">
+            {log.action
+                .replaceAll(
+                    "_",
+                    " "
+                )}
+        </td>
 
-                                <td className="p-4">
-                                    {log.details}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
+        <td className="p-4 capitalize">
+            {log.module
+                .replaceAll(
+                    "_",
+                    " "
+                )}
+        </td>
+
+        <td className="p-4">
+            {log.target_name ||
+                "—"}
+        </td>
+
+        <td className="p-4">
+            {log.details}
+        </td>
+    </tr>
+))}
+
+</tbody>
                 </table>
             </div>
         </DashboardLayout>
