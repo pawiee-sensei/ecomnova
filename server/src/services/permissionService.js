@@ -79,6 +79,21 @@ const roleHasPermission = async (
     });
 };
 
+const getPermissionsByRole = async (role) => {
+    return new Promise((resolve, reject) => {
+        permissionModel.getPermissionsByRole(
+            role,
+            (err, results) => {
+                if (err) return reject(err);
+
+                resolve(
+                    results.map((item) => item.permission)
+                );
+            }
+        );
+    });
+};
+
 const replaceRolePermissions = async (
     role,
     permissions
@@ -113,5 +128,6 @@ const replaceRolePermissions = async (
 module.exports = {
     getPermissionMatrix,
     roleHasPermission,
+    getPermissionsByRole,
     replaceRolePermissions
 };

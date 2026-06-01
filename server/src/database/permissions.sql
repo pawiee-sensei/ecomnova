@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS role_permissions (
 INSERT IGNORE INTO permissions (name, module, description) VALUES
     ('VIEW_PERMISSIONS', 'ACCESS_CONTROL', 'View role permission matrix'),
     ('MANAGE_PERMISSIONS', 'ACCESS_CONTROL', 'Update role permission assignments'),
+    ('VIEW_SYSTEM_DASHBOARD', 'ACCESS_CONTROL', 'View system dashboard metrics'),
     ('VIEW_SYSTEM_USERS', 'ACCESS_CONTROL', 'View system users'),
     ('MANAGE_USER_ROLES', 'ACCESS_CONTROL', 'Change user roles'),
     ('LOCK_ACCOUNT', 'SECURITY', 'Lock or unlock user accounts'),
@@ -45,6 +46,7 @@ SELECT 'admin', id FROM permissions
 WHERE name IN (
     'VIEW_PERMISSIONS',
     'MANAGE_PERMISSIONS',
+    'VIEW_SYSTEM_DASHBOARD',
     'VIEW_SYSTEM_USERS',
     'MANAGE_USER_ROLES',
     'LOCK_ACCOUNT',

@@ -28,6 +28,23 @@ const getRolePermissions = (callback) => {
     db.query(sql, callback);
 };
 
+const getPermissionsByRole = (
+    role,
+    callback
+) => {
+    const sql = `
+        SELECT
+            permissions.name AS permission
+        FROM role_permissions
+        INNER JOIN permissions
+            ON role_permissions.permission_id = permissions.id
+        WHERE role_permissions.role = ?
+        ORDER BY permissions.name
+    `;
+
+    db.query(sql, [role], callback);
+};
+
 const roleHasPermission = (
     role,
     permission,
@@ -117,6 +134,7 @@ const replaceRolePermissions = (
 module.exports = {
     getPermissions,
     getRolePermissions,
+    getPermissionsByRole,
     roleHasPermission,
     replaceRolePermissions
 };
