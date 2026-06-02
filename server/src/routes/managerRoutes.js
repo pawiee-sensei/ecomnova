@@ -4,13 +4,17 @@ const router = express.Router();
 
 const verifyToken = require("../middleware/authMiddleware");
 
-
-
-
 const {
     getMyTeam,
-    getTeamMember
+    getTeamMember,
+    getTeamOverview
 } = require("../controllers/managerController");
+
+router.get(
+    "/team-overview",
+    verifyToken,
+    getTeamOverview
+);
 
 router.get(
     "/team",

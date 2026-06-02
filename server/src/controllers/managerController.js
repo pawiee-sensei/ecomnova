@@ -81,7 +81,35 @@ const getMyTeam =
         }
     };
 
+    const getTeamOverview =
+    async (req, res) => {
+
+        try {
+
+            const overview =
+                await managerService.getTeamOverview(
+                    req.user.id
+                );
+
+            res.json(
+                overview
+            );
+
+        } catch (error) {
+
+            console.error(
+                error
+            );
+
+            res.status(500).json({
+                message:
+                    "Failed to load team overview"
+            });
+        }
+    };
+
 module.exports = {
     getMyTeam,
-    getTeamMember
+    getTeamMember,
+    getTeamOverview
 };

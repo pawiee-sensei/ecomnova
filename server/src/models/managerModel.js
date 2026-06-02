@@ -69,7 +69,46 @@ const getTeamMemberById = (
     );
 };
 
+const getTeamOverview = (
+    managerId,
+    callback
+) => {
+
+    const sql = `
+        SELECT
+            t.id,
+            t.name AS team_name,
+            t.status,
+            d.name AS department_name,
+            leader.fullname AS leader_name,
+            (
+                SELECT COUNT(*)
+                FROM users u
+                WHERE u.team_id = t.id
+            ) AS member_count
+        FROM users manager
+
+        INNER JOIN teams t
+            ON manager.team_id = t.id
+
+        LEFT JOIN departments d
+            ON t.department_id = d.id
+
+        LEFT JOIN users leader
+            ON t.leader_id = leader.id
+
+        WHERE manager.id = ?
+    `;
+
+    db.query(
+        sql,
+        [managerId],
+        callback
+    );
+};
+
 module.exports = {
     getManagerTeam,
-    getTeamMemberById
+    getTeamMemberById,
+    getTeamOverview
 };

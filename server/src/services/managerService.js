@@ -55,7 +55,31 @@ const getManagerTeam =
         );
     };
 
+    const getTeamOverview =
+    async (managerId) => {
+
+        return new Promise(
+            (resolve, reject) => {
+
+                managerModel.getTeamOverview(
+                    managerId,
+                    (err, results) => {
+
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        resolve(
+                            results[0]
+                        );
+                    }
+                );
+            }
+        );
+    };
+
 module.exports = {
     getManagerTeam,
-    getTeamMemberById
+    getTeamMemberById,
+    getTeamOverview
 };
