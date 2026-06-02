@@ -9,7 +9,7 @@ import Login from "./pages/Login";
 
 // HR pages
 import AdminDashboard from "./pages/HR/AdminDashboard";
-import ManagerDashboard from "./pages/Manager/ManagerDashboard";
+import ManagerDashboard from "./pages/manager/ManagerDashboard";
 import AgentDashboard from "./pages/AgentDashboard";
 import Employees from "./pages/HR/employee/Employees";
 import CreateEmployee from "./pages/HR/employee/CreateEmployee";
@@ -31,7 +31,7 @@ import Permissions from "./pages/system/Permissions";
 import SecuritySettings from "./pages/system/SecuritySettings";
 
 // Manager pages
-import MyTeam from "./pages/Manager/MyTeam";
+import MyTeam from "./pages/manager/MyTeam";
 
 import AuthLoader from "./components/AuthLoader";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -230,17 +230,6 @@ function App() {
                     <Route
                         path="/"
                         element={<Navigate to="/login" replace />}
-                    />
-
-                    <Route
-                        path="/manager/dashboard"
-                        element={
-                            <ProtectedRoute
-                                roles={["manager"]}
-                            >
-                                <ManagerDashboard />
-                            </ProtectedRoute>
-                        }
                     />
 
                     <Route

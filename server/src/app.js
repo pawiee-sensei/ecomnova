@@ -17,6 +17,8 @@ const permissionRoutes = require("./routes/permissionRoutes");
 const securitySettingsRoutes = require("./routes/securitySettingsRoutes");
 const systemDashboardRoutes = require("./routes/systemDashboardRoutes");
 
+const managerRoutes = require("./routes/managerRoutes");
+
 
 const app = express();
 
@@ -37,4 +39,7 @@ app.use("/api/system/login-monitoring", loginAttemptRoutes);
 app.use("/api/system/permissions", permissionRoutes);
 app.use("/api/system/security-settings", securitySettingsRoutes);
 app.use("/api/system/dashboard", systemDashboardRoutes);
+
+app.use("/api/manager", managerRoutes);
+
 module.exports = app;
