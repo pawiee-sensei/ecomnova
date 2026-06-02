@@ -9,7 +9,7 @@ import Login from "./pages/Login";
 
 // HR pages
 import AdminDashboard from "./pages/HR/AdminDashboard";
-import ManagerDashboard from "./pages/ManagerDashboard";
+import ManagerDashboard from "./pages/Manager/ManagerDashboard";
 import AgentDashboard from "./pages/AgentDashboard";
 import Employees from "./pages/HR/employee/Employees";
 import CreateEmployee from "./pages/HR/employee/CreateEmployee";
@@ -30,8 +30,12 @@ import LoginMonitoring from "./pages/system/LoginMonitoring";
 import Permissions from "./pages/system/Permissions";
 import SecuritySettings from "./pages/system/SecuritySettings";
 
+// Manager pages
+import MyTeam from "./pages/Manager/MyTeam";
+
 import AuthLoader from "./components/AuthLoader";
 import ProtectedRoute from "./routes/ProtectedRoute";
+
 
 function App() {
 
@@ -40,6 +44,28 @@ function App() {
 
             <AuthLoader />
                 <Routes>
+
+                    <Route
+                        path="/manager/dashboard"
+                        element={
+                            <ProtectedRoute
+                                roles={["manager"]}
+                            >
+                                <ManagerDashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/manager/team"
+                        element={
+                            <ProtectedRoute
+                                roles={["manager"]}
+                            >
+                                <MyTeam />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     <Route
                         path="/system/security-settings"
