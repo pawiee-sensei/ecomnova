@@ -107,8 +107,47 @@ const getTeamOverview = (
     );
 };
 
+const getTeamActivity = (
+    managerId,
+    callback
+) => {
+
+    const sql = `
+        SELECT
+            audit_logs.id,
+            audit_logs.action,
+            audit_logs.module,
+            audit_logs.details,
+            audit_logs.created_at,
+
+            actor.fullname AS actor_name,
+            target.fullname AS target_name
+
+        FROM audit_logs
+
+        LEFT JOIN users actor
+            ON audit_logs.actor_id = actor.id
+
+        LEFT JOIN users target
+            ON audit_logs.target_user_id = target.id
+
+        WHERE target.manager_id = ?
+
+        ORDER BY audit_logs.created_at DESC
+
+        LIMIT 10
+    `;
+
+    db.query(
+        sql,
+        [managerId],
+        callback
+    );
+};
+
 module.exports = {
     getManagerTeam,
     getTeamMemberById,
-    getTeamOverview
+    getTeamOverview,
+    getTeamActivity
 };

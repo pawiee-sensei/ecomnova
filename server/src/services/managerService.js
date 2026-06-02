@@ -78,8 +78,30 @@ const getManagerTeam =
         );
     };
 
+const getTeamActivity =
+    async (managerId) => {
+
+        return new Promise(
+            (resolve, reject) => {
+
+                managerModel.getTeamActivity(
+                    managerId,
+                    (err, results) => {
+
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        resolve(results);
+                    }
+                );
+            }
+        );
+    };
+
 module.exports = {
     getManagerTeam,
     getTeamMemberById,
-    getTeamOverview
+    getTeamOverview,
+    getTeamActivity
 };

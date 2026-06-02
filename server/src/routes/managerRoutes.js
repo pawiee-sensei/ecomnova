@@ -7,13 +7,20 @@ const verifyToken = require("../middleware/authMiddleware");
 const {
     getMyTeam,
     getTeamMember,
-    getTeamOverview
+    getTeamOverview,
+    getTeamActivity
 } = require("../controllers/managerController");
 
 router.get(
     "/team-overview",
     verifyToken,
     getTeamOverview
+);
+
+router.get(
+    "/team-activity",
+    verifyToken,
+    getTeamActivity
 );
 
 router.get(

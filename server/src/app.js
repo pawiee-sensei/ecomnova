@@ -20,6 +20,7 @@ const systemDashboardRoutes = require("./routes/systemDashboardRoutes");
 const managerRoutes = require("./routes/managerRoutes");
 
 
+
 const app = express();
 
 app.use(cors());
@@ -41,5 +42,6 @@ app.use("/api/system/security-settings", securitySettingsRoutes);
 app.use("/api/system/dashboard", systemDashboardRoutes);
 
 app.use("/api/manager", managerRoutes);
+
 
 module.exports = app;

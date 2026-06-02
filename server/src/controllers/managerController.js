@@ -108,8 +108,34 @@ const getMyTeam =
         }
     };
 
+    const getTeamActivity =
+    async (req, res) => {
+
+        try {
+
+            const activity =
+                await managerService.getTeamActivity(
+                    req.user.id
+                );
+
+            res.json(
+                activity
+            );
+
+        } catch (error) {
+
+            console.error(error);
+
+            res.status(500).json({
+                message:
+                    "Failed to load team activity"
+            });
+        }
+    };
+
 module.exports = {
     getMyTeam,
     getTeamMember,
-    getTeamOverview
+    getTeamOverview,
+    getTeamActivity
 };

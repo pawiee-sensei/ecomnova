@@ -25,6 +25,9 @@ const ManagerDashboard = () => {
     const [teamOverview, setTeamOverview] =
     useState(null);
 
+    const [teamActivity, setTeamActivity] =
+    useState([]);
+
     const fetchTeam = async () => {
         try {
 
@@ -69,9 +72,33 @@ const ManagerDashboard = () => {
         }
     };
 
+    const fetchTeamActivity =
+    async () => {
+
+        try {
+
+            const response =
+                await api.get(
+                    "/manager/team-activity"
+                );
+
+            setTeamActivity(
+                response.data
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Failed to load team activity:",
+                error
+            );
+        }
+    };
+
     useEffect(() => {
         fetchTeam();
         fetchTeamOverview();
+        fetchTeamActivity();
     }, []);
 
     const totalMembers =
@@ -272,6 +299,70 @@ const totalLeaders =
         ))
 
 )}
+
+    </div>
+
+</div>
+
+<div className="mt-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+
+    <h2 className="text-lg font-semibold">
+        Recent Team Activity
+    </h2>
+
+    <div className="mt-4 space-y-3">
+
+        {teamActivity.length === 0 ? (
+
+            <p className="text-sm text-slate-500">
+                No recent activity found.
+            </p>
+
+        ) : (
+
+            teamActivity.map(
+                (activity) => (
+
+                    <div
+                        key={activity.id}
+                        className="rounded-lg border border-slate-100 p-3"
+                    >
+
+                        <div className="flex items-center justify-between">
+
+                            <div>
+
+                                <p className="font-medium text-slate-950">
+                                    {activity.action
+                                        .replaceAll(
+                                            "_",
+                                            " "
+                                        )}
+                                </p>
+
+                                <p className="mt-1 text-sm text-slate-500">
+                                    {activity.target_name}
+                                </p>
+
+                            </div>
+
+                            <span className="text-xs text-slate-400">
+                                {new Date(
+                                    activity.created_at
+                                ).toLocaleDateString()}
+                            </span>
+
+                        </div>
+
+                        <p className="mt-2 text-sm text-slate-600">
+                            {activity.details}
+                        </p>
+
+                    </div>
+                )
+            )
+
+        )}
 
     </div>
 
