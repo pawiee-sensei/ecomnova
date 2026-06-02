@@ -26,6 +26,15 @@ const MyTeam = () => {
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
 
+    const [searchTerm, setSearchTerm] =
+    useState("");
+
+    const [roleFilter, setRoleFilter] =
+        useState("");
+
+    const [statusFilter, setStatusFilter] =
+        useState("");
+
     const fetchTeam = async () => {
         try {
             setLoading(true);
@@ -57,6 +66,59 @@ const MyTeam = () => {
         fetchTeam();
     }, []);
 
+
+        const roles = [
+        ...new Set(
+            employees.map(
+                (employee) =>
+                    employee.role
+            )
+        )
+    ];
+
+    const statuses = [
+        ...new Set(
+            employees.map(
+                (employee) =>
+                    employee.status
+            )
+        )
+    ];
+
+    const filteredEmployees =
+    employees.filter(
+        (employee) => {
+
+            const matchesSearch =
+                employee.fullname
+                    ?.toLowerCase()
+                    .includes(
+                        searchTerm.toLowerCase()
+                    ) ||
+                employee.email
+                    ?.toLowerCase()
+                    .includes(
+                        searchTerm.toLowerCase()
+                    );
+
+            const matchesRole =
+                !roleFilter ||
+                employee.role ===
+                    roleFilter;
+
+            const matchesStatus =
+                !statusFilter ||
+                employee.status ===
+                    statusFilter;
+
+            return (
+                matchesSearch &&
+                matchesRole &&
+                matchesStatus
+            );
+        }
+    );
+
     return (
         <DashboardLayout>
             <div className="space-y-6">
@@ -69,6 +131,70 @@ const MyTeam = () => {
                         <p className="mt-2 text-sm text-slate-500">
                             Employees currently assigned to you.
                         </p>
+
+                        <div className="mt-6 flex flex-wrap gap-4">
+
+                            <input
+                                type="text"
+                                placeholder="Search employee..."
+                                value={searchTerm}
+                                onChange={(e) =>
+                                    setSearchTerm(
+                                        e.target.value
+                                    )
+                                }
+                                className="w-72 rounded-lg border p-3"
+                            />
+
+                            <select
+                                value={roleFilter}
+                                onChange={(e) =>
+                                    setRoleFilter(
+                                        e.target.value
+                                    )
+                                }
+                                className="rounded-lg border p-3"
+                            >
+                                <option value="">
+                                    All Roles
+                                </option>
+
+                                {roles.map((role) => (
+                                    <option
+                                        key={role}
+                                        value={role}
+                                    >
+                                        {role}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <select
+                                value={statusFilter}
+                                onChange={(e) =>
+                                    setStatusFilter(
+                                        e.target.value
+                                    )
+                                }
+                                className="rounded-lg border p-3"
+                            >
+                                <option value="">
+                                    All Statuses
+                                </option>
+
+                                {statuses.map(
+                                    (status) => (
+                                        <option
+                                            key={status}
+                                            value={status}
+                                        >
+                                            {status}
+                                        </option>
+                                    )
+                                )}
+                            </select>
+
+                        </div>
                     </div>
 
                     <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
@@ -124,7 +250,18 @@ const MyTeam = () => {
                                 </thead>
 
                                 <tbody className="divide-y divide-slate-100">
-                                    {employees.map((employee) => (
+
+                                    {filteredEmployees.length === 0 && (
+                                        <tr>
+                                            <td
+                                                colSpan="6"
+                                                className="p-8 text-center text-gray-500"
+                                            >
+                                                No team members found.
+                                            </td>
+                                        </tr>
+                                    )}
+                                    {filteredEmployees.map((employee) => (
                                         <tr key={employee.id}>
                                             <td className="px-5 py-4">
                                                 <p className="font-semibold text-slate-950">
