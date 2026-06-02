@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import api from "../../services/api";
+import { useNavigate } from "react-router-dom";
 
 const statusStyles = {
     active: "bg-emerald-50 text-emerald-700 ring-emerald-200",
@@ -8,6 +9,8 @@ const statusStyles = {
     suspended: "bg-amber-50 text-amber-700 ring-amber-200",
     terminated: "bg-rose-50 text-rose-700 ring-rose-200"
 };
+
+
 
 const formatLabel = (value) => {
     if (!value) {
@@ -21,7 +24,10 @@ const formatLabel = (value) => {
         );
 };
 
+
+
 const MyTeam = () => {
+    const navigate = useNavigate();
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
@@ -262,7 +268,15 @@ const MyTeam = () => {
                                         </tr>
                                     )}
                                     {filteredEmployees.map((employee) => (
-                                        <tr key={employee.id}>
+                                        <tr
+                                            key={employee.id}
+                                            className="border-t cursor-pointer hover:bg-slate-50"
+                                            onClick={() =>
+                                                navigate(
+                                                    `/manager/team/${employee.id}`
+                                                )
+                                            }
+                                        >
                                             <td className="px-5 py-4">
                                                 <p className="font-semibold text-slate-950">
                                                     {employee.fullname}

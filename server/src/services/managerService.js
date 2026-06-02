@@ -20,6 +20,42 @@ const getManagerTeam =
         );
     };
 
+    const getTeamMemberById =
+    async (
+        employeeId,
+        managerId
+    ) => {
+
+        return new Promise(
+            (
+                resolve,
+                reject
+            ) => {
+
+                managerModel.getTeamMemberById(
+                    employeeId,
+                    managerId,
+                    (
+                        err,
+                        results
+                    ) => {
+
+                        if (err) {
+                            return reject(
+                                err
+                            );
+                        }
+
+                        resolve(
+                            results[0]
+                        );
+                    }
+                );
+            }
+        );
+    };
+
 module.exports = {
-    getManagerTeam
+    getManagerTeam,
+    getTeamMemberById
 };

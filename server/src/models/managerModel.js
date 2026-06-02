@@ -32,6 +32,44 @@ const getManagerTeam = (
     );
 };
 
+const getTeamMemberById = (
+    employeeId,
+    managerId,
+    callback
+) => {
+
+    const sql = `
+        SELECT
+            id,
+            employee_id,
+            fullname,
+            email,
+            role,
+            status,
+            department_id,
+            team_id,
+            manager_id,
+            job_title,
+            employment_type,
+            hire_date,
+            work_location,
+            shift
+        FROM users
+        WHERE id = ?
+        AND manager_id = ?
+    `;
+
+    db.query(
+        sql,
+        [
+            employeeId,
+            managerId
+        ],
+        callback
+    );
+};
+
 module.exports = {
-    getManagerTeam
+    getManagerTeam,
+    getTeamMemberById
 };
