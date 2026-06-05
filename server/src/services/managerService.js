@@ -218,11 +218,77 @@ const getCoachingNotes =
         );
     };
 
+    const createAnnouncement =
+    async (
+        title,
+        content,
+        status,
+        effectiveDate,
+        managerId
+    ) => {
+
+        return new Promise(
+            (
+                resolve,
+                reject
+            ) => {
+
+                managerModel.createAnnouncement(
+                    title,
+                    content,
+                    status,
+                    effectiveDate,
+                    managerId,
+                    (
+                        err,
+                        result
+                    ) => {
+
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        resolve(result);
+                    }
+                );
+            }
+        );
+    };
+
+const getAnnouncements =
+    async (managerId) => {
+
+        return new Promise(
+            (
+                resolve,
+                reject
+            ) => {
+
+                managerModel.getAnnouncements(
+                    managerId,
+                    (
+                        err,
+                        results
+                    ) => {
+
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        resolve(results);
+                    }
+                );
+            }
+        );
+    };
+
 module.exports = {
     getManagerTeam,
     getTeamMemberById,
     getTeamOverview,
     getTeamActivity,
     createCoachingNote,
-    getCoachingNotes
+    getCoachingNotes,
+    createAnnouncement,
+    getAnnouncements
 };

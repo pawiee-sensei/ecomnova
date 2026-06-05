@@ -79,6 +79,11 @@ const Sidebar = () => {
                 name: "My Team",
                 path: "/manager/team",
                 icon: "T"
+            },
+            {
+                name: "Announcements",
+                path: "/manager/announcements",
+                icon: "A"
             }
         ],
 

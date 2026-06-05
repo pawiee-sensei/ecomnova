@@ -33,6 +33,7 @@ import SecuritySettings from "./pages/system/SecuritySettings";
 // Manager pages
 import MyTeam from "./pages/manager/MyTeam";
 import EmployeeProfile from "./pages/manager/EmployeeProfile";
+import Announcements from "./pages/Manager/Announcements";
 
 import AuthLoader from "./components/AuthLoader";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -45,6 +46,17 @@ function App() {
 
             <AuthLoader />
                 <Routes>
+
+                    <Route
+                        path="/manager/announcements"
+                        element={
+                            <ProtectedRoute
+                                roles={["manager"]}
+                            >
+                                <Announcements />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     <Route
                         path="/manager/team/:id"

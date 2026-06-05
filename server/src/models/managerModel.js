@@ -225,6 +225,64 @@ const validateManagedEmployee = (
     );
 };
 
+const createAnnouncement = (
+    title,
+    content,
+    status,
+    effectiveDate,
+    managerId,
+    callback
+) => {
+
+    const sql = `
+        INSERT INTO announcements (
+            title,
+            content,
+            status,
+            effective_date,
+            manager_id
+        )
+        VALUES (?, ?, ?, ?, ?)
+    `;
+
+    db.query(
+        sql,
+        [
+            title,
+            content,
+            status,
+            effectiveDate,
+            managerId
+        ],
+        callback
+    );
+};
+
+const getAnnouncements = (
+    managerId,
+    callback
+) => {
+
+    const sql = `
+        SELECT
+            id,
+            title,
+            content,
+            status,
+            effective_date,
+            created_at
+        FROM announcements
+        WHERE manager_id = ?
+        ORDER BY effective_date DESC
+    `;
+
+    db.query(
+        sql,
+        [managerId],
+        callback
+    );
+};
+
 
 
 
@@ -235,5 +293,7 @@ module.exports = {
     getTeamActivity,
     createCoachingNote,
     getCoachingNotes,
-    validateManagedEmployee
+    validateManagedEmployee,
+    createAnnouncement,
+    getAnnouncements
 };

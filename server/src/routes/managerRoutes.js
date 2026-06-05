@@ -10,8 +10,22 @@ const {
     getTeamOverview,
     getTeamActivity,
     createCoachingNote,
-    getCoachingNotes
+    getCoachingNotes,
+    createAnnouncement,
+    getAnnouncements
 } = require("../controllers/managerController");
+
+router.post(
+    "/announcements",
+    verifyToken,
+    createAnnouncement
+);
+
+router.get(
+    "/announcements",
+    verifyToken,
+    getAnnouncements
+);
 
 router.post(
     "/coaching-notes",

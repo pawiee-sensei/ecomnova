@@ -189,11 +189,74 @@ const getCoachingNotes =
         }
     };
 
+    const createAnnouncement =
+    async (req, res) => {
+
+        try {
+
+            const {
+                title,
+                content,
+                status,
+                effectiveDate
+            } = req.body;
+
+            await managerService.createAnnouncement(
+                title,
+                content,
+                status,
+                effectiveDate,
+                req.user.id
+            );
+
+            res.status(201).json({
+                message:
+                    "Announcement created"
+            });
+
+        } catch (error) {
+
+            console.error(error);
+
+            res.status(500).json({
+                message:
+                    "Failed to create announcement"
+            });
+        }
+    };
+
+const getAnnouncements =
+    async (req, res) => {
+
+        try {
+
+            const announcements =
+                await managerService.getAnnouncements(
+                    req.user.id
+                );
+
+            res.json(
+                announcements
+            );
+
+        } catch (error) {
+
+            console.error(error);
+
+            res.status(500).json({
+                message:
+                    "Failed to load announcements"
+            });
+        }
+    };
+
 module.exports = {
     getMyTeam,
     getTeamMember,
     getTeamOverview,
     getTeamActivity,
     createCoachingNote,
-    getCoachingNotes
+    getCoachingNotes,
+    createAnnouncement,
+    getAnnouncements
 };
