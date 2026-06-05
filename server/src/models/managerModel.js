@@ -145,9 +145,95 @@ const getTeamActivity = (
     );
 };
 
+const createCoachingNote = (
+    employeeId,
+    managerId,
+    note,
+    callback
+) => {
+
+    const sql = `
+        INSERT INTO coaching_notes (
+            employee_id,
+            manager_id,
+            note
+        )
+        VALUES (?, ?, ?)
+    `;
+
+    db.query(
+        sql,
+        [
+            employeeId,
+            managerId,
+            note
+        ],
+        callback
+    );
+};
+
+const getCoachingNotes = (
+    employeeId,
+    callback
+) => {
+
+    const sql = `
+        SELECT
+            coaching_notes.id,
+            coaching_notes.note,
+            coaching_notes.created_at,
+
+            users.fullname AS manager_name
+
+        FROM coaching_notes
+
+        INNER JOIN users
+            ON coaching_notes.manager_id = users.id
+
+        WHERE coaching_notes.employee_id = ?
+
+        ORDER BY coaching_notes.created_at DESC
+    `;
+
+    db.query(
+        sql,
+        [employeeId],
+        callback
+    );
+};
+
+const validateManagedEmployee = (
+    employeeId,
+    managerId,
+    callback
+) => {
+
+    const sql = `
+        SELECT id
+        FROM users
+        WHERE id = ?
+        AND manager_id = ?
+    `;
+
+    db.query(
+        sql,
+        [
+            employeeId,
+            managerId
+        ],
+        callback
+    );
+};
+
+
+
+
 module.exports = {
     getManagerTeam,
     getTeamMemberById,
     getTeamOverview,
-    getTeamActivity
+    getTeamActivity,
+    createCoachingNote,
+    getCoachingNotes,
+    validateManagedEmployee
 };

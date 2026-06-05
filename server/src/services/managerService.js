@@ -99,9 +99,130 @@ const getTeamActivity =
         );
     };
 
+    const createCoachingNote =
+    async (
+        employeeId,
+        managerId,
+        note
+    ) => {
+
+        return new Promise(
+            (
+                resolve,
+                reject
+            ) => {
+
+                managerModel.validateManagedEmployee(
+                    employeeId,
+                    managerId,
+                    (
+                        err,
+                        employee
+                    ) => {
+
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        if (
+                            employee.length === 0
+                        ) {
+                            return reject(
+                                new Error(
+                                    "Unauthorized employee"
+                                )
+                            );
+                        }
+
+                        managerModel.createCoachingNote(
+                            employeeId,
+                            managerId,
+                            note,
+                            (
+                                err,
+                                result
+                            ) => {
+
+                                if (err) {
+                                    return reject(
+                                        err
+                                    );
+                                }
+
+                                resolve(
+                                    result
+                                );
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    };
+
+const getCoachingNotes =
+    async (
+        employeeId,
+        managerId
+    ) => {
+
+        return new Promise(
+            (
+                resolve,
+                reject
+            ) => {
+
+                managerModel.validateManagedEmployee(
+                    employeeId,
+                    managerId,
+                    (
+                        err,
+                        employee
+                    ) => {
+
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        if (
+                            employee.length === 0
+                        ) {
+                            return reject(
+                                new Error(
+                                    "Unauthorized employee"
+                                )
+                            );
+                        }
+
+                        managerModel.getCoachingNotes(
+                            employeeId,
+                            (
+                                err,
+                                notes
+                            ) => {
+
+                                if (err) {
+                                    return reject(
+                                        err
+                                    );
+                                }
+
+                                resolve(
+                                    notes
+                                );
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    };
+
 module.exports = {
     getManagerTeam,
     getTeamMemberById,
     getTeamOverview,
-    getTeamActivity
+    getTeamActivity,
+    createCoachingNote,
+    getCoachingNotes
 };

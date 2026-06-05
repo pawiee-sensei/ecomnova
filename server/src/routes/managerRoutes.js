@@ -8,8 +8,22 @@ const {
     getMyTeam,
     getTeamMember,
     getTeamOverview,
-    getTeamActivity
+    getTeamActivity,
+    createCoachingNote,
+    getCoachingNotes
 } = require("../controllers/managerController");
+
+router.post(
+    "/coaching-notes",
+    verifyToken,
+    createCoachingNote
+);
+
+router.get(
+    "/coaching-notes/:employeeId",
+    verifyToken,
+    getCoachingNotes
+);
 
 router.get(
     "/team-overview",

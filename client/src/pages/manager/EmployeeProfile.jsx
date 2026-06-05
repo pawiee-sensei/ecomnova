@@ -13,6 +13,12 @@ const EmployeeProfile = () => {
     const [loading, setLoading] =
         useState(true);
 
+    const [notes, setNotes] =
+        useState([]);
+
+    const [newNote, setNewNote] =
+        useState("");
+
     const fetchEmployee =
         async () => {
 
@@ -40,9 +46,70 @@ const EmployeeProfile = () => {
             }
         };
 
+    const fetchCoachingNotes =
+    async () => {
+
+        try {
+
+            const response =
+                await api.get(
+                    `/manager/coaching-notes/${id}`
+                );
+
+            setNotes(
+                response.data
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Failed to load coaching notes:",
+                error
+            );
+        }
+    };
+
+    const createNote =
+    async () => {
+
+        if (
+            !newNote.trim()
+        ) {
+            return;
+        }
+
+        try {
+
+            await api.post(
+                "/manager/coaching-notes",
+                {
+                    employeeId: id,
+                    note: newNote
+                }
+            );
+
+            setNewNote("");
+
+            fetchCoachingNotes();
+
+        } catch (error) {
+
+            console.error(
+                "Failed to create note:",
+                error
+            );
+        }
+    };
+
+
+
     useEffect(() => {
         fetchEmployee();
+        fetchCoachingNotes();
     }, [id]);
+    
+
+    
 
     if (loading) {
         return (
@@ -180,6 +247,85 @@ const EmployeeProfile = () => {
                 </div>
 
             </div>
+
+            <div className="mt-8 rounded-xl border bg-white p-6">
+
+    <h2 className="text-xl font-semibold">
+        Coaching Notes
+    </h2>
+
+    <div className="mt-4">
+
+        <textarea
+            rows="4"
+            value={newNote}
+            onChange={(e) =>
+                setNewNote(
+                    e.target.value
+                )
+            }
+            placeholder="Write a coaching note..."
+            className="w-full rounded-lg border p-3"
+        />
+
+        <button
+            onClick={createNote}
+            className="mt-3 rounded-lg bg-slate-950 px-4 py-2 text-white"
+        >
+            Add Note
+        </button>
+
+    </div>
+
+    <div className="mt-8 space-y-4">
+
+        {notes.length === 0 ? (
+
+            <p className="text-sm text-slate-500">
+                No coaching notes yet.
+            </p>
+
+        ) : (
+
+            notes.map(
+                (note) => (
+
+                    <div
+                        key={note.id}
+                        className="rounded-lg border border-slate-200 p-4"
+                    >
+
+                        <div className="flex items-center justify-between">
+
+                            <div>
+
+                                <p className="font-medium">
+                                    {note.manager_name}
+                                </p>
+
+                                <p className="text-sm text-slate-500">
+                                    {new Date(
+                                        note.created_at
+                                    ).toLocaleDateString()}
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <p className="mt-3 text-slate-700">
+                            {note.note}
+                        </p>
+
+                    </div>
+                )
+            )
+
+        )}
+
+    </div>
+
+</div>
 
         </DashboardLayout>
     );

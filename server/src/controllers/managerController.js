@@ -133,9 +133,67 @@ const getMyTeam =
         }
     };
 
+    const createCoachingNote =
+    async (req, res) => {
+
+        try {
+
+            const {
+                employeeId,
+                note
+            } = req.body;
+
+            await managerService.createCoachingNote(
+                employeeId,
+                req.user.id,
+                note
+            );
+
+            res.status(201).json({
+                message:
+                    "Coaching note created"
+            });
+
+        } catch (error) {
+
+            console.error(error);
+
+            res.status(500).json({
+                message:
+                    error.message
+            });
+        }
+    };
+
+const getCoachingNotes =
+    async (req, res) => {
+
+        try {
+
+            const notes =
+                await managerService.getCoachingNotes(
+                    req.params.employeeId,
+                    req.user.id
+                );
+
+            res.json(notes);
+
+        } catch (error) {
+
+            console.error(error);
+
+            res.status(500).json({
+                message:
+                    error.message
+            });
+        }
+    };
+
 module.exports = {
     getMyTeam,
     getTeamMember,
     getTeamOverview,
-    getTeamActivity
+    getTeamActivity,
+    createCoachingNote,
+    getCoachingNotes
 };
