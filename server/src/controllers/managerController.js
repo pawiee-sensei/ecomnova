@@ -250,6 +250,69 @@ const getAnnouncements =
         }
     };
 
+    const archiveAnnouncement =
+    async (req, res) => {
+
+        try {
+
+            await managerService.archiveAnnouncement(
+                req.params.id,
+                req.user.id
+            );
+
+            res.json({
+                message:
+                    "Announcement archived"
+            });
+
+        } catch (error) {
+
+            console.error(error);
+
+            res.status(500).json({
+                message:
+                    "Failed to archive announcement"
+            });
+        }
+    };
+
+    const updateAnnouncement =
+    async (req, res) => {
+
+        try {
+
+            const {
+                title,
+                content,
+                status,
+                effectiveDate
+            } = req.body;
+
+            await managerService.updateAnnouncement(
+                req.params.id,
+                req.user.id,
+                title,
+                content,
+                status,
+                effectiveDate
+            );
+
+            res.json({
+                message:
+                    "Announcement updated"
+            });
+
+        } catch (error) {
+
+            console.error(error);
+
+            res.status(500).json({
+                message:
+                    "Failed to update announcement"
+            });
+        }
+    };
+
 module.exports = {
     getMyTeam,
     getTeamMember,
@@ -258,5 +321,7 @@ module.exports = {
     createCoachingNote,
     getCoachingNotes,
     createAnnouncement,
-    getAnnouncements
+    getAnnouncements,
+    archiveAnnouncement,
+    updateAnnouncement
 };

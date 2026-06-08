@@ -12,7 +12,9 @@ const {
     createCoachingNote,
     getCoachingNotes,
     createAnnouncement,
-    getAnnouncements
+    getAnnouncements,
+    archiveAnnouncement,
+    updateAnnouncement
 } = require("../controllers/managerController");
 
 router.post(
@@ -25,6 +27,18 @@ router.get(
     "/announcements",
     verifyToken,
     getAnnouncements
+);
+
+router.put(
+    "/announcements/:id/archive",
+    verifyToken,
+    archiveAnnouncement
+);
+
+router.put(
+    "/announcements/:id",
+    verifyToken,
+    updateAnnouncement
 );
 
 router.post(

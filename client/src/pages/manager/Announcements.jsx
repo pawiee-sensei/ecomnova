@@ -21,6 +21,9 @@ const Announcements = () => {
     const [effectiveDate, setEffectiveDate] =
         useState("");
 
+    const [editingId, setEditingId] =
+    useState(null);
+
     const upcoming =
     announcements.filter(
         (a) =>
@@ -38,6 +41,64 @@ const implemented =
         (a) =>
             a.status === "implemented"
     );
+
+const archived =
+    announcements.filter(
+        (a) =>
+            a.status === "archived"
+    );
+
+    const updateAnnouncement =
+    async () => {
+
+        try {
+
+            await api.put(
+                `/manager/announcements/${editingId}`,
+                {
+                    title,
+                    content,
+                    status,
+                    effectiveDate
+                }
+            );
+
+            setEditingId(null);
+
+            setTitle("");
+            setContent("");
+            setStatus("upcoming");
+            setEffectiveDate("");
+
+            fetchAnnouncements();
+
+        } catch (error) {
+
+            console.error(error);
+        }
+    };
+
+    const archiveAnnouncement =
+    async (
+        announcementId
+    ) => {
+
+        try {
+
+            await api.put(
+                `/manager/announcements/${announcementId}/archive`
+            );
+
+            fetchAnnouncements();
+
+        } catch (error) {
+
+            console.error(
+                "Failed to archive announcement:",
+                error
+            );
+        }
+    };
 
     const fetchAnnouncements =
     async () => {
@@ -160,6 +221,65 @@ const AnnouncementSection = ({
                                 }
                             </p>
 
+                            {announcement.status !== "archived" && (
+
+    <div className="mt-3 flex gap-2">
+
+        <button
+            onClick={() => {
+
+                setEditingId(
+                    announcement.id
+                );
+
+                setTitle(
+                    announcement.title
+                );
+
+                setContent(
+                    announcement.content
+                );
+
+                setStatus(
+                    announcement.status
+                );
+
+                setEffectiveDate(
+                    announcement.effective_date
+                );
+
+            }}
+            className="rounded-lg border px-3 py-1 text-sm hover:bg-slate-50"
+        >
+            Edit
+        </button>
+
+        <button
+            onClick={() => {
+
+                const confirmed =
+                    window.confirm(
+                        "Archive this announcement?"
+                    );
+
+                if (confirmed) {
+
+                    archiveAnnouncement(
+                        announcement.id
+                    );
+                }
+
+            }}
+            className="rounded-lg border border-red-200 px-3 py-1 text-sm text-red-600 hover:bg-red-50"
+        >
+            Archive
+        </button>
+
+    </div>
+
+)}
+                            
+
                         </div>
                     )
                 )}
@@ -253,11 +373,18 @@ const AnnouncementSection = ({
 
         </div>
 
-        <button
-            onClick={createAnnouncement}
-            className="rounded-lg bg-slate-950 px-4 py-2 text-white"
-        >
-            Create Announcement
+<button
+    onClick={
+        editingId
+            ? updateAnnouncement
+            : createAnnouncement
+    }
+>
+            {
+    editingId
+        ? "Update Announcement"
+        : "Create Announcement"
+}
         </button>
 
     </div>
@@ -279,6 +406,11 @@ const AnnouncementSection = ({
     <AnnouncementSection
         title="Implemented"
         announcements={implemented}
+    />
+
+    <AnnouncementSection
+        title="Archived"
+        announcements={archived}
     />
 
 </div>

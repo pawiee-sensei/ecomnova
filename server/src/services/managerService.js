@@ -282,6 +282,76 @@ const getAnnouncements =
         );
     };
 
+    const archiveAnnouncement =
+    async (
+        announcementId,
+        managerId
+    ) => {
+
+        return new Promise(
+            (
+                resolve,
+                reject
+            ) => {
+
+                managerModel.archiveAnnouncement(
+                    announcementId,
+                    managerId,
+                    (
+                        err,
+                        result
+                    ) => {
+
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        resolve(result);
+                    }
+                );
+            }
+        );
+    };
+
+    const updateAnnouncement =
+    async (
+        announcementId,
+        managerId,
+        title,
+        content,
+        status,
+        effectiveDate
+    ) => {
+
+        return new Promise(
+            (
+                resolve,
+                reject
+            ) => {
+
+                managerModel.updateAnnouncement(
+                    announcementId,
+                    managerId,
+                    title,
+                    content,
+                    status,
+                    effectiveDate,
+                    (
+                        err,
+                        result
+                    ) => {
+
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        resolve(result);
+                    }
+                );
+            }
+        );
+    };
+
 module.exports = {
     getManagerTeam,
     getTeamMemberById,
@@ -290,5 +360,7 @@ module.exports = {
     createCoachingNote,
     getCoachingNotes,
     createAnnouncement,
-    getAnnouncements
+    getAnnouncements,
+    archiveAnnouncement,
+    updateAnnouncement
 };

@@ -283,6 +283,64 @@ const getAnnouncements = (
     );
 };
 
+const archiveAnnouncement = (
+    announcementId,
+    managerId,
+    callback
+) => {
+
+    const sql = `
+        UPDATE announcements
+        SET status = 'archived'
+        WHERE id = ?
+        AND manager_id = ?
+    `;
+
+    db.query(
+        sql,
+        [
+            announcementId,
+            managerId
+        ],
+        callback
+    );
+};
+
+const updateAnnouncement = (
+    announcementId,
+    managerId,
+    title,
+    content,
+    status,
+    effectiveDate,
+    callback
+) => {
+
+    const sql = `
+        UPDATE announcements
+        SET
+            title = ?,
+            content = ?,
+            status = ?,
+            effective_date = ?
+        WHERE id = ?
+        AND manager_id = ?
+    `;
+
+    db.query(
+        sql,
+        [
+            title,
+            content,
+            status,
+            effectiveDate,
+            announcementId,
+            managerId
+        ],
+        callback
+    );
+};
+
 
 
 
@@ -295,5 +353,7 @@ module.exports = {
     getCoachingNotes,
     validateManagedEmployee,
     createAnnouncement,
-    getAnnouncements
+    getAnnouncements,
+    archiveAnnouncement,
+    updateAnnouncement
 };
