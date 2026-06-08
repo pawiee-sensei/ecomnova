@@ -140,12 +140,14 @@ const getMyTeam =
 
             const {
                 employeeId,
+                category,
                 note
             } = req.body;
 
             await managerService.createCoachingNote(
                 employeeId,
                 req.user.id,
+                category,
                 note
             );
 

@@ -148,6 +148,7 @@ const getTeamActivity = (
 const createCoachingNote = (
     employeeId,
     managerId,
+    category,
     note,
     callback
 ) => {
@@ -156,9 +157,10 @@ const createCoachingNote = (
         INSERT INTO coaching_notes (
             employee_id,
             manager_id,
+            category,
             note
         )
-        VALUES (?, ?, ?)
+        VALUES (?, ?, ?, ?)
     `;
 
     db.query(
@@ -166,6 +168,7 @@ const createCoachingNote = (
         [
             employeeId,
             managerId,
+            category,
             note
         ],
         callback
@@ -180,6 +183,7 @@ const getCoachingNotes = (
     const sql = `
         SELECT
             coaching_notes.id,
+            coaching_notes.category,
             coaching_notes.note,
             coaching_notes.created_at,
 

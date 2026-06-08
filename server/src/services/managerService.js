@@ -103,6 +103,7 @@ const getTeamActivity =
     async (
         employeeId,
         managerId,
+        category,
         note
     ) => {
 
@@ -137,6 +138,7 @@ const getTeamActivity =
                         managerModel.createCoachingNote(
                             employeeId,
                             managerId,
+                            category,
                             note,
                             (
                                 err,
