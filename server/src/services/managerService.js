@@ -354,6 +354,93 @@ const getAnnouncements =
         );
     };
 
+    const createAttendanceRecord =
+    async (
+        employeeId,
+        attendanceDate,
+        status
+    ) => {
+
+        return new Promise(
+            (
+                resolve,
+                reject
+            ) => {
+
+                managerModel.createAttendanceRecord(
+                    employeeId,
+                    attendanceDate,
+                    status,
+                    (
+                        err,
+                        result
+                    ) => {
+
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        resolve(result);
+                    }
+                );
+            }
+        );
+    };
+
+    const getTeamAttendance =
+    async (managerId) => {
+
+        return new Promise(
+            (
+                resolve,
+                reject
+            ) => {
+
+                managerModel.getTeamAttendance(
+                    managerId,
+                    (
+                        err,
+                        results
+                    ) => {
+
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        resolve(results);
+                    }
+                );
+            }
+        );
+    };
+
+    const getAttendanceSummary =
+    async (managerId) => {
+
+        return new Promise(
+            (
+                resolve,
+                reject
+            ) => {
+
+                managerModel.getAttendanceSummary(
+                    managerId,
+                    (
+                        err,
+                        results
+                    ) => {
+
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        resolve(results[0]);
+                    }
+                );
+            }
+        );
+    };
+
 module.exports = {
     getManagerTeam,
     getTeamMemberById,
@@ -364,5 +451,8 @@ module.exports = {
     createAnnouncement,
     getAnnouncements,
     archiveAnnouncement,
-    updateAnnouncement
+    updateAnnouncement,
+    createAttendanceRecord,
+    getTeamAttendance,
+    getAttendanceSummary
 };

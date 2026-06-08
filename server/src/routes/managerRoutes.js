@@ -14,13 +14,34 @@ const {
     createAnnouncement,
     getAnnouncements,
     archiveAnnouncement,
-    updateAnnouncement
+    updateAnnouncement,
+    createAttendanceRecord,
+    getTeamAttendance,
+    getAttendanceSummary
 } = require("../controllers/managerController");
 
 router.post(
-    "/announcements",
+    "/attendance-records",
     verifyToken,
-    createAnnouncement
+    createAttendanceRecord
+);
+
+router.post(
+    "/attendance",
+    verifyToken,
+    createAttendanceRecord
+);
+
+router.get(
+    "/attendance",
+    verifyToken,
+    getTeamAttendance
+);
+
+router.get(
+    "/attendance-summary",
+    verifyToken,
+    getAttendanceSummary
 );
 
 router.get(
@@ -76,5 +97,7 @@ router.get(
     verifyToken,
     getTeamMember
 );
+
+
 
 module.exports = router;

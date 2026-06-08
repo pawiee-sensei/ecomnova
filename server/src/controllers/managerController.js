@@ -315,6 +315,89 @@ const getAnnouncements =
         }
     };
 
+    const createAttendanceRecord =
+    async (req, res) => {
+
+        try {
+
+            const {
+                employeeId,
+                attendanceDate,
+                status
+            } = req.body;
+
+            await managerService.createAttendanceRecord(
+                employeeId,
+                attendanceDate,
+                status
+            );
+
+            res.status(201).json({
+                message:
+                    "Attendance record created"
+            });
+
+        } catch (error) {
+
+            console.error(error);
+
+            res.status(500).json({
+                message:
+                    "Failed to create attendance record"
+            });
+        }
+    };
+
+    const getTeamAttendance =
+    async (req, res) => {
+
+        try {
+
+            const attendance =
+                await managerService.getTeamAttendance(
+                    req.user.id
+                );
+
+            res.json(
+                attendance
+            );
+
+        } catch (error) {
+
+            console.error(error);
+
+            res.status(500).json({
+                message:
+                    "Failed to load attendance"
+            });
+        }
+    };
+
+    const getAttendanceSummary =
+    async (req, res) => {
+
+        try {
+
+            const summary =
+                await managerService.getAttendanceSummary(
+                    req.user.id
+                );
+
+            res.json(
+                summary
+            );
+
+        } catch (error) {
+
+            console.error(error);
+
+            res.status(500).json({
+                message:
+                    "Failed to load attendance summary"
+            });
+        }
+    };
+
 module.exports = {
     getMyTeam,
     getTeamMember,
@@ -325,5 +408,8 @@ module.exports = {
     createAnnouncement,
     getAnnouncements,
     archiveAnnouncement,
-    updateAnnouncement
+    updateAnnouncement,
+    createAttendanceRecord,
+    getTeamAttendance,
+    getAttendanceSummary
 };

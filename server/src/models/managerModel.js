@@ -345,6 +345,103 @@ const updateAnnouncement = (
     );
 };
 
+const createAttendanceRecord = (
+    employeeId,
+    attendanceDate,
+    status,
+    callback
+) => {
+
+    const sql = `
+        INSERT INTO attendance_records (
+            employee_id,
+            attendance_date,
+            status
+        )
+        VALUES (?, ?, ?)
+    `;
+
+    db.query(
+        sql,
+        [
+            employeeId,
+            attendanceDate,
+            status
+        ],
+        callback
+    );
+};
+
+const getTeamAttendance = (
+    managerId,
+    callback
+) => {
+
+    const sql = `
+        SELECT
+            attendance_records.id,
+            attendance_records.attendance_date,
+            attendance_records.status,
+
+            users.id AS employee_id,
+            users.fullname
+
+        FROM attendance_records
+
+        INNER JOIN users
+            ON attendance_records.employee_id = users.id
+
+        WHERE users.manager_id = ?
+
+        ORDER BY attendance_records.attendance_date DESC
+    `;
+
+    db.query(
+        sql,
+        [managerId],
+        callback
+    );
+};
+
+const getAttendanceSummary = (
+    managerId,
+    callback
+) => {
+    
+const sql = `
+    SELECT
+
+        SUM(
+            attendance_records.status = 'present'
+        ) AS presentCount,
+
+        SUM(
+            attendance_records.status = 'late'
+        ) AS lateCount,
+
+        SUM(
+            attendance_records.status = 'absent'
+        ) AS absentCount,
+
+        SUM(
+            attendance_records.status = 'leave'
+        ) AS leaveCount
+
+    FROM attendance_records
+
+    INNER JOIN users
+        ON attendance_records.employee_id = users.id
+
+    WHERE users.manager_id = ?
+`;
+
+    db.query(
+        sql,
+        [managerId],
+        callback
+    );
+};
+
 
 
 
@@ -359,5 +456,8 @@ module.exports = {
     createAnnouncement,
     getAnnouncements,
     archiveAnnouncement,
-    updateAnnouncement
+    updateAnnouncement,
+    createAttendanceRecord,
+    getTeamAttendance,
+    getAttendanceSummary
 };
