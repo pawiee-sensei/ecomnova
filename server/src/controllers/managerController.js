@@ -422,6 +422,32 @@ const getAnnouncements =
         }
     };
 
+    const getEmployeeAttendanceHistory =
+    async (req, res) => {
+
+        try {
+
+            const history =
+                await managerService.getEmployeeAttendanceHistory(
+                    req.params.employeeId,
+                    req.user.id
+                );
+
+            res.json(
+                history
+            );
+
+        } catch (error) {
+
+            console.error(error);
+
+            res.status(500).json({
+                message:
+                    "Failed to load attendance history"
+            });
+        }
+    };
+
 module.exports = {
     getMyTeam,
     getTeamMember,
@@ -436,5 +462,6 @@ module.exports = {
     createAttendanceRecord,
     getTeamAttendance,
     getAttendanceSummary,
-    getAttendanceAnalytics
+    getAttendanceAnalytics,
+    getEmployeeAttendanceHistory
 };

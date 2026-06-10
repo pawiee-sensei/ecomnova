@@ -18,6 +18,39 @@ const [statusFilter, setStatusFilter] =
 const [analytics, setAnalytics] =
     useState([]);
 
+const [selectedEmployee, setSelectedEmployee] =
+    useState(null);
+
+const [attendanceHistory, setAttendanceHistory] =
+    useState([]);
+
+    const fetchAttendanceHistory =
+    async (employeeId) => {
+
+        try {
+
+            const response =
+                await api.get(
+                    `/manager/attendance-history/${employeeId}`
+                );
+
+            setAttendanceHistory(
+                response.data
+            );
+
+            setSelectedEmployee(
+                employeeId
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Failed to load attendance history:",
+                error
+            );
+        }
+    };
+
     const fetchAttendance =
     async () => {
 
@@ -409,6 +442,10 @@ const filteredAttendance =
                     Breakdown
                 </th>
 
+                <th className="p-4 text-left">
+                    Actions
+                </th>
+
             </tr>
 
         </thead>
@@ -479,6 +516,21 @@ const filteredAttendance =
 
                         </td>
 
+                        <td className="p-4">
+
+    <button
+        onClick={() =>
+            fetchAttendanceHistory(
+                employee.employee_id
+            )
+        }
+        className="rounded-lg border px-3 py-1 text-sm hover:bg-slate-50"
+    >
+        View Details
+    </button>
+
+</td>
+
                     </tr>
                 )
             )}
@@ -488,6 +540,46 @@ const filteredAttendance =
     </table>
 
 </div>
+
+{selectedEmployee && (
+
+    <div className="mt-8 rounded-xl border bg-white p-6">
+
+        <h2 className="mb-4 text-xl font-semibold">
+            Attendance Details
+        </h2>
+
+        <div className="space-y-3">
+
+            {attendanceHistory.map(
+                (record) => (
+
+                    <div
+                        key={record.id}
+                        className="flex items-center justify-between border-b pb-2"
+                    >
+
+                        <span>
+                            {
+                                record.attendance_date
+                            }
+                        </span>
+
+                        <span className="capitalize">
+                            {
+                                record.status
+                            }
+                        </span>
+
+                    </div>
+                )
+            )}
+
+        </div>
+
+    </div>
+
+)}
 
         </DashboardLayout>
     );
