@@ -397,6 +397,30 @@ const getAnnouncements =
             });
         }
     };
+    const getAttendanceAnalytics =
+    async (req, res) => {
+
+        try {
+
+            const analytics =
+                await managerService.getAttendanceAnalytics(
+                    req.user.id
+                );
+
+            res.json(
+                analytics
+            );
+
+        } catch (error) {
+
+            console.error(error);
+
+            res.status(500).json({
+                message:
+                    "Failed to load attendance analytics"
+            });
+        }
+    };
 
 module.exports = {
     getMyTeam,
@@ -411,5 +435,6 @@ module.exports = {
     updateAnnouncement,
     createAttendanceRecord,
     getTeamAttendance,
-    getAttendanceSummary
+    getAttendanceSummary,
+    getAttendanceAnalytics
 };

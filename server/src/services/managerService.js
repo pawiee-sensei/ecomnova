@@ -441,6 +441,33 @@ const getAnnouncements =
         );
     };
 
+    const getAttendanceAnalytics =
+    async (managerId) => {
+
+        return new Promise(
+            (
+                resolve,
+                reject
+            ) => {
+
+                managerModel.getAttendanceAnalytics(
+                    managerId,
+                    (
+                        err,
+                        results
+                    ) => {
+
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        resolve(results);
+                    }
+                );
+            }
+        );
+    };
+
 module.exports = {
     getManagerTeam,
     getTeamMemberById,
@@ -454,5 +481,6 @@ module.exports = {
     updateAnnouncement,
     createAttendanceRecord,
     getTeamAttendance,
-    getAttendanceSummary
+    getAttendanceSummary,
+    getAttendanceAnalytics
 };

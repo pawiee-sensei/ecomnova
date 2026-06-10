@@ -15,6 +15,9 @@ const [searchTerm, setSearchTerm] =
 const [statusFilter, setStatusFilter] =
     useState("");
 
+const [analytics, setAnalytics] =
+    useState([]);
+
     const fetchAttendance =
     async () => {
 
@@ -33,6 +36,29 @@ const [statusFilter, setStatusFilter] =
 
             console.error(
                 "Failed to load attendance:",
+                error
+            );
+        }
+    };
+
+    const fetchAnalytics =
+    async () => {
+
+        try {
+
+            const response =
+                await api.get(
+                    "/manager/attendance-analytics"
+                );
+
+            setAnalytics(
+                response.data
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Failed to load analytics:",
                 error
             );
         }
@@ -65,6 +91,7 @@ const [statusFilter, setStatusFilter] =
 
     fetchAttendance();
     fetchSummary();
+    fetchAnalytics();
 
 }, []);
 
@@ -88,6 +115,96 @@ const filteredAttendance =
                 matchesSearch &&
                 matchesStatus
             );
+        }
+    );
+
+    const analyticsData =
+    analytics.map(
+        (employee) => {
+
+            const present =
+                Number(
+                    employee.presentCount
+                );
+
+            const late =
+                Number(
+                    employee.lateCount
+                );
+
+            const absent =
+                Number(
+                    employee.absentCount
+                );
+
+            const leave =
+                Number(
+                    employee.leaveCount
+                );
+
+            const total =
+                present +
+                late +
+                absent +
+                leave;
+
+            const attendanceRate =
+                total === 0
+                    ? 0
+                    : Math.round(
+                          (
+                              present /
+                              total
+                          ) * 100
+                      );
+
+            const score =
+                total === 0
+                    ? 0
+                    : Math.round(
+                          (
+                              (
+                                  present *
+                                      100 +
+                                  late *
+                                      50
+                              ) /
+                              (total * 100)
+                          ) *
+                              100
+                      );
+
+            let risk =
+                "Excellent";
+
+            if (
+                score < 75
+            ) {
+
+                risk =
+                    "Critical";
+
+            } else if (
+                score < 85
+            ) {
+
+                risk =
+                    "Warning";
+
+            } else if (
+                score < 95
+            ) {
+
+                risk =
+                    "Good";
+            }
+
+            return {
+                ...employee,
+                attendanceRate,
+                score,
+                risk
+            };
         }
     );
 
@@ -151,6 +268,7 @@ const filteredAttendance =
     </div>
 
 </div>
+
 
 <div className="mb-6 flex flex-wrap gap-4">
 
@@ -243,6 +361,122 @@ const filteredAttendance =
 
                         <td className="p-4 capitalize">
                             {record.status}
+                        </td>
+
+                    </tr>
+                )
+            )}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<div className="mb-8 rounded-xl border bg-white overflow-hidden">
+
+    <div className="border-b p-4">
+
+        <h2 className="text-xl font-semibold">
+            Attendance Analytics
+        </h2>
+
+    </div>
+
+    <table className="w-full">
+
+        <thead className="bg-slate-100">
+
+            <tr>
+
+                <th className="p-4 text-left">
+                    Employee
+                </th>
+
+                <th className="p-4 text-left">
+                    Rate
+                </th>
+
+                <th className="p-4 text-left">
+                    Score
+                </th>
+
+                <th className="p-4 text-left">
+                    Risk
+                </th>
+
+                <th className="p-4 text-left">
+                    Breakdown
+                </th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {analyticsData.map(
+                (employee) => (
+
+                    <tr
+                        key={
+                            employee.employee_id
+                        }
+                        className="border-t"
+                    >
+
+                        <td className="p-4">
+                            {
+                                employee.fullname
+                            }
+                        </td>
+
+                        <td className="p-4">
+                            {
+                                employee.attendanceRate
+                            }%
+                        </td>
+
+                        <td className="p-4">
+                            {
+                                employee.score
+                            }
+                        </td>
+
+                        <td className="p-4">
+                            {
+                                employee.risk
+                            }
+                        </td>
+
+                        <td className="p-4 text-sm">
+
+                            P:
+                            {
+                                employee.presentCount
+                            }
+
+                            {" | "}
+
+                            L:
+                            {
+                                employee.lateCount
+                            }
+
+                            {" | "}
+
+                            A:
+                            {
+                                employee.absentCount
+                            }
+
+                            {" | "}
+
+                            LV:
+                            {
+                                employee.leaveCount
+                            }
+
                         </td>
 
                     </tr>

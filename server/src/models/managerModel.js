@@ -442,6 +442,65 @@ const sql = `
     );
 };
 
+const getAttendanceAnalytics = (
+    managerId,
+    callback
+) => {
+
+    const sql = `
+        SELECT
+            users.id AS employee_id,
+            users.fullname,
+
+            COALESCE(
+    SUM(
+        attendance_records.status = 'present'
+    ),
+    0
+) AS presentCount,
+
+COALESCE(
+    SUM(
+        attendance_records.status = 'late'
+    ),
+    0
+) AS lateCount,
+
+COALESCE(
+    SUM(
+        attendance_records.status = 'absent'
+    ),
+    0
+) AS absentCount,
+
+COALESCE(
+    SUM(
+        attendance_records.status = 'leave'
+    ),
+    0
+) AS leaveCount
+
+        FROM users
+
+        LEFT JOIN attendance_records
+            ON attendance_records.employee_id = users.id
+
+        WHERE users.manager_id = ?
+
+        GROUP BY
+            users.id,
+            users.fullname
+
+        ORDER BY users.fullname
+    `;
+
+    db.query(
+        sql,
+        [managerId],
+        callback
+    );
+};
+
 
 
 
@@ -459,5 +518,6 @@ module.exports = {
     updateAnnouncement,
     createAttendanceRecord,
     getTeamAttendance,
-    getAttendanceSummary
+    getAttendanceSummary,
+    getAttendanceAnalytics
 };

@@ -17,8 +17,15 @@ const {
     updateAnnouncement,
     createAttendanceRecord,
     getTeamAttendance,
-    getAttendanceSummary
+    getAttendanceSummary,
+    getAttendanceAnalytics
 } = require("../controllers/managerController");
+
+router.get(
+    "/attendance-analytics",
+    verifyToken,
+    getAttendanceAnalytics
+);
 
 router.post(
     "/attendance-records",
