@@ -9,6 +9,12 @@ const [attendance, setAttendance] =
 const [summary, setSummary] =
     useState(null);
 
+const [searchTerm, setSearchTerm] =
+    useState("");
+
+const [statusFilter, setStatusFilter] =
+    useState("");
+
     const fetchAttendance =
     async () => {
 
@@ -62,6 +68,28 @@ const [summary, setSummary] =
 
 }, []);
 
+const filteredAttendance =
+    attendance.filter(
+        (record) => {
+
+            const matchesSearch =
+                record.fullname
+                    .toLowerCase()
+                    .includes(
+                        searchTerm.toLowerCase()
+                    );
+
+            const matchesStatus =
+                !statusFilter ||
+                record.status ===
+                    statusFilter;
+
+            return (
+                matchesSearch &&
+                matchesStatus
+            );
+        }
+    );
 
 
 
@@ -124,6 +152,53 @@ const [summary, setSummary] =
 
 </div>
 
+<div className="mb-6 flex flex-wrap gap-4">
+
+    <input
+        type="text"
+        placeholder="Search employee..."
+        value={searchTerm}
+        onChange={(e) =>
+            setSearchTerm(
+                e.target.value
+            )
+        }
+        className="rounded-lg border p-3"
+    />
+
+    <select
+        value={statusFilter}
+        onChange={(e) =>
+            setStatusFilter(
+                e.target.value
+            )
+        }
+        className="rounded-lg border p-3"
+    >
+        <option value="">
+            All Statuses
+        </option>
+
+        <option value="present">
+            Present
+        </option>
+
+        <option value="late">
+            Late
+        </option>
+
+        <option value="absent">
+            Absent
+        </option>
+
+        <option value="leave">
+            Leave
+        </option>
+
+    </select>
+
+</div>
+
 <div className="rounded-xl border bg-white overflow-hidden">
 
     <table className="w-full">
@@ -150,7 +225,7 @@ const [summary, setSummary] =
 
         <tbody>
 
-            {attendance.map(
+            {filteredAttendance.map(
                 (record) => (
 
                     <tr
