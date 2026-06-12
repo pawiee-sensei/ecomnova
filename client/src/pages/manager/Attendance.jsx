@@ -185,27 +185,27 @@ const filteredAttendance =
                 total === 0
                     ? 0
                     : Math.round(
-                          (
-                              present /
-                              total
+                        (
+                            present /
+                            total
                           ) * 100
-                      );
+                    );
 
             const score =
                 total === 0
                     ? 0
                     : Math.round(
-                          (
-                              (
+                        (
+                            (
                                   present *
-                                      100 +
+                                    100 +
                                   late *
-                                      50
-                              ) /
+                                    50
+                            ) /
                               (total * 100)
                           ) *
-                              100
-                      );
+                            100
+                    );
 
             let risk =
                 "Excellent";
@@ -240,6 +240,24 @@ const filteredAttendance =
             };
         }
     );
+
+    const attendanceLeaders =
+    [...analyticsData]
+        .sort(
+            (a, b) =>
+                b.attendanceRate -
+                a.attendanceRate
+        )
+        .slice(0, 3);
+
+    const attendanceConcerns =
+    [...analyticsData]
+        .sort(
+            (a, b) =>
+                a.attendanceRate -
+                b.attendanceRate
+        )
+        .slice(0, 3);
 
 
 
@@ -298,6 +316,117 @@ const filteredAttendance =
         <h2 className="mt-2 text-3xl font-bold">
             {summary?.leaveCount || 0}
         </h2>
+    </div>
+
+</div>
+
+<div className="mb-8 grid gap-6 md:grid-cols-2">
+
+    <div className="rounded-xl border bg-white p-6">
+
+        <h2 className="mb-4 text-xl font-semibold">
+            Attendance Leaders
+        </h2>
+
+        <div className="space-y-3">
+
+            {attendanceLeaders.map(
+                (
+                    employee,
+                    index
+                ) => (
+
+                    <div
+                        key={
+                            employee.employee_id
+                        }
+                        className="flex items-center justify-between"
+                    >
+
+                        <div>
+
+                            <span className="mr-2">
+
+                                {
+                                    [
+                                        "🥇",
+                                        "🥈",
+                                        "🥉"
+                                    ][index]
+                                }
+
+                            </span>
+
+                            {
+                                employee.fullname
+                            }
+
+                        </div>
+
+                        <span className="font-medium">
+
+                            {
+                                employee.attendanceRate
+                            }%
+
+                        </span>
+
+                    </div>
+                )
+            )}
+
+        </div>
+
+    </div>
+
+        <div className="rounded-xl border bg-white p-6">
+
+        <h2 className="mb-4 text-xl font-semibold">
+            Attendance Concerns
+        </h2>
+
+        <div className="space-y-3">
+
+            {attendanceConcerns.map(
+                (
+                    employee
+                ) => (
+
+                    <div
+                        key={
+                            employee.employee_id
+                        }
+                        className="flex items-center justify-between"
+                    >
+
+                        <div>
+
+                            ⚠
+
+                            <span className="ml-2">
+
+                                {
+                                    employee.fullname
+                                }
+
+                            </span>
+
+                        </div>
+
+                        <span className="font-medium">
+
+                            {
+                                employee.attendanceRate
+                            }%
+
+                        </span>
+
+                    </div>
+                )
+            )}
+
+        </div>
+
     </div>
 
 </div>
