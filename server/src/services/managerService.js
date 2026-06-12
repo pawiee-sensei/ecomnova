@@ -499,6 +499,33 @@ const getAnnouncements =
         );
     };
 
+    const getAttendanceAlerts =
+    async (managerId) => {
+
+        return new Promise(
+            (
+                resolve,
+                reject
+            ) => {
+
+                managerModel.getAttendanceAlerts(
+                    managerId,
+                    (
+                        err,
+                        results
+                    ) => {
+
+                        if (err) {
+                            return reject(err);
+                        }
+
+                        resolve(results);
+                    }
+                );
+            }
+        );
+    };
+
 module.exports = {
     getManagerTeam,
     getTeamMemberById,
@@ -514,5 +541,6 @@ module.exports = {
     getTeamAttendance,
     getAttendanceSummary,
     getAttendanceAnalytics,
-    getEmployeeAttendanceHistory
+    getEmployeeAttendanceHistory,
+    getAttendanceAlerts
 };

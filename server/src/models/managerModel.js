@@ -538,6 +538,38 @@ const getEmployeeAttendanceHistory = (
     );
 };
 
+const getAttendanceAlerts = (
+    managerId,
+    callback
+) => {
+
+    const sql = `
+        SELECT
+            users.id,
+            users.fullname,
+            attendance_records.status,
+            attendance_records.attendance_date
+
+        FROM users
+
+        INNER JOIN attendance_records
+            ON users.id =
+               attendance_records.employee_id
+
+        WHERE users.manager_id = ?
+
+        ORDER BY
+            users.id,
+            attendance_records.attendance_date DESC
+    `;
+
+    db.query(
+        sql,
+        [managerId],
+        callback
+    );
+};
+
 
 
 
@@ -557,5 +589,6 @@ module.exports = {
     getTeamAttendance,
     getAttendanceSummary,
     getAttendanceAnalytics,
-    getEmployeeAttendanceHistory
+    getEmployeeAttendanceHistory,
+    getAttendanceAlerts
 };

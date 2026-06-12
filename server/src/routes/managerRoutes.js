@@ -19,8 +19,15 @@ const {
     getTeamAttendance,
     getAttendanceSummary,
     getAttendanceAnalytics,
-    getEmployeeAttendanceHistory
+    getEmployeeAttendanceHistory,
+    getAttendanceAlerts
 } = require("../controllers/managerController");
+
+router.get(
+    "/attendance-alerts",
+    verifyToken,
+    getAttendanceAlerts
+);
 
 router.get(
     "/attendance-history/:employeeId",

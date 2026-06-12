@@ -448,6 +448,230 @@ const getAnnouncements =
         }
     };
 
+    const getAttendanceAlerts =
+    async (req, res) => {
+
+        try {
+
+            const records =
+                await managerService.getAttendanceAlerts(
+                    req.user.id
+                );
+
+            const employeeMap =
+                {};
+
+            records.forEach(
+                (
+                    record
+                ) => {
+
+                    if (
+                        !employeeMap[
+                            record.id
+                        ]
+                    ) {
+
+                        employeeMap[
+                            record.id
+                        ] = {
+                            fullname:
+                                record.fullname,
+                            records: []
+                        };
+                    }
+
+                    employeeMap[
+                        record.id
+                    ].records.push(
+                        record.status
+                    );
+                }
+            );
+
+            const alerts =
+                [];
+
+            Object.values(
+                employeeMap
+            ).forEach(
+                (
+                    employee
+                ) => {
+
+                    const recent =
+                        employee.records.slice(
+                            0,
+                            3
+                        );
+                    
+                    const presentCount =
+                        employee.records.filter(
+                            (
+                                status
+                            ) =>
+                                status ===
+                                "present"
+                        ).length;
+
+                    const lateCount =
+                        employee.records.filter(
+                            (
+                                status
+                            ) =>
+                                status ===
+                                "late"
+                        ).length;
+
+                    const absentCount =
+                        employee.records.filter(
+                            (
+                                status
+                            ) =>
+                                status ===
+                                "absent"
+                        ).length;
+
+                    const leaveCount =
+                        employee.records.filter(
+                            (
+                                status
+                            ) =>
+                                status ===
+                                "leave"
+                        ).length;
+
+                    const totalRecords =
+                        presentCount +
+                        lateCount +
+                        absentCount +
+                        leaveCount;
+
+                    const attendanceRate =
+                        totalRecords === 0
+                            ? 0
+                            : Math.round(
+                                (
+                                    presentCount /
+                                    totalRecords
+                                ) *
+                                    100
+                            );
+
+                        const allAbsent =
+                            recent.length === 3 &&
+                            recent.every(
+                                (status) =>
+                                    status === "absent"
+                            );
+
+                        const allLate =
+                            recent.length === 3 &&
+                            recent.every(
+                                (status) =>
+                                    status === "late"
+                            );
+
+                    if (
+                        allAbsent
+                    ) {
+
+                        alerts.push({
+                            type:
+                                "absence",
+                            employee:
+                                employee.fullname,
+                            message:
+                                "3 consecutive absences"
+                        });
+                    }
+
+                    if (
+                        allLate
+                    ) {
+
+                        alerts.push({
+                            type:
+                                "late",
+                            employee:
+                                employee.fullname,
+                            message:
+                                "3 consecutive late records"
+                        });
+                    }
+
+                    if (
+                        totalRecords >= 5 &&
+                        attendanceRate < 75
+                    ) {
+
+                        alerts.push({
+                            type:
+                                "attendance-risk",
+
+                            employee:
+                                employee.fullname,
+
+                            message:
+                                `Attendance Rate below 75% (${attendanceRate}%)`
+                        });
+                    }
+
+                    const recentFive =
+                        employee.records.slice(
+                            0,
+                            5
+                        );
+
+                    const perfectAttendance =
+                        recentFive.length === 5 &&
+                        recentFive.every(
+                            (
+                                status
+                            ) =>
+                                status ===
+                                "present"
+                        );
+
+                    if (
+                        perfectAttendance
+                    ) {
+
+                        alerts.push({
+                            type:
+                                "recognition",
+
+                            employee:
+                                employee.fullname,
+
+                            message:
+                                "Perfect attendance candidate (5 consecutive presents)"
+                        });
+                    }
+                }
+            );
+
+            res.json(
+                alerts
+            );
+
+        } catch (
+            error
+        ) {
+
+            console.error(
+                error
+            );
+
+            res.status(
+                500
+            ).json({
+                message:
+                    "Failed to load alerts"
+            });
+        }
+    };
+
 module.exports = {
     getMyTeam,
     getTeamMember,
@@ -463,5 +687,6 @@ module.exports = {
     getTeamAttendance,
     getAttendanceSummary,
     getAttendanceAnalytics,
-    getEmployeeAttendanceHistory
+    getEmployeeAttendanceHistory,
+    getAttendanceAlerts
 };
