@@ -89,6 +89,11 @@ const Sidebar = () => {
                 name: "Attendance",
                 path: "/manager/attendance",
                 icon: "A"
+            },
+            {
+                name: "Performance",
+                path: "/manager/performance",
+                icon: "P"
             }
         ],
 

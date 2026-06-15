@@ -35,6 +35,7 @@ import MyTeam from "./pages/manager/MyTeam";
 import EmployeeProfile from "./pages/manager/EmployeeProfile";
 import Announcements from "./pages/Manager/Announcements";
 import Attendance from "./pages/Manager/Attendance";
+import Performance from "./pages/Manager/Performance";
 
 import AuthLoader from "./components/AuthLoader";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -47,6 +48,17 @@ function App() {
 
             <AuthLoader />
                 <Routes>
+
+                    <Route
+                        path="/manager/performance"
+                        element={
+                            <ProtectedRoute
+                                roles={["manager"]}
+                            >
+                                <Performance />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     <Route
                         path="/manager/attendance"
