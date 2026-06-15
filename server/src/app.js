@@ -18,6 +18,7 @@ const securitySettingsRoutes = require("./routes/securitySettingsRoutes");
 const systemDashboardRoutes = require("./routes/systemDashboardRoutes");
 
 const managerRoutes = require("./routes/managerRoutes");
+const performanceRoutes = require("./routes/performanceRoutes");
 
 
 
@@ -42,6 +43,7 @@ app.use("/api/system/security-settings", securitySettingsRoutes);
 app.use("/api/system/dashboard", systemDashboardRoutes);
 
 app.use("/api/manager", managerRoutes);
+app.use("/api/performance", performanceRoutes);
 
 
 module.exports = app;

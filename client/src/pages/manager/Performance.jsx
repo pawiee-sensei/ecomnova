@@ -1,6 +1,76 @@
+import { useEffect, useState } from "react";
 import DashboardLayout from "../../layouts/DashboardLayout";
+import api from "../../services/api";
+
+
 
 const Performance = () => {
+
+    const [departments, setDepartments] =
+    useState([]);
+
+    const fetchPerformance =
+    async () => {
+
+        try {
+
+            const response =
+                await api.get(
+                    "/performance/department-performance"
+                );
+
+            setDepartments(
+                response.data
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Failed to load performance:",
+                error
+            );
+        }
+    };
+
+    useEffect(() => {
+
+    fetchPerformance();
+
+}, []);
+
+const departmentCount =
+    departments.length;
+
+const overallPerformance =
+    departmentCount === 0
+        ? 0
+        : Math.round(
+            departments.reduce(
+                (
+                    total,
+                    department
+                ) =>
+                    total +
+                    department.performanceScore,
+                0
+            ) / departmentCount
+        );
+
+const bestDepartment =
+    [...departments]
+        .sort(
+            (a, b) =>
+                b.performanceScore -
+                a.performanceScore
+        )[0];
+
+const lowestDepartment =
+    [...departments]
+        .sort(
+            (a, b) =>
+                a.performanceScore -
+                b.performanceScore
+        )[0];
 
     return (
     <DashboardLayout>
@@ -19,122 +89,59 @@ const Performance = () => {
 
         {/* Executive Overview */}
 
-        <div className="mb-8 grid gap-6 md:grid-cols-4">
+<div className="mb-8 grid gap-6 md:grid-cols-4">
 
-            <div className="rounded-xl border bg-white p-6">
+    <div className="rounded-xl border bg-white p-6">
 
-                <h3 className="text-sm text-slate-500">
-                    Overall Company Performance
-                </h3>
+        <h3 className="text-sm text-slate-500">
+            Performance Score
+        </h3>
 
-                <p className="mt-2 text-3xl font-bold">
-                    0%
-                </p>
+        <p className="mt-2 text-3xl font-bold">
+            {departments[0]?.performanceScore || 0}
+        </p>
 
-            </div>
+    </div>
 
-            <div className="rounded-xl border bg-white p-6">
+    <div className="rounded-xl border bg-white p-6">
 
-                <h3 className="text-sm text-slate-500">
-                    Best Department
-                </h3>
+        <h3 className="text-sm text-slate-500">
+            KPI Achievement
+        </h3>
 
-                <p className="mt-2 text-3xl font-bold">
-                    -
-                </p>
+        <p className="mt-2 text-3xl font-bold">
+            {departments[0]?.achievement || 0}%
+        </p>
 
-            </div>
+    </div>
 
-            <div className="rounded-xl border bg-white p-6">
+    <div className="rounded-xl border bg-white p-6">
 
-                <h3 className="text-sm text-slate-500">
-                    Lowest Department
-                </h3>
+        <h3 className="text-sm text-slate-500">
+            Attendance
+        </h3>
 
-                <p className="mt-2 text-3xl font-bold">
-                    -
-                </p>
+        <p className="mt-2 text-3xl font-bold">
+            {departments[0]?.attendance || 0}%
+        </p>
 
-            </div>
+    </div>
 
-            <div className="rounded-xl border bg-white p-6">
+    <div className="rounded-xl border bg-white p-6">
 
-                <h3 className="text-sm text-slate-500">
-                    Departments Evaluated
-                </h3>
+        <h3 className="text-sm text-slate-500">
+            Manager Rating
+        </h3>
 
-                <p className="mt-2 text-3xl font-bold">
-                    0
-                </p>
+        <p className="mt-2 text-3xl font-bold">
+            {departments[0]?.managerRating || 0}
+        </p>
 
-            </div>
+    </div>
 
-        </div>
+</div>
 
-        {/* Department Ranking */}
 
-        <div className="mb-8 rounded-xl border bg-white p-6">
-
-            <h2 className="mb-4 text-xl font-semibold">
-                Department Performance Ranking
-            </h2>
-
-            <div className="overflow-x-auto">
-
-                <table className="w-full">
-
-                    <thead>
-
-                        <tr className="border-b">
-
-                            <th className="p-3 text-left">
-                                Department
-                            </th>
-
-                            <th className="p-3 text-left">
-                                KPI Achievement
-                            </th>
-
-                            <th className="p-3 text-left">
-                                Attendance
-                            </th>
-
-                            <th className="p-3 text-left">
-                                Manager Rating
-                            </th>
-
-                            <th className="p-3 text-left">
-                                Performance Score
-                            </th>
-
-                            <th className="p-3 text-left">
-                                Status
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        <tr>
-
-                            <td
-                                colSpan="6"
-                                className="p-6 text-center text-slate-500"
-                            >
-                                Department performance data will appear here.
-                            </td>
-
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </div>
 
         {/* Performance Alerts */}
 
