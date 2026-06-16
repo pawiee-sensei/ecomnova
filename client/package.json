@@ -13,9 +13,10 @@
     "@tailwindcss/postcss": "^4.2.4",
     "@tailwindcss/vite": "^4.2.4",
     "axios": "^1.16.0",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-router-dom": "^7.15.0",
+    "recharts": "^3.8.1",
     "zustand": "^5.0.13"
   },
   "devDependencies": {

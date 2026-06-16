@@ -7,630 +7,428 @@ import {
     Line,
     XAxis,
     YAxis,
+    CartesianGrid,
     Tooltip,
-    ResponsiveContainer
+    ResponsiveContainer,
 } from "recharts";
 
-
-
 const Performance = () => {
+    const [departments, setDepartments] = useState([]);
+    const [selectedMetric, setSelectedMetric] = useState("attendance");
+    const [attendanceAnalytics, setAttendanceAnalytics] = useState([]);
+    const [history, setHistory] = useState([]);
 
-    const [departments, setDepartments] =
-    useState([]);
-
-    const [selectedMetric, setSelectedMetric] =
-    useState("attendance");
-
-    const [attendanceAnalytics, setAttendanceAnalytics] =
-    useState([]);
-
-    const [history, setHistory] =
-    useState([]);
-
-    const fetchPerformanceHistory =
-    async () => {
-
+    const fetchPerformanceHistory = async () => {
         try {
-
-            const response =
-                await api.get(
-                    "/performance/history"
-                );
-
-            setHistory(
-                response.data
-            );
-
+            const response = await api.get("/performance/history");
+            setHistory(response.data);
         } catch (error) {
-
-            console.error(
-                error
-            );
+            console.error(error);
         }
     };
 
-    const fetchAttendanceAnalytics =
-    async () => {
-
+    const fetchAttendanceAnalytics = async () => {
         try {
-
-            const response =
-                await api.get(
-                    "/manager/attendance-analytics"
-                );
-
-            setAttendanceAnalytics(
-                response.data
-            );
-
+            const response = await api.get("/manager/attendance-analytics");
+            setAttendanceAnalytics(response.data);
         } catch (error) {
-
-            console.error(
-                error
-            );
+            console.error(error);
         }
     };
 
-    const fetchPerformance =
-    async () => {
-
+    const fetchPerformance = async () => {
         try {
-
-            const response =
-                await api.get(
-                    "/performance/department-performance"
-                );
-
-            setDepartments(
-                response.data
-            );
-
+            const response = await api.get("/performance/department-performance");
+            setDepartments(response.data);
         } catch (error) {
-
-            console.error(
-                "Failed to load performance:",
-                error
-            );
+            console.error("Failed to load performance:", error);
         }
     };
 
     useEffect(() => {
+        fetchPerformance();
+        fetchAttendanceAnalytics();
+        fetchPerformanceHistory();
+    }, []);
 
-    fetchPerformance();
-    fetchAttendanceAnalytics();
-    fetchPerformanceHistory();
-
-}, []);
-
-const departmentCount =
-    departments.length;
-
-const overallPerformance =
-    departmentCount === 0
-        ? 0
-        : Math.round(
-            departments.reduce(
-                (
-                    total,
-                    department
-                ) =>
-                    total +
-                    department.performanceScore,
-                0
-            ) / departmentCount
-        );
-
-const bestDepartment =
-    [...departments]
-        .sort(
-            (a, b) =>
-                b.performanceScore -
-                a.performanceScore
-        )[0];
-
-const lowestDepartment =
-    [...departments]
-        .sort(
-            (a, b) =>
-                a.performanceScore -
-                b.performanceScore
-        )[0];
-
-const totalPresent =
-    attendanceAnalytics.reduce(
-        (total, employee) =>
-            total +
-            Number(
-                employee.presentCount
-            ),
-        0
+    const totalPresent = attendanceAnalytics.reduce(
+        (total, e) => total + Number(e.presentCount), 0
+    );
+    const totalLate = attendanceAnalytics.reduce(
+        (total, e) => total + Number(e.lateCount), 0
+    );
+    const totalAbsent = attendanceAnalytics.reduce(
+        (total, e) => total + Number(e.absentCount), 0
+    );
+    const totalLeave = attendanceAnalytics.reduce(
+        (total, e) => total + Number(e.leaveCount), 0
     );
 
-const totalLate =
-    attendanceAnalytics.reduce(
-        (total, employee) =>
-            total +
-            Number(
-                employee.lateCount
-            ),
-        0
-    );
+    const metrics = [
+        {
+            key: "attendance",
+            label: "Attendance",
+            value: `${departments[0]?.attendance || 0}%`,
+            color: "text-violet-600",
+            bg: "bg-violet-50",
+            border: "border-violet-200",
+            accent: "#7c3aed",
+        },
+        {
+            key: "kpi",
+            label: "KPI Achievement",
+            value: `${departments[0]?.achievement || 0}%`,
+            color: "text-blue-600",
+            bg: "bg-blue-50",
+            border: "border-blue-200",
+            accent: "#2563eb",
+        },
+        {
+            key: "manager",
+            label: "Manager Rating",
+            value: departments[0]?.managerRating || 0,
+            color: "text-emerald-600",
+            bg: "bg-emerald-50",
+            border: "border-emerald-200",
+            accent: "#059669",
+        },
+        {
+            key: "performance",
+            label: "Performance Score",
+            value: departments[0]?.performanceScore || 0,
+            color: "text-orange-600",
+            bg: "bg-orange-50",
+            border: "border-orange-200",
+            accent: "#ea580c",
+        },
+    ];
 
-const totalAbsent =
-    attendanceAnalytics.reduce(
-        (total, employee) =>
-            total +
-            Number(
-                employee.absentCount
-            ),
-        0
-    );
+    const activeMetric = metrics.find((m) => m.key === selectedMetric);
 
-const totalLeave =
-    attendanceAnalytics.reduce(
-        (total, employee) =>
-            total +
-            Number(
-                employee.leaveCount
-            ),
-        0
-    );
+    const chartDataKey =
+        selectedMetric === "attendance"
+            ? "attendance_score"
+            : selectedMetric === "kpi"
+            ? "kpi_achievement"
+            : selectedMetric === "manager"
+            ? "manager_rating"
+            : "performance_score";
 
-const chartData =
-    history.map(
-        (
-            item
-        ) => ({
-            month: item.month,
-
-            attendance:
-                Number(
-                    item.attendance_score
-                ),
-
-            kpi:
-                Number(
-                    item.kpi_achievement
-                ),
-
-            manager:
-                Number(
-                    item.manager_rating
-                ),
-
-            performance:
-                Number(
-                    item.performance_score
-                )
-        })
-    );
+    const CustomTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+            return (
+                <div className="rounded-lg border border-slate-100 bg-white px-4 py-3 shadow-lg">
+                    <p className="text-xs text-slate-400">{label}</p>
+                    <p
+                        className="mt-1 text-lg font-bold"
+                        style={{ color: activeMetric?.accent }}
+                    >
+                        {payload[0].value}
+                        {selectedMetric === "attendance" ||
+                        selectedMetric === "kpi"
+                            ? "%"
+                            : ""}
+                    </p>
+                </div>
+            );
+        }
+        return null;
+    };
 
     return (
-    <DashboardLayout>
-
-        <div className="mb-8">
-
-            <h1 className="text-3xl font-bold">
-                Department Performance
-            </h1>
-
-            <p className="text-gray-500">
-                Monitor department effectiveness, performance trends, risks, and management insights.
-            </p>
-
-        </div>
-
-        {/* Executive Overview */}
-
-<div className="mb-8 grid gap-6 md:grid-cols-4">
-
-    <div className="rounded-xl border bg-white p-6">
-
-        <h3 className="text-sm text-slate-500">
-            Performance Score
-        </h3>
-
-        <p className="mt-2 text-3xl font-bold">
-            {departments[0]?.performanceScore || 0}
-        </p>
-
-    </div>
-
-    <div className="rounded-xl border bg-white p-6">
-
-        <h3 className="text-sm text-slate-500">
-            KPI Achievement
-        </h3>
-
-        <p className="mt-2 text-3xl font-bold">
-            {departments[0]?.achievement || 0}%
-        </p>
-
-    </div>
-
-    <div className="rounded-xl border bg-white p-6">
-
-        <h3 className="text-sm text-slate-500">
-            Attendance
-        </h3>
-
-        <p className="mt-2 text-3xl font-bold">
-            {departments[0]?.attendance || 0}%
-        </p>
-
-    </div>
-
-    <div className="rounded-xl border bg-white p-6">
-
-        <h3 className="text-sm text-slate-500">
-            Manager Rating
-        </h3>
-
-        <p className="mt-2 text-3xl font-bold">
-            {departments[0]?.managerRating || 0}
-        </p>
-
-    </div>
-
-    
-
-</div>
-
-<div className="mb-8 grid gap-6 lg:grid-cols-2">
-
-    <div className="rounded-xl border bg-white p-6">
-
-        <h2 className="mb-4 text-xl font-semibold">
-            Performance Metrics
-        </h2>
-
-        <table className="w-full">
-
-            <thead>
-
-                <tr className="border-b">
-
-                    <th className="py-3 text-left">
-                        Metric
-                    </th>
-
-                    <th className="py-3 text-left">
-                        Current Value
-                    </th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-                <tr
-                    onClick={() =>
-                        setSelectedMetric(
-                            "attendance"
-                        )
-                    }
-                    className="cursor-pointer border-b hover:bg-slate-50"
-                >
-
-                    <td className="py-3">
-                        Attendance
-                    </td>
-
-                    <td className="py-3">
-                        {departments[0]?.attendance || 0}%
-                    </td>
-
-                </tr>
-
-                <tr
-                    onClick={() =>
-                        setSelectedMetric(
-                            "kpi"
-                        )
-                    }
-                    className="cursor-pointer border-b hover:bg-slate-50"
-                >
-
-                    <td className="py-3">
-                        KPI Achievement
-                    </td>
-
-                    <td className="py-3">
-                        {departments[0]?.achievement || 0}%
-                    </td>
-
-                </tr>
-
-                <tr
-                    onClick={() =>
-                        setSelectedMetric(
-                            "manager"
-                        )
-                    }
-                    className="cursor-pointer border-b hover:bg-slate-50"
-                >
-
-                    <td className="py-3">
-                        Manager Rating
-                    </td>
-
-                    <td className="py-3">
-                        {departments[0]?.managerRating || 0}
-                    </td>
-
-                </tr>
-
-                <tr
-                    onClick={() =>
-                        setSelectedMetric(
-                            "performance"
-                        )
-                    }
-                    className="cursor-pointer hover:bg-slate-50"
-                >
-
-                    <td className="py-3">
-                        Performance Score
-                    </td>
-
-                    <td className="py-3">
-                        {departments[0]?.performanceScore || 0}
-                    </td>
-
-                </tr>
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-<div className="rounded-xl border bg-white p-6">
-
-    <h2 className="mb-4 text-xl font-semibold">
-
-        {selectedMetric === "attendance" &&
-            "Attendance Statistics"}
-
-        {selectedMetric === "kpi" &&
-            "KPI Statistics"}
-
-        {selectedMetric === "manager" &&
-            "Manager Rating Statistics"}
-
-        {selectedMetric === "performance" &&
-            "Performance Score Statistics"}
-
-    </h2>
-
-    {selectedMetric === "attendance" && (
-
-        <div className="space-y-3">
-
-            <div className="flex justify-between">
-
-                <span>Present</span>
-
-                <span className="font-semibold text-green-600">
-                    {totalPresent}
+        <DashboardLayout>
+            {/* Header */}
+            <div className="mb-8 flex items-start justify-between">
+                <div>
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-slate-400">
+                        Manager Dashboard
+                    </p>
+                    <h1 className="text-3xl font-bold text-slate-800">
+                        Department Performance
+                    </h1>
+                    <p className="mt-1 text-slate-500">
+                        Monitor effectiveness, trends, and insights across your team.
+                    </p>
+                </div>
+                <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-700">
+                    Live
                 </span>
-
             </div>
 
-            <div className="flex justify-between">
-
-                <span>Late</span>
-
-                <span className="font-semibold text-yellow-600">
-                    {totalLate}
-                </span>
-
+            {/* Metric Cards */}
+            <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {metrics.map((m) => (
+                    <button
+                        key={m.key}
+                        onClick={() => setSelectedMetric(m.key)}
+                        className={`rounded-xl border-2 p-5 text-left transition-all duration-200 ${
+                            selectedMetric === m.key
+                                ? `${m.border} ${m.bg} shadow-md`
+                                : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-sm"
+                        }`}
+                    >
+                        <p className="text-xs font-medium text-slate-500">
+                            {m.label}
+                        </p>
+                        <p
+                            className={`mt-2 text-3xl font-bold ${
+                                selectedMetric === m.key
+                                    ? m.color
+                                    : "text-slate-800"
+                            }`}
+                        >
+                            {m.value}
+                        </p>
+                        {selectedMetric === m.key && (
+                            <p className={`mt-1 text-xs font-semibold ${m.color}`}>
+                                Selected ↑
+                            </p>
+                        )}
+                    </button>
+                ))}
             </div>
 
-            <div className="flex justify-between">
+            {/* Main Content */}
+            <div className="mb-6 grid gap-6 lg:grid-cols-2">
+                {/* Left: Stats Panel */}
+                <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+                    <div className="mb-5 flex items-center gap-2">
+                        <span
+                            className="h-2 w-2 rounded-full"
+                            style={{ backgroundColor: activeMetric?.accent }}
+                        />
+                        <h2 className="font-semibold text-slate-700">
+                            {activeMetric?.label} Details
+                        </h2>
+                    </div>
 
-                <span>Absent</span>
+                    {selectedMetric === "attendance" && (
+                        <div className="space-y-4">
+                            {[
+                                {
+                                    label: "Present",
+                                    value: totalPresent,
+                                    color: "bg-emerald-500",
+                                    text: "text-emerald-700",
+                                    bg: "bg-emerald-50",
+                                },
+                                {
+                                    label: "Late",
+                                    value: totalLate,
+                                    color: "bg-amber-400",
+                                    text: "text-amber-700",
+                                    bg: "bg-amber-50",
+                                },
+                                {
+                                    label: "Absent",
+                                    value: totalAbsent,
+                                    color: "bg-red-500",
+                                    text: "text-red-700",
+                                    bg: "bg-red-50",
+                                },
+                                {
+                                    label: "Leave",
+                                    value: totalLeave,
+                                    color: "bg-blue-500",
+                                    text: "text-blue-700",
+                                    bg: "bg-blue-50",
+                                },
+                            ].map((item) => {
+                                const total =
+                                    totalPresent +
+                                    totalLate +
+                                    totalAbsent +
+                                    totalLeave;
+                                const pct =
+                                    total > 0
+                                        ? Math.round((item.value / total) * 100)
+                                        : 0;
+                                return (
+                                    <div key={item.label}>
+                                        <div className="mb-1 flex items-center justify-between">
+                                            <span className="text-sm text-slate-600">
+                                                {item.label}
+                                            </span>
+                                            <span
+                                                className={`text-sm font-bold ${item.text}`}
+                                            >
+                                                {item.value}{" "}
+                                                <span className="font-normal text-slate-400">
+                                                    ({pct}%)
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                                            <div
+                                                className={`h-2 rounded-full ${item.color} transition-all duration-500`}
+                                                style={{ width: `${pct}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
 
-                <span className="font-semibold text-red-600">
-                    {totalAbsent}
-                </span>
+                    {selectedMetric === "kpi" && (
+                        <div className="space-y-4">
+                            {[
+                                { label: "Target", value: 3000, pct: 100, color: "bg-slate-300" },
+                                { label: "Actual", value: 2100, pct: 70, color: "bg-blue-500" },
+                            ].map((item) => (
+                                <div key={item.label}>
+                                    <div className="mb-1 flex justify-between">
+                                        <span className="text-sm text-slate-600">
+                                            {item.label}
+                                        </span>
+                                        <span className="text-sm font-bold text-slate-800">
+                                            {item.value.toLocaleString()}
+                                        </span>
+                                    </div>
+                                    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                                        <div
+                                            className={`h-2 rounded-full ${item.color} transition-all duration-500`}
+                                            style={{ width: `${item.pct}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                            <div className="mt-4 rounded-lg bg-blue-50 px-4 py-3">
+                                <p className="text-xs text-blue-500">Achievement Rate</p>
+                                <p className="text-2xl font-bold text-blue-700">70%</p>
+                            </div>
+                        </div>
+                    )}
 
+                    {selectedMetric === "manager" && (
+                        <div>
+                            <div className="flex items-end gap-2">
+                                <p className="text-5xl font-bold text-emerald-600">60</p>
+                                <p className="mb-2 text-slate-400">/ 100</p>
+                            </div>
+                            <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-slate-100">
+                                <div
+                                    className="h-3 rounded-full bg-emerald-500 transition-all duration-700"
+                                    style={{ width: "60%" }}
+                                />
+                            </div>
+                            <p className="mt-3 text-sm text-slate-500">
+                                Manager rating is based on team feedback and KPI results.
+                            </p>
+                        </div>
+                    )}
+
+                    {selectedMetric === "performance" && (
+                        <div>
+                            <div className="flex items-end gap-2">
+                                <p className="text-5xl font-bold text-orange-600">65</p>
+                                <p className="mb-2 text-slate-400">/ 100</p>
+                            </div>
+                            <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-slate-100">
+                                <div
+                                    className="h-3 rounded-full bg-orange-500 transition-all duration-700"
+                                    style={{ width: "65%" }}
+                                />
+                            </div>
+                            <p className="mt-3 text-sm text-slate-500">
+                                Composite score based on attendance, KPI, and manager ratings.
+                            </p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Right: Chart Panel */}
+                <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+                    <div className="mb-1 flex items-center gap-2">
+                        <span
+                            className="h-2 w-2 rounded-full"
+                            style={{ backgroundColor: activeMetric?.accent }}
+                        />
+                        <h2 className="font-semibold text-slate-700">
+                            {activeMetric?.label} Trend
+                        </h2>
+                    </div>
+                    <p className="mb-5 text-xs text-slate-400">
+                        Monthly history
+                    </p>
+
+                    {history.length === 0 ? (
+                        <div className="flex h-56 items-center justify-center rounded-lg bg-slate-50">
+                            <p className="text-sm text-slate-400">No history data yet</p>
+                        </div>
+                    ) : (
+                        <LineChart
+                            width={420}
+                            height={240}
+                            data={history}
+                            margin={{ top: 5, right: 10, left: -20, bottom: 5 }}
+                        >
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                            <XAxis
+                                dataKey={(item) => `${item.month}/${item.year}`}
+                                tick={{ fontSize: 11, fill: "#94a3b8" }}
+                                axisLine={false}
+                                tickLine={false}
+                            />
+                            <YAxis
+                                tick={{ fontSize: 11, fill: "#94a3b8" }}
+                                axisLine={false}
+                                tickLine={false}
+                            />
+                            <Tooltip content={<CustomTooltip />} />
+                            <Line
+                                type="monotone"
+                                dataKey={chartDataKey}
+                                stroke={activeMetric?.accent}
+                                strokeWidth={2.5}
+                                dot={{ r: 4, fill: activeMetric?.accent, strokeWidth: 0 }}
+                                activeDot={{ r: 6 }}
+                            />
+                        </LineChart>
+                    )}
+                </div>
             </div>
 
-            <div className="flex justify-between">
+            {/* Bottom Row */}
+            <div className="grid gap-6 lg:grid-cols-2">
+                {/* Performance Alerts */}
+                <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+                    <div className="mb-4 flex items-center justify-between">
+                        <h2 className="font-semibold text-slate-700">Performance Alerts</h2>
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+                            0 active
+                        </span>
+                    </div>
+                    <div className="flex flex-col items-center justify-center rounded-lg bg-slate-50 py-10 text-center">
+                        <div className="mb-2 text-2xl">✅</div>
+                        <p className="text-sm font-medium text-slate-600">All clear</p>
+                        <p className="mt-1 text-xs text-slate-400">
+                            No active alerts or department risks.
+                        </p>
+                    </div>
+                </div>
 
-                <span>Leave</span>
-
-                <span className="font-semibold text-blue-600">
-                    {totalLeave}
-                </span>
-
+                {/* Department Insights */}
+                <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+                    <div className="mb-4 flex items-center justify-between">
+                        <h2 className="font-semibold text-slate-700">Department Insights</h2>
+                        <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-600">
+                            Coming soon
+                        </span>
+                    </div>
+                    <div className="flex flex-col items-center justify-center rounded-lg bg-slate-50 py-10 text-center">
+                        <div className="mb-2 text-2xl">📊</div>
+                        <p className="text-sm font-medium text-slate-600">
+                            Insights in progress
+                        </p>
+                        <p className="mt-1 text-xs text-slate-400">
+                            Root cause analysis and recommendations will appear here.
+                        </p>
+                    </div>
+                </div>
             </div>
-
-        </div>
-
-    )}
-
-    {selectedMetric === "kpi" && (
-
-        <div className="space-y-3">
-
-            <div className="flex justify-between">
-
-                <span>Target</span>
-
-                <span>
-                    3000
-                </span>
-
-            </div>
-
-            <div className="flex justify-between">
-
-                <span>Actual</span>
-
-                <span>
-                    2100
-                </span>
-
-            </div>
-
-            <div className="flex justify-between">
-
-                <span>Achievement</span>
-
-                <span className="font-semibold">
-                    70%
-                </span>
-
-            </div>
-
-        </div>
-
-    )}
-
-    {selectedMetric === "manager" && (
-
-        <div>
-
-            <p className="text-slate-600">
-                Current Manager Rating
-            </p>
-
-            <p className="mt-2 text-3xl font-bold">
-                60
-            </p>
-
-        </div>
-
-    )}
-
-    {selectedMetric === "performance" && (
-
-        <div>
-
-            <p className="text-slate-600">
-                Current Performance Score
-            </p>
-
-            <p className="mt-2 text-3xl font-bold">
-                65
-            </p>
-
-        </div>
-
-    )}
-
-<div className="mt-6">
-
-    <h3 className="mb-4 font-semibold">
-        Trend History
-    </h3>
-
-    <table className="w-full">
-
-        <thead>
-
-            <tr className="border-b">
-
-                <th className="py-2 text-left">
-                    Month
-                </th>
-
-                <th className="py-2 text-left">
-                    Value
-                </th>
-
-            </tr>
-
-        </thead>
-
-        <tbody>
-
-            {history.map((item) => (
-
-                <tr
-                    key={`${item.year}-${item.month}`}
-                    className="border-b"
-                >
-
-                    <td className="py-2">
-                        {item.month}/{item.year}
-                    </td>
-
-                    <td className="py-2">
-
-                        {selectedMetric === "attendance" &&
-                            item.attendance_score}
-
-                        {selectedMetric === "kpi" &&
-                            item.kpi_achievement}
-
-                        {selectedMetric === "manager" &&
-                            item.manager_rating}
-
-                        {selectedMetric === "performance" &&
-                            item.performance_score}
-
-                    </td>
-
-                </tr>
-
-            ))}
-
-        </tbody>
-
-    </table>
-
-</div>
-
-</div>
-
-
-
-</div>
-
-
-
-        {/* Performance Alerts */}
-
-        <div className="mb-8 rounded-xl border bg-white p-6">
-
-            <h2 className="mb-4 text-xl font-semibold">
-                Performance Alerts
-            </h2>
-
-            <div className="rounded-lg border border-slate-200 p-4">
-
-                <p className="text-slate-500">
-                    Performance alerts and department risks will appear here.
-                </p>
-
-            </div>
-
-        </div>
-
-        {/* Department Insights */}
-
-        <div className="rounded-xl border bg-white p-6">
-
-            <h2 className="mb-4 text-xl font-semibold">
-                Department Insights
-            </h2>
-
-            <div className="rounded-lg border border-slate-200 p-4">
-
-                <p className="text-slate-500">
-                    Root cause analysis and management recommendations will appear here.
-                </p>
-
-            </div>
-
-        </div>
-
-    </DashboardLayout>
-);
+        </DashboardLayout>
+    );
 };
 
 export default Performance;
