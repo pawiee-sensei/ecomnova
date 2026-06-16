@@ -31,6 +31,41 @@ const getDepartmentPerformance =
         }
     };
 
+    const getDepartmentPerformanceHistory =
+    async (
+        req,
+        res
+    ) => {
+
+        try {
+
+const history =
+    await performanceService.getDepartmentPerformanceHistory(
+        3
+    );
+
+            res.json(
+                history
+            );
+
+        } catch (
+            error
+        ) {
+
+            console.error(
+                error
+            );
+
+            res.status(500).json({
+                message:
+                    "Failed to load performance history"
+            });
+        }
+    };
+
+    
+
 module.exports = {
-    getDepartmentPerformance
+    getDepartmentPerformance,
+    getDepartmentPerformanceHistory
 };  

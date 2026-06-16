@@ -64,6 +64,37 @@ ORDER BY
     );
 };
 
+const getDepartmentPerformanceHistory = (
+    departmentId,
+    callback
+) => {
+
+    const sql = `
+        SELECT
+
+            month,
+            year,
+
+            attendance_score,
+            kpi_achievement,
+            manager_rating,
+            performance_score
+
+        FROM department_performance_history
+
+        WHERE department_id = ?
+
+        ORDER BY year, month
+    `;
+
+    db.query(
+        sql,
+        [departmentId],
+        callback
+    );
+};
+
 module.exports = {
-    getDepartmentPerformance
+    getDepartmentPerformance,
+    getDepartmentPerformanceHistory
 };

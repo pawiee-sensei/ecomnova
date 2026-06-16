@@ -121,6 +121,42 @@ resolve(
         );
     };
 
+    const getDepartmentPerformanceHistory =
+    async (
+        departmentId
+    ) => {
+
+        return new Promise(
+            (
+                resolve,
+                reject
+            ) => {
+
+                performanceModel.getDepartmentPerformanceHistory(
+
+                    departmentId,
+
+                    (
+                        err,
+                        results
+                    ) => {
+
+                        if (err) {
+                            return reject(
+                                err
+                            );
+                        }
+
+                        resolve(
+                            results
+                        );
+                    }
+                );
+            }
+        );
+    };
+
 module.exports = {
-    getDepartmentPerformance
+    getDepartmentPerformance,
+    getDepartmentPerformanceHistory
 };
