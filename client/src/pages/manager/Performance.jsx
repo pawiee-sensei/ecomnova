@@ -14,6 +14,7 @@ import {
 
 const Performance = () => {
     const [departments, setDepartments] = useState([]);
+    const [selectedDepartment, setSelectedDepartment] = useState(null);
     const [selectedMetric, setSelectedMetric] = useState("attendance");
     const [attendanceAnalytics, setAttendanceAnalytics] = useState([]);
     const [history, setHistory] = useState([]);
@@ -56,14 +57,17 @@ const fetchPerformanceHistory = async () => {
         }
     };
 
-    const fetchPerformance = async () => {
-        try {
-            const response = await api.get("/performance/department-performance");
-            setDepartments(response.data);
-        } catch (error) {
-            console.error("Failed to load performance:", error);
+const fetchPerformance = async () => {
+    try {
+        const response = await api.get("/performance/department-performance");
+        setDepartments(response.data);
+        if (response.data.length > 0) {
+            setSelectedDepartment(response.data[0]);
         }
-    };
+    } catch (error) {
+        console.error("Failed to load performance:", error);
+    }
+};
 
     useEffect(() => {
         fetchPerformance();
@@ -86,44 +90,61 @@ const fetchPerformanceHistory = async () => {
         (total, e) => total + Number(e.leaveCount), 0
     );
 
-    const metrics = [
-        {
-            key: "attendance",
-            label: "Attendance",
-            value: `${departments[0]?.attendance || 0}%`,
-            color: "text-violet-600",
-            bg: "bg-violet-50",
-            border: "border-violet-200",
-            accent: "#7c3aed",
-        },
-        {
-            key: "kpi",
-            label: "KPI Achievement",
-            value: `${departments[0]?.achievement || 0}%`,
-            color: "text-blue-600",
-            bg: "bg-blue-50",
-            border: "border-blue-200",
-            accent: "#2563eb",
-        },
-        {
-            key: "manager",
-            label: "Manager Rating",
-            value: departments[0]?.managerRating || 0,
-            color: "text-emerald-600",
-            bg: "bg-emerald-50",
-            border: "border-emerald-200",
-            accent: "#059669",
-        },
-        {
-            key: "performance",
-            label: "Performance Score",
-            value: departments[0]?.performanceScore || 0,
-            color: "text-orange-600",
-            bg: "bg-orange-50",
-            border: "border-orange-200",
-            accent: "#ea580c",
-        },
-    ];
+ const dept = selectedDepartment;
+
+const thresholds = {
+    attendance: 75,
+    kpi: 60,
+    manager: 60,
+    performance: 70,
+};
+
+const metrics = [
+    {
+        key: "attendance",
+        label: "Attendance",
+        value: `${dept?.attendance || 0}%`,
+        rawValue: dept?.attendance || 0,
+        target: thresholds.attendance,
+        color: "text-violet-600",
+        bg: "bg-violet-50",
+        border: "border-violet-200",
+        accent: "#7c3aed",
+    },
+    {
+        key: "kpi",
+        label: "KPI Achievement",
+        value: `${dept?.achievement || 0}%`,
+        rawValue: dept?.achievement || 0,
+        target: thresholds.kpi,
+        color: "text-blue-600",
+        bg: "bg-blue-50",
+        border: "border-blue-200",
+        accent: "#2563eb",
+    },
+    {
+        key: "manager",
+        label: "Manager Rating",
+        value: dept?.managerRating || 0,
+        rawValue: dept?.managerRating || 0,
+        target: thresholds.manager,
+        color: "text-emerald-600",
+        bg: "bg-emerald-50",
+        border: "border-emerald-200",
+        accent: "#059669",
+    },
+    {
+        key: "performance",
+        label: "Performance Score",
+        value: dept?.performanceScore || 0,
+        rawValue: dept?.performanceScore || 0,
+        target: thresholds.performance,
+        color: "text-orange-600",
+        bg: "bg-orange-50",
+        border: "border-orange-200",
+        accent: "#ea580c",
+    },
+];
 
     const activeMetric = metrics.find((m) => m.key === selectedMetric);
 
@@ -159,56 +180,95 @@ const fetchPerformanceHistory = async () => {
 
     return (
         <DashboardLayout>
-            {/* Header */}
-            <div className="mb-8 flex items-start justify-between">
-                <div>
-                    <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-slate-400">
-                        Manager Dashboard
-                    </p>
-                    <h1 className="text-3xl font-bold text-slate-800">
-                        Department Performance
-                    </h1>
-                    <p className="mt-1 text-slate-500">
-                        Monitor effectiveness, trends, and insights across your team.
-                    </p>
-                </div>
-                <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-700">
-                    Live
-                </span>
-            </div>
+ {/* Header */}
+<div className="mb-6 flex items-start justify-between">
+    <div>
+        <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-slate-400">
+            Manager Dashboard
+        </p>
+        <h1 className="text-3xl font-bold text-slate-800">
+            Department Performance
+        </h1>
+        <p className="mt-1 text-slate-500">
+            Monitor effectiveness, trends, and insights across your team.
+        </p>
+    </div>
+    <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-700">
+        Live
+    </span>
+</div>
 
-            {/* Metric Cards */}
-            <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {metrics.map((m) => (
-                    <button
-                        key={m.key}
-                        onClick={() => setSelectedMetric(m.key)}
-                        className={`rounded-xl border-2 p-5 text-left transition-all duration-200 ${
-                            selectedMetric === m.key
-                                ? `${m.border} ${m.bg} shadow-md`
-                                : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-sm"
-                        }`}
-                    >
-                        <p className="text-xs font-medium text-slate-500">
-                            {m.label}
-                        </p>
-                        <p
-                            className={`mt-2 text-3xl font-bold ${
-                                selectedMetric === m.key
-                                    ? m.color
-                                    : "text-slate-800"
-                            }`}
-                        >
-                            {m.value}
-                        </p>
-                        {selectedMetric === m.key && (
-                            <p className={`mt-1 text-xs font-semibold ${m.color}`}>
-                                Selected ↑
-                            </p>
-                        )}
-                    </button>
-                ))}
-            </div>
+{/* Department Switcher */}
+{departments.length > 1 && (
+    <div className="mb-6 flex flex-wrap gap-2">
+        {departments.map((d) => (
+            <button
+                key={d.id}
+                onClick={() => setSelectedDepartment(d)}
+                className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all duration-200 ${
+                    selectedDepartment?.id === d.id
+                        ? "border-violet-300 bg-violet-600 text-white shadow-sm"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-violet-300 hover:text-violet-600"
+                }`}
+            >
+                {d.department_name}
+                <span className={`ml-2 text-xs ${
+                    selectedDepartment?.id === d.id
+                        ? "text-violet-200"
+                        : d.status === "Warning" || d.status === "Critical"
+                        ? "text-rose-400"
+                        : "text-emerald-500"
+                }`}>
+                    {d.performanceScore}
+                </span>
+            </button>
+        ))}
+    </div>
+)}
+
+ {/* Metric Cards */}
+<div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    {metrics.map((m) => {
+        const isAboveTarget = m.rawValue >= m.target;
+        return (
+            <button
+                key={m.key}
+                onClick={() => setSelectedMetric(m.key)}
+                className={`rounded-xl border-2 p-5 text-left transition-all duration-200 ${
+                    selectedMetric === m.key
+                        ? `${m.border} ${m.bg} shadow-md`
+                        : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-sm"
+                }`}
+            >
+                <p className="text-xs font-medium text-slate-500">
+                    {m.label}
+                </p>
+                <p
+                    className={`mt-2 text-3xl font-bold ${
+                        selectedMetric === m.key
+                            ? m.color
+                            : "text-slate-800"
+                    }`}
+                >
+                    {m.value}
+                </p>
+                <div className="mt-2 flex items-center gap-1">
+                    <span className={`text-xs font-semibold ${
+                        isAboveTarget
+                            ? "text-emerald-600"
+                            : "text-rose-500"
+                    }`}>
+                        {isAboveTarget ? "↑ Above" : "↓ Below"}
+                    </span>
+                    <span className="text-xs text-slate-400">
+                        {m.target}
+                        {m.key === "attendance" || m.key === "kpi" ? "% target" : " target"}
+                    </span>
+                </div>
+            </button>
+        );
+    })}
+</div>
 
             {/* Main Content */}
             <div className="mb-6 grid gap-6 lg:grid-cols-2">
@@ -297,14 +357,14 @@ const fetchPerformanceHistory = async () => {
         {[
             {
                 label: "Target",
-                value: departments[0]?.target_value || 0,
+                value: dept?.target_value || 0,
                 pct: 100,
                 color: "bg-slate-300",
             },
             {
                 label: "Actual",
-                value: departments[0]?.actual_value || 0,
-                pct: departments[0]?.achievement || 0,
+                value: dept?.actual_value || 0,
+                pct: dept?.achievement || 0,
                 color: "bg-blue-500",
             },
         ].map((item) => (
@@ -328,7 +388,7 @@ const fetchPerformanceHistory = async () => {
         <div className="mt-4 rounded-lg bg-blue-50 px-4 py-3">
             <p className="text-xs text-blue-500">Achievement Rate</p>
             <p className="text-2xl font-bold text-blue-700">
-                {departments[0]?.achievement || 0}%
+                {dept?.achievement || 0}%
             </p>
         </div>
     </div>
@@ -338,14 +398,14 @@ const fetchPerformanceHistory = async () => {
     <div>
         <div className="flex items-end gap-2">
             <p className="text-5xl font-bold text-emerald-600">
-                {departments[0]?.managerRating || 0}
+                {dept?.managerRating || 0}
             </p>
             <p className="mb-2 text-slate-400">/ 100</p>
         </div>
         <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-slate-100">
             <div
                 className="h-3 rounded-full bg-emerald-500 transition-all duration-700"
-                style={{ width: `${departments[0]?.managerRating || 0}%` }}
+                style={{ width: `${dept?.managerRating || 0}%` }}
             />
         </div>
         <p className="mt-3 text-sm text-slate-500">
@@ -358,14 +418,14 @@ const fetchPerformanceHistory = async () => {
     <div>
         <div className="flex items-end gap-2">
             <p className="text-5xl font-bold text-orange-600">
-                {departments[0]?.performanceScore || 0}
+                {dept?.performanceScore || 0}
             </p>
             <p className="mb-2 text-slate-400">/ 100</p>
         </div>
         <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-slate-100">
             <div
                 className="h-3 rounded-full bg-orange-500 transition-all duration-700"
-                style={{ width: `${departments[0]?.performanceScore || 0}%` }}
+                style={{ width: `${dept?.performanceScore || 0}%` }}
             />
         </div>
         <p className="mt-3 text-sm text-slate-500">
@@ -532,31 +592,31 @@ const fetchPerformanceHistory = async () => {
                     </p>
 
                     <div className="space-y-4">
-                        {[
-                            {
-                                label: "KPI Achievement",
-                                value: departments[0]?.achievement || 0,
-                                weight: 60,
-                                color: "bg-blue-500",
-                                text: "text-blue-600",
-                                contribution: Math.round((departments[0]?.achievement || 0) * 0.60),
-                            },
-                            {
-                                label: "Attendance",
-                                value: departments[0]?.attendance || 0,
-                                weight: 20,
-                                color: "bg-violet-500",
-                                text: "text-violet-600",
-                                contribution: Math.round((departments[0]?.attendance || 0) * 0.20),
-                            },
-                            {
-                                label: "Manager Rating",
-                                value: departments[0]?.managerRating || 0,
-                                weight: 20,
-                                color: "bg-emerald-500",
-                                text: "text-emerald-600",
-                                contribution: Math.round((departments[0]?.managerRating || 0) * 0.20),
-                            },
+{[
+    {
+        label: "KPI Achievement",
+        value: dept?.achievement || 0,
+        weight: 60,
+        color: "bg-blue-500",
+        text: "text-blue-600",
+        contribution: Math.round((dept?.achievement || 0) * 0.60),
+    },
+    {
+        label: "Attendance",
+        value: dept?.attendance || 0,
+        weight: 20,
+        color: "bg-violet-500",
+        text: "text-violet-600",
+        contribution: Math.round((dept?.attendance || 0) * 0.20),
+    },
+    {
+        label: "Manager Rating",
+        value: dept?.managerRating || 0,
+        weight: 20,
+        color: "bg-emerald-500",
+        text: "text-emerald-600",
+        contribution: Math.round((dept?.managerRating || 0) * 0.20),
+    },
                         ].map((item) => (
                             <div key={item.label}>
                                 <div className="mb-1 flex items-center justify-between">
