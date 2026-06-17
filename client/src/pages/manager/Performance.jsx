@@ -19,17 +19,81 @@ const Performance = () => {
     const [attendanceAnalytics, setAttendanceAnalytics] = useState([]);
     const [history, setHistory] = useState([]);
 
+const fetchPerformanceHistory = async (departmentId) => {
+    try {
+        const response = await api.get(
+            `/performance/history?departmentId=${departmentId}`
+        );
+        setHistory(response.data);
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+    const fetchAttendanceAnalytics = async () => {
+        try {
+            const response = await api.get("/manager/attendance-analytics");
+            setAttendanceAnalytics(response.data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+const fetchPerformance = async () => {
+    try {
+        const response = await api.get("/performance/department-performance");
+        setDepartments(response.data);
+        if (response.data.length > 0) {
+            setSelectedDepartment(response.data[0]);
+        }
+    } catch (error) {
+        console.error("Failed to load performance:", error);
+    }
+};
+
+    useEffect(() => {
+        fetchPerformance();
+        fetchAttendanceAnalytics();
+    }, []);
+
+    useEffect(() => {
+        if (selectedDepartment) {
+            fetchPerformanceHistory(selectedDepartment.id);
+        }
+    }, [selectedDepartment]);
+
+const deptAnalytics = selectedDepartment
+    ? attendanceAnalytics.filter(
+        (e) => e.department_id === selectedDepartment.id
+    )
+    : attendanceAnalytics;
+
+const totalPresent = deptAnalytics.reduce(
+    (total, e) => total + Number(e.presentCount), 0
+);
+const totalLate = deptAnalytics.reduce(
+    (total, e) => total + Number(e.lateCount), 0
+);
+const totalAbsent = deptAnalytics.reduce(
+    (total, e) => total + Number(e.absentCount), 0
+);
+const totalLeave = deptAnalytics.reduce(
+    (total, e) => total + Number(e.leaveCount), 0
+);
+
 const computeInsights = (d) => {
     if (!d) return null;
 
     const { attendance, achievement, managerRating, performanceScore } = d;
+
+    const hasAttendanceData = deptAnalytics.length > 0;
 
     let primaryIssue = null;
     let finding = null;
     let impact = null;
     let recommendation = null;
 
-    if (attendance < 75) {
+    if (hasAttendanceData && attendance < 75) {
         primaryIssue = "Attendance";
         finding = `Attendance is ${attendance}%, below the target of 75%.`;
         impact = "Low attendance is reducing department productivity.";
@@ -64,9 +128,10 @@ const computeAlerts = (d) => {
     if (!d) return [];
 
     const { attendance, achievement, managerRating, performanceScore } = d;
+    const hasAttendanceData = deptAnalytics.length > 0;
     const alerts = [];
 
-    if (attendance < 75) {
+    if (hasAttendanceData && attendance < 75) {
         alerts.push({
             type: "attendance-risk",
             severity: attendance < 50 ? "critical" : "warning",
@@ -100,56 +165,6 @@ const computeAlerts = (d) => {
 
     return alerts;
 };
-
-const fetchPerformanceHistory = async () => {
-    try {
-        const response = await api.get("/performance/history");
-        setHistory(response.data);
-    } catch (error) {
-        console.error(error);
-    }
-};
-
-    const fetchAttendanceAnalytics = async () => {
-        try {
-            const response = await api.get("/manager/attendance-analytics");
-            setAttendanceAnalytics(response.data);
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-const fetchPerformance = async () => {
-    try {
-        const response = await api.get("/performance/department-performance");
-        setDepartments(response.data);
-        if (response.data.length > 0) {
-            setSelectedDepartment(response.data[0]);
-        }
-    } catch (error) {
-        console.error("Failed to load performance:", error);
-    }
-};
-
-    useEffect(() => {
-        fetchPerformance();
-        fetchAttendanceAnalytics();
-        fetchPerformanceHistory();
-
-    }, []);
-
-    const totalPresent = attendanceAnalytics.reduce(
-        (total, e) => total + Number(e.presentCount), 0
-    );
-    const totalLate = attendanceAnalytics.reduce(
-        (total, e) => total + Number(e.lateCount), 0
-    );
-    const totalAbsent = attendanceAnalytics.reduce(
-        (total, e) => total + Number(e.absentCount), 0
-    );
-    const totalLeave = attendanceAnalytics.reduce(
-        (total, e) => total + Number(e.leaveCount), 0
-    );
 
  const dept = selectedDepartment;
 

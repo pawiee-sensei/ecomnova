@@ -31,7 +31,7 @@ const getDepartmentPerformance =
         }
     };
 
-    const getDepartmentPerformanceHistory =
+const getDepartmentPerformanceHistory =
     async (
         req,
         res
@@ -39,9 +39,11 @@ const getDepartmentPerformance =
 
         try {
 
+            const departmentId = req.query.departmentId || 1;
+
 const history =
     await performanceService.getDepartmentPerformanceHistory(
-        3
+        departmentId
     );
 
             res.json(

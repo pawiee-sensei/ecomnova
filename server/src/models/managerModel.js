@@ -451,6 +451,7 @@ const getAttendanceAnalytics = (
         SELECT
             users.id AS employee_id,
             users.fullname,
+            users.department_id,
 
             COALESCE(
     SUM(
