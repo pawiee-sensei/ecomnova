@@ -63,9 +63,29 @@ const history =
         }
     };
 
+    const getInsights = async (req, res) => {
+
+    try {
+
+        const insights =
+            await performanceService.getInsights();
+
+        res.json(insights);
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message: "Failed to load insights"
+        });
+    }
+};
+
     
 
 module.exports = {
     getDepartmentPerformance,
-    getDepartmentPerformanceHistory
+    getDepartmentPerformanceHistory,
+    getInsights
 };  

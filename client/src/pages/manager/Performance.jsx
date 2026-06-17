@@ -17,15 +17,25 @@ const Performance = () => {
     const [selectedMetric, setSelectedMetric] = useState("attendance");
     const [attendanceAnalytics, setAttendanceAnalytics] = useState([]);
     const [history, setHistory] = useState([]);
+    const [insights, setInsights] = useState(null);
 
-    const fetchPerformanceHistory = async () => {
-        try {
-            const response = await api.get("/performance/history");
-            setHistory(response.data);
-        } catch (error) {
-            console.error(error);
-        }
-    };
+const fetchInsights = async () => {
+    try {
+        const response = await api.get("/performance/insights");
+        setInsights(response.data);
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+const fetchPerformanceHistory = async () => {
+    try {
+        const response = await api.get("/performance/history");
+        setHistory(response.data);
+    } catch (error) {
+        console.error(error);
+    }
+};
 
     const fetchAttendanceAnalytics = async () => {
         try {
@@ -49,6 +59,7 @@ const Performance = () => {
         fetchPerformance();
         fetchAttendanceAnalytics();
         fetchPerformanceHistory();
+        fetchInsights();
     }, []);
 
     const totalPresent = attendanceAnalytics.reduce(
@@ -408,24 +419,82 @@ const Performance = () => {
                     </div>
                 </div>
 
-                {/* Department Insights */}
-                <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
-                    <div className="mb-4 flex items-center justify-between">
-                        <h2 className="font-semibold text-slate-700">Department Insights</h2>
-                        <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-600">
-                            Coming soon
-                        </span>
-                    </div>
-                    <div className="flex flex-col items-center justify-center rounded-lg bg-slate-50 py-10 text-center">
-                        <div className="mb-2 text-2xl">📊</div>
-                        <p className="text-sm font-medium text-slate-600">
-                            Insights in progress
-                        </p>
-                        <p className="mt-1 text-xs text-slate-400">
-                            Root cause analysis and recommendations will appear here.
-                        </p>
-                    </div>
+
+ {/* Department Insights */}
+
+<div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+
+    <div className="mb-4 flex items-center justify-between">
+        <h2 className="font-semibold text-slate-700">Department Insights</h2>
+        {insights?.primaryIssue && (
+            <span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-600">
+                Issue Detected
+            </span>
+        )}
+        {!insights?.primaryIssue && insights && (
+            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-600">
+                All Clear
+            </span>
+        )}
+    </div>
+
+    {!insights ? (
+        <div className="flex flex-col items-center justify-center rounded-lg bg-slate-50 py-10 text-center">
+            <p className="text-sm text-slate-400">Loading insights...</p>
+        </div>
+    ) : (
+        <div className="space-y-4">
+
+            <div className="rounded-lg bg-slate-50 px-4 py-3">
+                <p className="text-xs text-slate-400">Department Score</p>
+                <p className="mt-1 text-2xl font-bold text-slate-800">
+                    {insights.departmentScore}
+                </p>
+            </div>
+
+            {insights.primaryIssue && (
+                <div className="rounded-lg border border-rose-100 bg-rose-50 px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-rose-400">
+                        Primary Issue
+                    </p>
+                    <p className="mt-1 font-semibold text-rose-700">
+                        {insights.primaryIssue}
+                    </p>
                 </div>
+            )}
+
+            <div className="rounded-lg border border-slate-100 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Finding
+                </p>
+                <p className="mt-1 text-sm text-slate-700">
+                    {insights.finding}
+                </p>
+            </div>
+
+            {insights.impact && (
+                <div className="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-amber-500">
+                        Impact
+                    </p>
+                    <p className="mt-1 text-sm text-amber-800">
+                        {insights.impact}
+                    </p>
+                </div>
+            )}
+
+            <div className="rounded-lg border border-violet-100 bg-violet-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-violet-500">
+                    Recommendation
+                </p>
+                <p className="mt-1 text-sm text-violet-800">
+                    {insights.recommendation}
+                </p>
+            </div>
+
+        </div>
+    )}
+</div>
             </div>
         </DashboardLayout>
     );
