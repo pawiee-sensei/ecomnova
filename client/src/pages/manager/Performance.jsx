@@ -281,71 +281,87 @@ const fetchPerformanceHistory = async () => {
                         </div>
                     )}
 
-                    {selectedMetric === "kpi" && (
-                        <div className="space-y-4">
-                            {[
-                                { label: "Target", value: 3000, pct: 100, color: "bg-slate-300" },
-                                { label: "Actual", value: 2100, pct: 70, color: "bg-blue-500" },
-                            ].map((item) => (
-                                <div key={item.label}>
-                                    <div className="mb-1 flex justify-between">
-                                        <span className="text-sm text-slate-600">
-                                            {item.label}
-                                        </span>
-                                        <span className="text-sm font-bold text-slate-800">
-                                            {item.value.toLocaleString()}
-                                        </span>
-                                    </div>
-                                    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-                                        <div
-                                            className={`h-2 rounded-full ${item.color} transition-all duration-500`}
-                                            style={{ width: `${item.pct}%` }}
-                                        />
-                                    </div>
-                                </div>
-                            ))}
-                            <div className="mt-4 rounded-lg bg-blue-50 px-4 py-3">
-                                <p className="text-xs text-blue-500">Achievement Rate</p>
-                                <p className="text-2xl font-bold text-blue-700">70%</p>
-                            </div>
-                        </div>
-                    )}
+{selectedMetric === "kpi" && (
+    <div className="space-y-4">
+        {[
+            {
+                label: "Target",
+                value: departments[0]?.target_value || 0,
+                pct: 100,
+                color: "bg-slate-300",
+            },
+            {
+                label: "Actual",
+                value: departments[0]?.actual_value || 0,
+                pct: departments[0]?.achievement || 0,
+                color: "bg-blue-500",
+            },
+        ].map((item) => (
+            <div key={item.label}>
+                <div className="mb-1 flex justify-between">
+                    <span className="text-sm text-slate-600">
+                        {item.label}
+                    </span>
+                    <span className="text-sm font-bold text-slate-800">
+                        {Number(item.value).toLocaleString()}
+                    </span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                    <div
+                        className={`h-2 rounded-full ${item.color} transition-all duration-500`}
+                        style={{ width: `${item.pct}%` }}
+                    />
+                </div>
+            </div>
+        ))}
+        <div className="mt-4 rounded-lg bg-blue-50 px-4 py-3">
+            <p className="text-xs text-blue-500">Achievement Rate</p>
+            <p className="text-2xl font-bold text-blue-700">
+                {departments[0]?.achievement || 0}%
+            </p>
+        </div>
+    </div>
+)}
 
-                    {selectedMetric === "manager" && (
-                        <div>
-                            <div className="flex items-end gap-2">
-                                <p className="text-5xl font-bold text-emerald-600">60</p>
-                                <p className="mb-2 text-slate-400">/ 100</p>
-                            </div>
-                            <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-slate-100">
-                                <div
-                                    className="h-3 rounded-full bg-emerald-500 transition-all duration-700"
-                                    style={{ width: "60%" }}
-                                />
-                            </div>
-                            <p className="mt-3 text-sm text-slate-500">
-                                Manager rating is based on team feedback and KPI results.
-                            </p>
-                        </div>
-                    )}
+{selectedMetric === "manager" && (
+    <div>
+        <div className="flex items-end gap-2">
+            <p className="text-5xl font-bold text-emerald-600">
+                {departments[0]?.managerRating || 0}
+            </p>
+            <p className="mb-2 text-slate-400">/ 100</p>
+        </div>
+        <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-slate-100">
+            <div
+                className="h-3 rounded-full bg-emerald-500 transition-all duration-700"
+                style={{ width: `${departments[0]?.managerRating || 0}%` }}
+            />
+        </div>
+        <p className="mt-3 text-sm text-slate-500">
+            Manager rating is based on team feedback and KPI results.
+        </p>
+    </div>
+)}
 
-                    {selectedMetric === "performance" && (
-                        <div>
-                            <div className="flex items-end gap-2">
-                                <p className="text-5xl font-bold text-orange-600">65</p>
-                                <p className="mb-2 text-slate-400">/ 100</p>
-                            </div>
-                            <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-slate-100">
-                                <div
-                                    className="h-3 rounded-full bg-orange-500 transition-all duration-700"
-                                    style={{ width: "65%" }}
-                                />
-                            </div>
-                            <p className="mt-3 text-sm text-slate-500">
-                                Composite score based on attendance, KPI, and manager ratings.
-                            </p>
-                        </div>
-                    )}
+{selectedMetric === "performance" && (
+    <div>
+        <div className="flex items-end gap-2">
+            <p className="text-5xl font-bold text-orange-600">
+                {departments[0]?.performanceScore || 0}
+            </p>
+            <p className="mb-2 text-slate-400">/ 100</p>
+        </div>
+        <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-slate-100">
+            <div
+                className="h-3 rounded-full bg-orange-500 transition-all duration-700"
+                style={{ width: `${departments[0]?.performanceScore || 0}%` }}
+            />
+        </div>
+        <p className="mt-3 text-sm text-slate-500">
+            Composite score based on attendance, KPI, and manager ratings.
+        </p>
+    </div>
+)}
                 </div>
 
                 {/* Right: Chart Panel */}
@@ -399,103 +415,250 @@ const fetchPerformanceHistory = async () => {
                     )}
                 </div>
             </div>
+{/* Department Insights — Full Row */}
+<div className="mb-6 rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
 
-            {/* Bottom Row */}
-            <div className="grid gap-6 lg:grid-cols-2">
-                {/* Performance Alerts */}
-                <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
-                    <div className="mb-4 flex items-center justify-between">
-                        <h2 className="font-semibold text-slate-700">Performance Alerts</h2>
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
-                            0 active
-                        </span>
-                    </div>
-                    <div className="flex flex-col items-center justify-center rounded-lg bg-slate-50 py-10 text-center">
-                        <div className="mb-2 text-2xl">✅</div>
-                        <p className="text-sm font-medium text-slate-600">All clear</p>
-                        <p className="mt-1 text-xs text-slate-400">
-                            No active alerts or department risks.
-                        </p>
-                    </div>
-                </div>
-
-
- {/* Department Insights */}
-
-<div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
-
-    <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-semibold text-slate-700">Department Insights</h2>
-        {insights?.primaryIssue && (
-            <span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-600">
-                Issue Detected
+    {/* Header */}
+    <div className="mb-6 flex items-center justify-between">
+        <div>
+            <h2 className="font-semibold text-slate-700">Department Insights</h2>
+            <p className="mt-0.5 text-xs text-slate-400">
+                Based on current month data
+            </p>
+        </div>
+        {insights?.primaryIssue ? (
+            <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-600">
+                ⚠ Issue Detected
             </span>
-        )}
-        {!insights?.primaryIssue && insights && (
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-600">
-                All Clear
+        ) : insights ? (
+            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-600">
+                ✓ All Clear
             </span>
-        )}
+        ) : null}
     </div>
 
     {!insights ? (
-        <div className="flex flex-col items-center justify-center rounded-lg bg-slate-50 py-10 text-center">
+        <div className="flex h-40 items-center justify-center rounded-lg bg-slate-50">
             <p className="text-sm text-slate-400">Loading insights...</p>
         </div>
     ) : (
-        <div className="space-y-4">
+        <div className="grid gap-6 lg:grid-cols-3">
 
-            <div className="rounded-lg bg-slate-50 px-4 py-3">
-                <p className="text-xs text-slate-400">Department Score</p>
-                <p className="mt-1 text-2xl font-bold text-slate-800">
-                    {insights.departmentScore}
-                </p>
+            {/* Left: Score + Status */}
+            <div className="flex flex-col gap-4">
+
+                <div className="rounded-xl bg-slate-50 p-5">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Performance Score
+                    </p>
+                    <div className="mt-2 flex items-end gap-2">
+                        <p className={`text-5xl font-bold ${
+                            insights.departmentScore >= 90 ? "text-emerald-600"
+                            : insights.departmentScore >= 75 ? "text-blue-600"
+                            : insights.departmentScore >= 60 ? "text-amber-500"
+                            : "text-rose-600"
+                        }`}>
+                            {insights.departmentScore}
+                        </p>
+                        <p className="mb-2 text-slate-400">/ 100</p>
+                    </div>
+
+                    {/* Score bar */}
+                    <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-200">
+                        <div
+                            className={`h-2 rounded-full transition-all duration-700 ${
+                                insights.departmentScore >= 90 ? "bg-emerald-500"
+                                : insights.departmentScore >= 75 ? "bg-blue-500"
+                                : insights.departmentScore >= 60 ? "bg-amber-400"
+                                : "bg-rose-500"
+                            }`}
+                            style={{ width: `${insights.departmentScore}%` }}
+                        />
+                    </div>
+
+                    {/* Status label */}
+                    <p className={`mt-2 text-xs font-semibold ${
+                        insights.departmentScore >= 90 ? "text-emerald-600"
+                        : insights.departmentScore >= 75 ? "text-blue-600"
+                        : insights.departmentScore >= 60 ? "text-amber-500"
+                        : "text-rose-600"
+                    }`}>
+                        {insights.departmentScore >= 90 ? "Excellent"
+                        : insights.departmentScore >= 75 ? "Good"
+                        : insights.departmentScore >= 60 ? "Warning"
+                        : "Critical"}
+                    </p>
+
+                    {/* Threshold guide */}
+                    <div className="mt-4 space-y-1 border-t border-slate-200 pt-3">
+                        {[
+                            { label: "Excellent", range: "90–100", color: "bg-emerald-500" },
+                            { label: "Good",      range: "75–89",  color: "bg-blue-500" },
+                            { label: "Warning",   range: "60–74",  color: "bg-amber-400" },
+                            { label: "Critical",  range: "< 60",   color: "bg-rose-500" },
+                        ].map((t) => (
+                            <div key={t.label} className="flex items-center gap-2">
+                                <span className={`h-2 w-2 rounded-full ${t.color}`} />
+                                <span className="text-xs text-slate-500">
+                                    {t.label}
+                                </span>
+                                <span className="ml-auto text-xs text-slate-400">
+                                    {t.range}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
             </div>
 
-            {insights.primaryIssue && (
-                <div className="rounded-lg border border-rose-100 bg-rose-50 px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-rose-400">
-                        Primary Issue
-                    </p>
-                    <p className="mt-1 font-semibold text-rose-700">
-                        {insights.primaryIssue}
-                    </p>
-                </div>
-            )}
+            {/* Middle: Score Breakdown */}
+            <div className="flex flex-col gap-4">
 
-            <div className="rounded-lg border border-slate-100 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    Finding
-                </p>
-                <p className="mt-1 text-sm text-slate-700">
-                    {insights.finding}
-                </p>
+                <div className="rounded-xl bg-slate-50 p-5">
+                    <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Score Breakdown
+                    </p>
+
+                    <div className="space-y-4">
+                        {[
+                            {
+                                label: "KPI Achievement",
+                                value: departments[0]?.achievement || 0,
+                                weight: 60,
+                                color: "bg-blue-500",
+                                text: "text-blue-600",
+                                contribution: Math.round((departments[0]?.achievement || 0) * 0.60),
+                            },
+                            {
+                                label: "Attendance",
+                                value: departments[0]?.attendance || 0,
+                                weight: 20,
+                                color: "bg-violet-500",
+                                text: "text-violet-600",
+                                contribution: Math.round((departments[0]?.attendance || 0) * 0.20),
+                            },
+                            {
+                                label: "Manager Rating",
+                                value: departments[0]?.managerRating || 0,
+                                weight: 20,
+                                color: "bg-emerald-500",
+                                text: "text-emerald-600",
+                                contribution: Math.round((departments[0]?.managerRating || 0) * 0.20),
+                            },
+                        ].map((item) => (
+                            <div key={item.label}>
+                                <div className="mb-1 flex items-center justify-between">
+                                    <div>
+                                        <span className="text-sm text-slate-600">
+                                            {item.label}
+                                        </span>
+                                        <span className="ml-2 text-xs text-slate-400">
+                                            ({item.weight}% weight)
+                                        </span>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className={`text-sm font-bold ${item.text}`}>
+                                            {item.value}
+                                        </span>
+                                        <span className="ml-1 text-xs text-slate-400">
+                                            → {item.contribution} pts
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+                                    <div
+                                        className={`h-2 rounded-full ${item.color} transition-all duration-700`}
+                                        style={{ width: `${item.value}%` }}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+
+                        {/* Total */}
+                        <div className="flex items-center justify-between border-t border-slate-200 pt-3">
+                            <span className="text-sm font-semibold text-slate-600">
+                                Total Score
+                            </span>
+                            <span className="text-sm font-bold text-slate-800">
+                                {insights.departmentScore} / 100
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            {insights.impact && (
-                <div className="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-amber-500">
-                        Impact
+            {/* Right: Finding, Impact, Recommendation */}
+            <div className="flex flex-col gap-3">
+
+                {insights.primaryIssue && (
+                    <div className="rounded-xl border border-rose-100 bg-rose-50 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-rose-400">
+                            Primary Issue
+                        </p>
+                        <p className="mt-1 font-semibold text-rose-700">
+                            {insights.primaryIssue}
+                        </p>
+                    </div>
+                )}
+
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        Finding
                     </p>
-                    <p className="mt-1 text-sm text-amber-800">
-                        {insights.impact}
+                    <p className="mt-1 text-sm text-slate-700">
+                        {insights.finding}
                     </p>
                 </div>
-            )}
 
-            <div className="rounded-lg border border-violet-100 bg-violet-50 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-violet-500">
-                    Recommendation
-                </p>
-                <p className="mt-1 text-sm text-violet-800">
-                    {insights.recommendation}
-                </p>
+                {insights.impact && (
+                    <div className="rounded-xl border border-amber-100 bg-amber-50 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-amber-500">
+                            Impact
+                        </p>
+                        <p className="mt-1 text-sm text-amber-800">
+                            {insights.impact}
+                        </p>
+                    </div>
+                )}
+
+                <div className="rounded-xl border border-violet-100 bg-violet-50 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-violet-500">
+                        Recommendation
+                    </p>
+                    <p className="mt-1 text-sm text-violet-800">
+                        {insights.recommendation}
+                    </p>
+                </div>
+
             </div>
 
         </div>
     )}
 </div>
-            </div>
+
+{/* Performance Alerts — Full Row */}
+<div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+    <div className="mb-4 flex items-center justify-between">
+        <div>
+            <h2 className="font-semibold text-slate-700">Performance Alerts</h2>
+            <p className="mt-0.5 text-xs text-slate-400">
+                Automatic risk detection
+            </p>
+        </div>
+        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+            0 active
+        </span>
+    </div>
+    <div className="flex flex-col items-center justify-center rounded-lg bg-slate-50 py-10 text-center">
+        <div className="mb-2 text-2xl">✅</div>
+        <p className="text-sm font-medium text-slate-600">All clear</p>
+        <p className="mt-1 text-xs text-slate-400">
+            No active alerts or department risks.
+        </p>
+    </div>
+</div>
         </DashboardLayout>
     );
 };
