@@ -7,7 +7,8 @@ const verifyToken = require("../middleware/authMiddleware");
 const {
     getDepartmentPerformance,
     getDepartmentPerformanceHistory,
-    getInsights
+    getInsights,
+    getAlerts
 } = require("../controllers/performanceController");
 
 
@@ -27,6 +28,12 @@ router.get(
     "/insights",
     verifyToken,
     getInsights
+);
+
+router.get(
+    "/alerts",
+    verifyToken,
+    getAlerts
 );
 
 module.exports = router;

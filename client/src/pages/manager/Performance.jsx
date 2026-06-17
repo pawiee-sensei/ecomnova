@@ -18,11 +18,21 @@ const Performance = () => {
     const [attendanceAnalytics, setAttendanceAnalytics] = useState([]);
     const [history, setHistory] = useState([]);
     const [insights, setInsights] = useState(null);
+    const [alerts, setAlerts] = useState([]);
 
 const fetchInsights = async () => {
     try {
         const response = await api.get("/performance/insights");
         setInsights(response.data);
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+const fetchAlerts = async () => {
+    try {
+        const response = await api.get("/performance/alerts");
+        setAlerts(response.data);
     } catch (error) {
         console.error(error);
     }
@@ -60,6 +70,7 @@ const fetchPerformanceHistory = async () => {
         fetchAttendanceAnalytics();
         fetchPerformanceHistory();
         fetchInsights();
+        fetchAlerts();
     }, []);
 
     const totalPresent = attendanceAnalytics.reduce(
@@ -638,6 +649,7 @@ const fetchPerformanceHistory = async () => {
     )}
 </div>
 
+
 {/* Performance Alerts — Full Row */}
 <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
     <div className="mb-4 flex items-center justify-between">
@@ -647,17 +659,64 @@ const fetchPerformanceHistory = async () => {
                 Automatic risk detection
             </p>
         </div>
-        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
-            0 active
+        <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+            alerts.length === 0
+                ? "bg-slate-100 text-slate-500"
+                : alerts.some((a) => a.severity === "critical")
+                ? "bg-rose-100 text-rose-600"
+                : "bg-amber-100 text-amber-600"
+        }`}>
+            {alerts.length === 0
+                ? "0 active"
+                : `${alerts.length} active`}
         </span>
     </div>
-    <div className="flex flex-col items-center justify-center rounded-lg bg-slate-50 py-10 text-center">
-        <div className="mb-2 text-2xl">✅</div>
-        <p className="text-sm font-medium text-slate-600">All clear</p>
-        <p className="mt-1 text-xs text-slate-400">
-            No active alerts or department risks.
-        </p>
-    </div>
+
+    {alerts.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-lg bg-slate-50 py-10 text-center">
+            <div className="mb-2 text-2xl">✅</div>
+            <p className="text-sm font-medium text-slate-600">All clear</p>
+            <p className="mt-1 text-xs text-slate-400">
+                No active alerts or department risks.
+            </p>
+        </div>
+    ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {alerts.map((alert, index) => (
+                <div
+                    key={index}
+                    className={`rounded-xl border p-4 ${
+                        alert.severity === "critical"
+                            ? "border-rose-200 bg-rose-50"
+                            : "border-amber-200 bg-amber-50"
+                    }`}
+                >
+                    <div className="mb-2 flex items-center gap-2">
+                        <span className="text-lg">
+                            {alert.severity === "critical" ? "🔴" : "⚠️"}
+                        </span>
+                        <span className={`text-xs font-bold uppercase tracking-wide ${
+                            alert.severity === "critical"
+                                ? "text-rose-500"
+                                : "text-amber-500"
+                        }`}>
+                            {alert.severity}
+                        </span>
+                    </div>
+                    <p className={`text-sm font-medium ${
+                        alert.severity === "critical"
+                            ? "text-rose-700"
+                            : "text-amber-700"
+                    }`}>
+                        {alert.message}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-400 capitalize">
+                        {alert.type.replaceAll("-", " ")}
+                    </p>
+                </div>
+            ))}
+        </div>
+    )}
 </div>
         </DashboardLayout>
     );

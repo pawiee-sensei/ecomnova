@@ -82,10 +82,30 @@ const history =
     }
 };
 
+const getAlerts = async (req, res) => {
+
+    try {
+
+        const alerts =
+            await performanceService.getAlerts();
+
+        res.json(alerts);
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message: "Failed to load alerts"
+        });
+    }
+};
+
     
 
 module.exports = {
     getDepartmentPerformance,
     getDepartmentPerformanceHistory,
-    getInsights
+    getInsights,
+    getAlerts
 };  

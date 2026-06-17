@@ -232,8 +232,82 @@ resolve(
     });
 };
 
+const getAlerts = async () => {
+
+    return new Promise((resolve, reject) => {
+
+        performanceModel.getDepartmentPerformance(
+            (err, results) => {
+
+                if (err) {
+                    return reject(err);
+                }
+
+                const target = Number(results[0]?.target_value) || 0;
+                const actual = Number(results[0]?.actual_value) || 0;
+
+                const achievement =
+                    target === 0
+                        ? 0
+                        : Math.round((actual / target) * 100);
+
+                const attendance =
+                    results[0]?.attendance_score === null
+                        ? 100
+                        : Number(results[0]?.attendance_score);
+
+                const managerRating =
+                    (Number(results[0]?.rating) || 0) * 10;
+
+                const performanceScore = Math.round(
+                    achievement * 0.60 +
+                    attendance * 0.20 +
+                    managerRating * 0.20
+                );
+
+                const alerts = [];
+
+                if (attendance < 75) {
+                    alerts.push({
+                        type: "attendance-risk",
+                        severity: attendance < 50 ? "critical" : "warning",
+                        message: `Attendance is ${attendance}%, below the 75% target.`,
+                    });
+                }
+
+                if (achievement < 60) {
+                    alerts.push({
+                        type: "kpi-risk",
+                        severity: achievement < 40 ? "critical" : "warning",
+                        message: `KPI achievement is ${achievement}%, below the 60% threshold.`,
+                    });
+                }
+
+                if (performanceScore < 70) {
+                    alerts.push({
+                        type: "performance-risk",
+                        severity: performanceScore < 60 ? "critical" : "warning",
+                        message: `Performance score is ${performanceScore}, below the target of 70.`,
+                    });
+                }
+
+                if (managerRating < 60) {
+                    alerts.push({
+                        type: "manager-risk",
+                        severity: "warning",
+                        message: `Manager rating is ${managerRating}, below the threshold of 60.`,
+                    });
+                }
+
+                resolve(alerts);
+            }
+        );
+    });
+};
+
 module.exports = {
     getDepartmentPerformance,
     getDepartmentPerformanceHistory,
-    getInsights
+    getInsights,
+    getAlerts
 };
