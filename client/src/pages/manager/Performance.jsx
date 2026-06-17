@@ -18,25 +18,87 @@ const Performance = () => {
     const [selectedMetric, setSelectedMetric] = useState("attendance");
     const [attendanceAnalytics, setAttendanceAnalytics] = useState([]);
     const [history, setHistory] = useState([]);
-    const [insights, setInsights] = useState(null);
-    const [alerts, setAlerts] = useState([]);
 
-const fetchInsights = async () => {
-    try {
-        const response = await api.get("/performance/insights");
-        setInsights(response.data);
-    } catch (error) {
-        console.error(error);
+const computeInsights = (d) => {
+    if (!d) return null;
+
+    const { attendance, achievement, managerRating, performanceScore } = d;
+
+    let primaryIssue = null;
+    let finding = null;
+    let impact = null;
+    let recommendation = null;
+
+    if (attendance < 75) {
+        primaryIssue = "Attendance";
+        finding = `Attendance is ${attendance}%, below the target of 75%.`;
+        impact = "Low attendance is reducing department productivity.";
+        recommendation = "Review attendance trends and conduct coaching sessions with affected employees.";
+    } else if (achievement < 60) {
+        primaryIssue = "KPI Achievement";
+        finding = `KPI achievement is ${achievement}%, below the target of 60%.`;
+        impact = "Low KPI achievement is affecting overall department performance.";
+        recommendation = "Identify skill gaps and provide targeted training to improve output.";
+    } else if (managerRating < 60) {
+        primaryIssue = "Manager Rating";
+        finding = `Manager rating is ${managerRating}, below the threshold of 60.`;
+        impact = "Low manager rating may indicate team dissatisfaction or leadership gaps.";
+        recommendation = "Schedule a leadership review and gather team feedback.";
+    } else {
+        primaryIssue = null;
+        finding = "All metrics are within acceptable ranges.";
+        impact = null;
+        recommendation = "Continue current strategies and monitor monthly.";
     }
+
+    return {
+        departmentScore: performanceScore,
+        primaryIssue,
+        finding,
+        impact,
+        recommendation,
+    };
 };
 
-const fetchAlerts = async () => {
-    try {
-        const response = await api.get("/performance/alerts");
-        setAlerts(response.data);
-    } catch (error) {
-        console.error(error);
+const computeAlerts = (d) => {
+    if (!d) return [];
+
+    const { attendance, achievement, managerRating, performanceScore } = d;
+    const alerts = [];
+
+    if (attendance < 75) {
+        alerts.push({
+            type: "attendance-risk",
+            severity: attendance < 50 ? "critical" : "warning",
+            message: `Attendance is ${attendance}%, below the 75% target.`,
+        });
     }
+
+    if (achievement < 60) {
+        alerts.push({
+            type: "kpi-risk",
+            severity: achievement < 40 ? "critical" : "warning",
+            message: `KPI achievement is ${achievement}%, below the 60% threshold.`,
+        });
+    }
+
+    if (performanceScore < 70) {
+        alerts.push({
+            type: "performance-risk",
+            severity: performanceScore < 60 ? "critical" : "warning",
+            message: `Performance score is ${performanceScore}, below the target of 70.`,
+        });
+    }
+
+    if (managerRating < 60) {
+        alerts.push({
+            type: "manager-risk",
+            severity: "warning",
+            message: `Manager rating is ${managerRating}, below the threshold of 60.`,
+        });
+    }
+
+    return alerts;
 };
 
 const fetchPerformanceHistory = async () => {
@@ -73,8 +135,7 @@ const fetchPerformance = async () => {
         fetchPerformance();
         fetchAttendanceAnalytics();
         fetchPerformanceHistory();
-        fetchInsights();
-        fetchAlerts();
+
     }, []);
 
     const totalPresent = attendanceAnalytics.reduce(
@@ -145,6 +206,8 @@ const metrics = [
         accent: "#ea580c",
     },
 ];
+    const insights = computeInsights(selectedDepartment);
+    const alerts = computeAlerts(selectedDepartment);
 
     const activeMetric = metrics.find((m) => m.key === selectedMetric);
 
