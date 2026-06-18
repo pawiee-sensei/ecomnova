@@ -19,7 +19,9 @@ const getManagerTeam = (
             department_id,
             team_id,
             job_title,
-            work_location
+            work_location,
+            shift
+
         FROM users
         WHERE manager_id = ?
         ORDER BY fullname ASC

@@ -690,6 +690,151 @@ const getAnnouncements =
     }
 };
 
+const exportAttendanceReport = async (req, res) => {
+    try {
+        const managerId = req.user.id;
+        const { startDate, endDate } = req.query;
+
+        const attendance = await managerService.getTeamAttendance(managerId);
+
+        let filtered = attendance;
+        if (startDate && endDate) {
+            filtered = attendance.filter((r) => {
+                const date = new Date(r.attendance_date);
+                return date >= new Date(startDate) && date <= new Date(endDate);
+            });
+        }
+
+        const headers = ["Employee", "Date", "Status"];
+        const rows = filtered.map((r) => [
+            r.fullname,
+            new Date(r.attendance_date).toLocaleDateString(),
+            r.status
+        ]);
+
+        const csv = [headers, ...rows]
+            .map((row) => row.join(","))
+            .join("\n");
+
+        res.setHeader("Content-Type", "text/csv");
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="attendance-report-${Date.now()}.csv"`
+        );
+        res.send(csv);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to export attendance report" });
+    }
+};
+
+const exportLeaveReport = async (req, res) => {
+    try {
+        const managerId = req.user.id;
+
+        const db = require("../config/db");
+
+        const sql = `
+            SELECT
+                users.fullname AS employee,
+                leave_requests.leave_type,
+                leave_requests.start_date,
+                leave_requests.end_date,
+                leave_requests.reason,
+                leave_requests.status,
+                leave_requests.manager_note,
+                leave_requests.created_at
+            FROM leave_requests
+            INNER JOIN users ON leave_requests.employee_id = users.id
+            WHERE leave_requests.manager_id = ?
+            ORDER BY leave_requests.created_at DESC
+        `;
+
+        db.query(sql, [managerId], (err, results) => {
+            if (err) {
+                return res.status(500).json({ message: "Failed to export leave report" });
+            }
+
+            const headers = [
+                "Employee", "Leave Type", "Start Date",
+                "End Date", "Reason", "Status", "Manager Note", "Filed Date"
+            ];
+
+            const rows = results.map((r) => [
+                r.employee,
+                r.leave_type,
+                new Date(r.start_date).toLocaleDateString(),
+                new Date(r.end_date).toLocaleDateString(),
+                `"${r.reason}"`,
+                r.status,
+                r.manager_note ? `"${r.manager_note}"` : "",
+                new Date(r.created_at).toLocaleDateString()
+            ]);
+
+            const csv = [headers, ...rows]
+                .map((row) => row.join(","))
+                .join("\n");
+
+            res.setHeader("Content-Type", "text/csv");
+            res.setHeader(
+                "Content-Disposition",
+                `attachment; filename="leave-report-${Date.now()}.csv"`
+            );
+            res.send(csv);
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to export leave report" });
+    }
+};
+
+const exportPerformanceReport = async (req, res) => {
+    try {
+        const managerId = req.user.id;
+
+        const analytics = await managerService.getAttendanceAnalytics(managerId);
+
+        const headers = [
+            "Employee", "Present", "Late", "Absent", "Leave", "Total Records", "Attendance Rate %"
+        ];
+
+        const rows = analytics.map((e) => {
+            const total =
+                Number(e.presentCount) +
+                Number(e.lateCount) +
+                Number(e.absentCount) +
+                Number(e.leaveCount);
+            const rate = total === 0 ? 0 : Math.round((Number(e.presentCount) / total) * 100);
+            return [
+                e.fullname,
+                e.presentCount,
+                e.lateCount,
+                e.absentCount,
+                e.leaveCount,
+                total,
+                `${rate}%`
+            ];
+        });
+
+        const csv = [headers, ...rows]
+            .map((row) => row.join(","))
+            .join("\n");
+
+        res.setHeader("Content-Type", "text/csv");
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="performance-report-${Date.now()}.csv"`
+        );
+        res.send(csv);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to export performance report" });
+    }
+};
+
 module.exports = {
     getMyTeam,
     getTeamMember,
@@ -707,5 +852,8 @@ module.exports = {
     getAttendanceAnalytics,
     getEmployeeAttendanceHistory,
     getAttendanceAlerts,
-    updateEmployeeShift
+    updateEmployeeShift,
+    exportAttendanceReport,
+    exportLeaveReport,
+    exportPerformanceReport
 };

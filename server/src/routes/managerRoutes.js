@@ -21,7 +21,10 @@ const {
     getAttendanceAnalytics,
     getEmployeeAttendanceHistory,
     getAttendanceAlerts,
-    updateEmployeeShift
+    updateEmployeeShift,
+    exportAttendanceReport,
+    exportLeaveReport,
+    exportPerformanceReport
 } = require("../controllers/managerController");
 
 router.get(
@@ -124,6 +127,24 @@ router.put(
     "/team/:id/shift",
     verifyToken,
     updateEmployeeShift
+);
+
+router.get(
+    "/reports/attendance",
+    verifyToken,
+    exportAttendanceReport
+);
+
+router.get(
+    "/reports/leave",
+    verifyToken,
+    exportLeaveReport
+);
+
+router.get(
+    "/reports/performance",
+    verifyToken,
+    exportPerformanceReport
 );
 
 

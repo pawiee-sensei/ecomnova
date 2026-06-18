@@ -50,21 +50,24 @@ const ShiftManagement = () => {
         fetchTeam();
     }, []);
 
-    const handleUpdateShift = async (id) => {
-        if (!editShift) return;
-        try {
-            setActionLoading(true);
-            await api.put(`/manager/team/${id}/shift`, { shift: editShift });
-            setEditingId(null);
-            setEditShift("");
-            fetchTeam();
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
+const handleUpdateShift = async (id) => {
+    if (!editShift) return;
+    try {
+        setActionLoading(true);
+        await api.put(`/manager/team/${id}/shift`, { shift: editShift });
+        setEditingId(null);
+        setEditShift("");
+        setEmployees((prev) =>
+            prev.map((e) =>
+                e.id === id ? { ...e, shift: editShift } : e
+            )
+        );
+    } catch (error) {
+        console.error(error);
+    } finally {
+        setActionLoading(false);
+    }
+};
     const filtered = employees.filter((e) => {
         const matchesSearch =
             e.fullname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
