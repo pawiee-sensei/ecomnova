@@ -103,11 +103,50 @@ const getAlerts = async (req, res) => {
     }
 };
 
+const getKPIs = async (req, res) => {
+    try {
+        const managerId = req.user.id;
+        const data = await performanceService.getKPIs(managerId);
+        res.json(data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to load KPIs" });
+    }
+};
+
+const setKPI = async (req, res) => {
+    try {
+        const managerId = req.user.id;
+        const { month, year, targetValue } = req.body;
+        await performanceService.setKPI(managerId, month, year, targetValue);
+        res.json({ message: "KPI target set successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to set KPI" });
+    }
+};
+
+const updateActualValue = async (req, res) => {
+    try {
+        const managerId = req.user.id;
+        const { id } = req.params;
+        const { actualValue } = req.body;
+        await performanceService.updateActualValue(managerId, id, actualValue);
+        res.json({ message: "Actual value updated successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ message: error.message });
+    }
+};
+
     
 
 module.exports = {
     getDepartmentPerformance,
     getDepartmentPerformanceHistory,
     getInsights,
-    getAlerts
-};  
+    getAlerts,
+    getKPIs,
+    setKPI,
+    updateActualValue
+};

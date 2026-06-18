@@ -99,6 +99,11 @@ const Sidebar = () => {
                 name: "Leave",
                 path: "/manager/leave",
                 icon: "L"
+            },
+            {
+                name: "KPI",
+                path: "/manager/kpi",
+                icon: "K"
             }
         ],
 

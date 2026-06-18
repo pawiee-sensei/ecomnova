@@ -8,7 +8,10 @@ const {
     getDepartmentPerformance,
     getDepartmentPerformanceHistory,
     getInsights,
-    getAlerts
+    getAlerts,
+    getKPIs,
+    setKPI,
+    updateActualValue
 } = require("../controllers/performanceController");
 
 
@@ -34,6 +37,24 @@ router.get(
     "/alerts",
     verifyToken,
     getAlerts
+);
+
+router.get(
+    "/kpi",
+    verifyToken,
+    getKPIs
+);
+
+router.post(
+    "/kpi",
+    verifyToken,
+    setKPI
+);
+
+router.put(
+    "/kpi/:id",
+    verifyToken,
+    updateActualValue
 );
 
 module.exports = router;

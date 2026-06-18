@@ -94,7 +94,67 @@ const getDepartmentPerformanceHistory = (
     );
 };
 
+const getManagerDepartmentId = (managerId, callback) => {
+    const sql = `
+        SELECT DISTINCT department_id
+        FROM users
+        WHERE manager_id = ?
+        AND department_id IS NOT NULL
+        LIMIT 1
+    `;
+    db.query(sql, [managerId], callback);
+};
+
+const getKPIByDepartment = (departmentId, callback) => {
+    const sql = `
+        SELECT
+            department_kpis.id,
+            department_kpis.month,
+            department_kpis.year,
+            department_kpis.target_value,
+            department_kpis.actual_value,
+            department_kpis.created_at,
+            departments.name AS department_name
+        FROM department_kpis
+        INNER JOIN departments
+            ON department_kpis.department_id = departments.id
+        WHERE department_kpis.department_id = ?
+        ORDER BY department_kpis.year DESC, department_kpis.month DESC
+    `;
+    db.query(sql, [departmentId], callback);
+};
+
+const setKPI = (departmentId, month, year, targetValue, callback) => {
+    const sql = `
+        INSERT INTO department_kpis (
+            department_id,
+            month,
+            year,
+            target_value,
+            actual_value
+        )
+        VALUES (?, ?, ?, ?, 0)
+        ON DUPLICATE KEY UPDATE
+            target_value = VALUES(target_value)
+    `;
+    db.query(sql, [departmentId, month, year, targetValue], callback);
+};
+
+const updateActualValue = (id, departmentId, actualValue, callback) => {
+    const sql = `
+        UPDATE department_kpis
+        SET actual_value = ?
+        WHERE id = ?
+        AND department_id = ?
+    `;
+    db.query(sql, [actualValue, id, departmentId], callback);
+};
+
 module.exports = {
     getDepartmentPerformance,
-    getDepartmentPerformanceHistory
+    getDepartmentPerformanceHistory,
+    getManagerDepartmentId,
+    getKPIByDepartment,
+    setKPI,
+    updateActualValue
 };

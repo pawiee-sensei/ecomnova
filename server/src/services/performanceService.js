@@ -304,10 +304,76 @@ const getAlerts = async () => {
         );
     });
 };
+const getManagerDepartmentId = async (managerId) => {
+    return new Promise((resolve, reject) => {
+        performanceModel.getManagerDepartmentId(managerId, (err, results) => {
+            if (err) return reject(err);
+            if (results.length === 0) return reject(new Error("No department found for this manager"));
+            resolve(results[0].department_id);
+        });
+    });
+};
+
+const getKPIs = async (managerId) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const departmentId = await getManagerDepartmentId(managerId);
+            performanceModel.getKPIByDepartment(departmentId, (err, results) => {
+                if (err) return reject(err);
+                const kpis = results.map((kpi) => {
+                    const target = Number(kpi.target_value);
+                    const actual = Number(kpi.actual_value);
+                    const achievement = target === 0 ? 0 : Math.round((actual / target) * 100);
+                    return {
+                        ...kpi,
+                        target_value: target,
+                        actual_value: actual,
+                        achievement
+                    };
+                });
+                resolve({ departmentId, kpis });
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
+
+const setKPI = async (managerId, month, year, targetValue) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const departmentId = await getManagerDepartmentId(managerId);
+            performanceModel.setKPI(departmentId, month, year, targetValue, (err, result) => {
+                if (err) return reject(err);
+                resolve(result);
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
+
+const updateActualValue = async (managerId, id, actualValue) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const departmentId = await getManagerDepartmentId(managerId);
+            performanceModel.updateActualValue(id, departmentId, actualValue, (err, result) => {
+                if (err) return reject(err);
+                if (result.affectedRows === 0) return reject(new Error("KPI not found or unauthorized"));
+                resolve(result);
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
 
 module.exports = {
     getDepartmentPerformance,
     getDepartmentPerformanceHistory,
     getInsights,
-    getAlerts
+    getAlerts,
+    getKPIs,
+    setKPI,
+    updateActualValue
 };

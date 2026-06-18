@@ -37,6 +37,7 @@ import Announcements from "./pages/Manager/Announcements";
 import Attendance from "./pages/Manager/Attendance";
 import Performance from "./pages/Manager/Performance";
 import LeaveManagement from "./pages/Manager/LeaveManagement";
+import KPIManagement from "./pages/Manager/KPIManagement";
 
 import AuthLoader from "./components/AuthLoader";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -49,6 +50,17 @@ function App() {
 
             <AuthLoader />
                 <Routes>
+
+                    <Route
+                        path="/manager/kpi"
+                        element={
+                            <ProtectedRoute
+                                roles={["manager"]}
+                            >
+                                <KPIManagement />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     <Route
                         path="/manager/leave"
