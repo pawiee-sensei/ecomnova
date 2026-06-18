@@ -571,6 +571,21 @@ const getAttendanceAlerts = (
     );
 };
 
+const updateEmployeeShift = (
+    employeeId,
+    managerId,
+    shift,
+    callback
+) => {
+    const sql = `
+        UPDATE users
+        SET shift = ?
+        WHERE id = ?
+        AND manager_id = ?
+    `;
+    db.query(sql, [shift, employeeId, managerId], callback);
+};
+
 
 
 
@@ -591,5 +606,6 @@ module.exports = {
     getAttendanceSummary,
     getAttendanceAnalytics,
     getEmployeeAttendanceHistory,
-    getAttendanceAlerts
+    getAttendanceAlerts,
+    updateEmployeeShift
 };

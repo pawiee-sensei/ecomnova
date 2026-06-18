@@ -104,6 +104,11 @@ const Sidebar = () => {
                 name: "KPI",
                 path: "/manager/kpi",
                 icon: "K"
+            },
+            {
+                name: "Shifts",
+                path: "/manager/shifts",
+                icon: "S"
             }
         ],
 

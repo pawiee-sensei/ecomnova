@@ -38,6 +38,7 @@ import Attendance from "./pages/Manager/Attendance";
 import Performance from "./pages/Manager/Performance";
 import LeaveManagement from "./pages/Manager/LeaveManagement";
 import KPIManagement from "./pages/Manager/KPIManagement";
+import ShiftManagement from "./pages/Manager/ShiftManagement";
 
 import AuthLoader from "./components/AuthLoader";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -50,6 +51,17 @@ function App() {
 
             <AuthLoader />
                 <Routes>
+
+                    <Route
+                        path="/manager/shifts"
+                        element={
+                            <ProtectedRoute
+                                roles={["manager"]}
+                            >
+                                <ShiftManagement />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     <Route
                         path="/manager/kpi"

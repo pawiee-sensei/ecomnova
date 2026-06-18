@@ -526,6 +526,29 @@ const getAnnouncements =
         );
     };
 
+const updateEmployeeShift = async (employeeId, managerId, shift) => {
+    return new Promise((resolve, reject) => {
+        managerModel.validateManagedEmployee(
+            employeeId,
+            managerId,
+            (err, employee) => {
+                if (err) return reject(err);
+                if (employee.length === 0) return reject(new Error("Unauthorized employee"));
+
+                managerModel.updateEmployeeShift(
+                    employeeId,
+                    managerId,
+                    shift,
+                    (err, result) => {
+                        if (err) return reject(err);
+                        resolve(result);
+                    }
+                );
+            }
+        );
+    });
+};
+
 module.exports = {
     getManagerTeam,
     getTeamMemberById,
@@ -542,5 +565,6 @@ module.exports = {
     getAttendanceSummary,
     getAttendanceAnalytics,
     getEmployeeAttendanceHistory,
-    getAttendanceAlerts
+    getAttendanceAlerts,
+    updateEmployeeShift
 };

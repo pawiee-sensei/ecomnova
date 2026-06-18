@@ -20,7 +20,8 @@ const {
     getAttendanceSummary,
     getAttendanceAnalytics,
     getEmployeeAttendanceHistory,
-    getAttendanceAlerts
+    getAttendanceAlerts,
+    updateEmployeeShift
 } = require("../controllers/managerController");
 
 router.get(
@@ -117,6 +118,12 @@ router.get(
     "/team/:id",
     verifyToken,
     getTeamMember
+);
+
+router.put(
+    "/team/:id/shift",
+    verifyToken,
+    updateEmployeeShift
 );
 
 

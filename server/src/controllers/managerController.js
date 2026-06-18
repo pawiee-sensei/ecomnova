@@ -672,6 +672,24 @@ const getAnnouncements =
         }
     };
 
+    const updateEmployeeShift = async (req, res) => {
+    try {
+        const managerId = req.user.id;
+        const { id } = req.params;
+        const { shift } = req.body;
+
+        if (!shift) {
+            return res.status(400).json({ message: "Shift is required" });
+        }
+
+        await managerService.updateEmployeeShift(id, managerId, shift);
+        res.json({ message: "Shift updated successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getMyTeam,
     getTeamMember,
@@ -688,5 +706,6 @@ module.exports = {
     getAttendanceSummary,
     getAttendanceAnalytics,
     getEmployeeAttendanceHistory,
-    getAttendanceAlerts
+    getAttendanceAlerts,
+    updateEmployeeShift
 };
