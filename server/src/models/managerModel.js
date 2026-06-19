@@ -8,24 +8,29 @@ const getManagerTeam = (
     managerId,
     callback
 ) => {
-    const sql = `
-        SELECT
-            id,
-            employee_id,
-            fullname,
-            email,
-            role,
-            status,
-            department_id,
-            team_id,
-            job_title,
-            work_location,
-            shift
-
-        FROM users
-        WHERE manager_id = ?
-        ORDER BY fullname ASC
-    `;
+const sql = `
+    SELECT
+        users.id,
+        users.employee_id,
+        users.fullname,
+        users.email,
+        users.role,
+        users.status,
+        users.department_id,
+        users.team_id,
+        users.job_title,
+        users.work_location,
+        users.shift,
+        users.employment_type,
+        users.hire_date,
+        teams.name AS team_name,
+        departments.name AS department_name
+    FROM users
+    LEFT JOIN teams ON users.team_id = teams.id
+    LEFT JOIN departments ON users.department_id = departments.id
+    WHERE users.manager_id = ?
+    ORDER BY users.fullname ASC
+`;
 
     db.query(
         sql,

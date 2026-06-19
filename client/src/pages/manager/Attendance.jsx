@@ -328,28 +328,48 @@ const Attendance = () => {
         ];
     }, []);
 
-    const summaryCards = [
-        {
-            label: "Present",
-            value: summary?.presentCount || 0,
-            caption: "On time today"
-        },
-        {
-            label: "Late",
-            value: summary?.lateCount || 0,
-            caption: "Needs follow-up"
-        },
-        {
-            label: "Absent",
-            value: summary?.absentCount || 0,
-            caption: "Missed records"
-        },
-        {
-            label: "Leave",
-            value: summary?.leaveCount || 0,
-            caption: "Approved leave"
-        }
-    ];
+const summaryCards = [
+    {
+        label: "Present",
+        value: summary?.presentCount || 0,
+        caption: "On time today",
+        border: "border-emerald-200",
+        bg: "bg-emerald-50",
+        labelColor: "text-emerald-600",
+        valueColor: "text-emerald-700",
+        captionColor: "text-emerald-500",
+    },
+    {
+        label: "Late",
+        value: summary?.lateCount || 0,
+        caption: "Needs follow-up",
+        border: "border-amber-200",
+        bg: "bg-amber-50",
+        labelColor: "text-amber-600",
+        valueColor: "text-amber-700",
+        captionColor: "text-amber-500",
+    },
+    {
+        label: "Absent",
+        value: summary?.absentCount || 0,
+        caption: "Missed records",
+        border: "border-rose-200",
+        bg: "bg-rose-50",
+        labelColor: "text-rose-600",
+        valueColor: "text-rose-700",
+        captionColor: "text-rose-500",
+    },
+    {
+        label: "Leave",
+        value: summary?.leaveCount || 0,
+        caption: "Approved leave",
+        border: "border-sky-200",
+        bg: "bg-sky-50",
+        labelColor: "text-sky-600",
+        valueColor: "text-sky-700",
+        captionColor: "text-sky-500",
+    }
+];
 
     return (
         <DashboardLayout>
@@ -368,24 +388,24 @@ const Attendance = () => {
                     </div>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                    {summaryCards.map((card) => (
-                        <div
-                            key={card.label}
-                            className="rounded-lg border bg-white p-4"
-                        >
-                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                {card.label}
-                            </p>
-                            <p className="mt-1 text-2xl font-bold text-slate-900">
-                                {card.value}
-                            </p>
-                            <p className="mt-1 text-xs text-slate-500">
-                                {card.caption}
-                            </p>
-                        </div>
-                    ))}
-                </div>
+<div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    {summaryCards.map((card) => (
+        <div
+            key={card.label}
+            className={`rounded-lg border p-4 ${card.border} ${card.bg}`}
+        >
+            <p className={`text-xs font-semibold uppercase tracking-wide ${card.labelColor}`}>
+                {card.label}
+            </p>
+            <p className={`mt-1 text-2xl font-bold ${card.valueColor}`}>
+                {card.value}
+            </p>
+            <p className={`mt-1 text-xs ${card.captionColor}`}>
+                {card.caption}
+            </p>
+        </div>
+    ))}
+</div>
 
                 <div className="grid gap-4 xl:grid-cols-2">
                     <section className="overflow-hidden rounded-lg border bg-white shadow-sm">
@@ -398,39 +418,39 @@ const Attendance = () => {
                             </p>
                         </div>
                         <div className="space-y-3 p-5">
-                            {attendanceLeaders.map((employee, index) => (
-                                <div
-                                    key={employee.employee_id}
-                                    className="rounded-lg bg-slate-50 p-3"
-                                >
-                                    <div className="flex items-center justify-between gap-4">
-                                        <div className="flex min-w-0 items-center gap-3">
-                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-sm font-bold text-slate-700 shadow-sm">
-                                                {index + 1}
-                                            </span>
-                                            <div className="min-w-0">
-                                                <p className="truncate font-medium text-slate-900">
-                                                    {employee.fullname}
-                                                </p>
-                                                <p className="text-xs text-slate-500">
-                                                    Score {employee.score}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <span className="text-sm font-semibold text-slate-900">
-                                            {employee.attendanceRate}%
-                                        </span>
-                                    </div>
-                                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
-                                        <div
-                                            className="h-full rounded-full bg-slate-900"
-                                            style={{
-                                                width: `${employee.attendanceRate}%`
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            ))}
+{attendanceLeaders.map((employee, index) => (
+    <div
+        key={employee.employee_id}
+        className="rounded-lg bg-emerald-50 p-3"
+    >
+        <div className="flex items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white shadow-sm">
+                    {index + 1}
+                </span>
+                <div className="min-w-0">
+                    <p className="truncate font-medium text-slate-900">
+                        {employee.fullname}
+                    </p>
+                    <p className="text-xs text-emerald-600">
+                        Score {employee.score}
+                    </p>
+                </div>
+            </div>
+            <span className="text-sm font-semibold text-emerald-700">
+                {employee.attendanceRate}%
+            </span>
+        </div>
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-emerald-100">
+            <div
+                className="h-full rounded-full bg-emerald-500"
+                style={{
+                    width: `${employee.attendanceRate}%`
+                }}
+            />
+        </div>
+    </div>
+))}
                         </div>
                     </section>
 
@@ -444,34 +464,34 @@ const Attendance = () => {
                             </p>
                         </div>
                         <div className="space-y-3 p-5">
-                            {attendanceConcerns.map((employee) => (
-                                <div
-                                    key={employee.employee_id}
-                                    className="rounded-lg bg-slate-50 p-3"
-                                >
-                                    <div className="flex items-center justify-between gap-4">
-                                        <div className="min-w-0">
-                                            <p className="truncate font-medium text-slate-900">
-                                                {employee.fullname}
-                                            </p>
-                                            <p className="text-xs text-slate-500">
-                                                {employee.risk} risk
-                                            </p>
-                                        </div>
-                                        <span className="text-sm font-semibold text-slate-900">
-                                            {employee.attendanceRate}%
-                                        </span>
-                                    </div>
-                                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
-                                        <div
-                                            className="h-full rounded-full bg-slate-500"
-                                            style={{
-                                                width: `${employee.attendanceRate}%`
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            ))}
+ {attendanceConcerns.map((employee) => (
+    <div
+        key={employee.employee_id}
+        className="rounded-lg bg-rose-50 p-3"
+    >
+        <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+                <p className="truncate font-medium text-slate-900">
+                    {employee.fullname}
+                </p>
+                <p className="text-xs text-rose-500">
+                    {employee.risk} risk
+                </p>
+            </div>
+            <span className="text-sm font-semibold text-rose-700">
+                {employee.attendanceRate}%
+            </span>
+        </div>
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-rose-100">
+            <div
+                className="h-full rounded-full bg-rose-500"
+                style={{
+                    width: `${employee.attendanceRate}%`
+                }}
+            />
+        </div>
+    </div>
+))}
                         </div>
                     </section>
                 </div>
@@ -584,44 +604,40 @@ const Attendance = () => {
 
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[680px] text-sm">
-                            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-                                <tr>
-                                    <th className="px-4 py-3">Employee</th>
-                                    <th className="px-4 py-3">Date</th>
-                                    <th className="px-4 py-3">Status</th>
-                                    <th className="px-4 py-3">Trend</th>
-                                </tr>
-                            </thead>
+<thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+    <tr>
+        <th className="px-4 py-3">Employee</th>
+        <th className="px-4 py-3">Date</th>
+        <th className="px-4 py-3">Status</th>
+    </tr>
+</thead>
                             <tbody className="divide-y">
                                 {paginatedAttendance.map((record) => {
                                     const trend = getStatusTrend(record.status);
 
                                     return (
-                                        <tr
-                                            key={record.id}
-                                            className="hover:bg-slate-50"
-                                        >
-                                            <td className="px-4 py-3 font-medium text-slate-800">
-                                                {record.fullname}
-                                            </td>
-                                            <td className="px-4 py-3 text-slate-600">
-                                                {formatDate(
-                                                    record.attendance_date
-                                                )}
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <span
-                                                    className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ring-1 ${getStatusBadgeClass(
-                                                        record.status
-                                                    )}`}
-                                                >
-                                                    {formatStatus(record.status)}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <TrendIcon trend={trend} />
-                                            </td>
-                                        </tr>
+<tr
+    key={record.id}
+    className="hover:bg-slate-50"
+>
+    <td className="px-4 py-3 font-medium text-slate-800">
+        {record.fullname}
+    </td>
+    <td className="px-4 py-3 text-slate-600">
+        {formatDate(
+            record.attendance_date
+        )}
+    </td>
+    <td className="px-4 py-3">
+        <span
+            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ring-1 ${getStatusBadgeClass(
+                record.status
+            )}`}
+        >
+            {formatStatus(record.status)}
+        </span>
+    </td>
+</tr>
                                     );
                                 })}
                             </tbody>
@@ -717,12 +733,22 @@ const Attendance = () => {
                                                 {employee.risk}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3 text-xs text-slate-600">
-                                            P {employee.presentCount} | L{" "}
-                                            {employee.lateCount} | A{" "}
-                                            {employee.absentCount} | LV{" "}
-                                            {employee.leaveCount}
-                                        </td>
+<td className="px-4 py-3">
+    <div className="flex flex-wrap gap-1.5">
+        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
+            P {employee.presentCount}
+        </span>
+        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700 ring-1 ring-amber-200">
+            L {employee.lateCount}
+        </span>
+        <span className="rounded-full bg-rose-50 px-2 py-0.5 text-xs font-semibold text-rose-700 ring-1 ring-rose-200">
+            A {employee.absentCount}
+        </span>
+        <span className="rounded-full bg-sky-50 px-2 py-0.5 text-xs font-semibold text-sky-700 ring-1 ring-sky-200">
+            LV {employee.leaveCount}
+        </span>
+    </div>
+</td>
                                         <td className="px-4 py-3">
                                             <button
                                                 type="button"
