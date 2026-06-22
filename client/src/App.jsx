@@ -10,7 +10,8 @@ import Login from "./pages/Login";
 // HR pages
 import AdminDashboard from "./pages/HR/AdminDashboard";
 import ManagerDashboard from "./pages/manager/ManagerDashboard";
-import AgentDashboard from "./pages/AgentDashboard";
+import AgentDashboard from "./pages/agent/AgentDashboard";
+
 import Employees from "./pages/HR/employee/Employees";
 import CreateEmployee from "./pages/HR/employee/CreateEmployee";
 import EditEmployee from "./pages/HR/employee/EditEmployee";
@@ -40,6 +41,8 @@ import LeaveManagement from "./pages/Manager/LeaveManagement";
 import KPIManagement from "./pages/Manager/KPIManagement";
 import ShiftManagement from "./pages/Manager/ShiftManagement";
 import Reports from "./pages/Manager/Reports";
+
+
 
 import AuthLoader from "./components/AuthLoader";
 import ProtectedRoute from "./routes/ProtectedRoute";

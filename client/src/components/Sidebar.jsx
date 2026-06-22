@@ -122,8 +122,28 @@ const Sidebar = () => {
                 name: "Dashboard",
                 path: "/agent/dashboard",
                 icon: "D"
+            },
+            {
+                name: "Attendance",
+                path: "/agent/attendance",
+                icon: "A"
+            },
+            {
+                name: "Leave",
+                path: "/agent/leave",
+                icon: "L"
+            },
+            {
+                name: "Tickets",
+                path: "/agent/tickets",
+                icon: "T"
+            },
+            {
+                name: "Performance",
+                path: "/agent/performance",
+                icon: "P"
             }
-        ]
+        ],
     };
 
     const links = menu[user?.role] || [];

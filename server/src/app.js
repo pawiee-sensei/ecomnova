@@ -21,6 +21,8 @@ const managerRoutes = require("./routes/managerRoutes");
 const performanceRoutes = require("./routes/performanceRoutes");
 const leaveRoutes = require("./routes/leaveRoutes");
 
+const agentRoutes = require("./routes/agentRoutes");
+
 
 
 const app = express();
@@ -46,6 +48,8 @@ app.use("/api/system/dashboard", systemDashboardRoutes);
 app.use("/api/manager", managerRoutes);
 app.use("/api/performance", performanceRoutes);
 app.use("/api/manager/leave", leaveRoutes);
+
+app.use("/api/agent", agentRoutes);
 
 
 module.exports = app;
