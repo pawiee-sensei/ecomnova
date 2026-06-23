@@ -64,10 +64,10 @@ const AgentDashboard = () => {
     const { profile, attendance, leave, announcements, recentAttendance } = dashboard || {};
 
     const quickLinks = [
-        { label: "Attendance", path: "/agent/attendance", icon: "📋", color: "bg-violet-50 border-violet-100 text-violet-700" },
-        { label: "Leave", path: "/agent/leave", icon: "🗓️", color: "bg-emerald-50 border-emerald-100 text-emerald-700", badge: Number(leave?.pendingCount || 0) },
-        { label: "Tickets", path: "/agent/tickets", icon: "🎫", color: "bg-amber-50 border-amber-100 text-amber-700" },
-        { label: "Performance", path: "/agent/performance", icon: "📊", color: "bg-blue-50 border-blue-100 text-blue-700" },
+        { label: "Attendance", path: "/agent/attendance", icon: "📋", badge: 0 },
+        { label: "Leave", path: "/agent/leave", icon: "🗓️", badge: Number(leave?.pendingCount || 0) },
+        { label: "Tickets", path: "/agent/tickets", icon: "🎫", badge: 0 },
+        { label: "Performance", path: "/agent/performance", icon: "📊", badge: 0 },
     ];
 
     return (
@@ -120,47 +120,40 @@ const AgentDashboard = () => {
 
             {/* Attendance Summary Cards */}
             <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-5">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-emerald-500">Present</p>
-                    <p className="mt-2 text-4xl font-bold text-emerald-700">{attendance?.presentCount || 0}</p>
-                    <p className="mt-1 text-xs text-emerald-400">Total days</p>
-                </div>
-                <div className="rounded-xl border border-amber-100 bg-amber-50 p-5">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-amber-500">Late</p>
-                    <p className="mt-2 text-4xl font-bold text-amber-700">{attendance?.lateCount || 0}</p>
-                    <p className="mt-1 text-xs text-amber-400">Total days</p>
-                </div>
-                <div className="rounded-xl border border-rose-100 bg-rose-50 p-5">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-rose-500">Absent</p>
-                    <p className="mt-2 text-4xl font-bold text-rose-700">{attendance?.absentCount || 0}</p>
-                    <p className="mt-1 text-xs text-rose-400">Total days</p>
-                </div>
-                <div className="rounded-xl border border-sky-100 bg-sky-50 p-5">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-sky-500">Leave</p>
-                    <p className="mt-2 text-4xl font-bold text-sky-700">{attendance?.leaveCount || 0}</p>
-                    <p className="mt-1 text-xs text-sky-400">Total days</p>
-                </div>
+                {[
+                    { label: "Present", value: attendance?.presentCount || 0, accent: "border-l-emerald-500" },
+                    { label: "Late", value: attendance?.lateCount || 0, accent: "border-l-amber-500" },
+                    { label: "Absent", value: attendance?.absentCount || 0, accent: "border-l-rose-500" },
+                    { label: "Leave", value: attendance?.leaveCount || 0, accent: "border-l-slate-400" },
+                ].map((card) => (
+                    <div key={card.label} className={`rounded-xl border border-slate-100 border-l-4 bg-white p-5 shadow-sm ${card.accent}`}>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{card.label}</p>
+                        <p className="mt-2 text-4xl font-bold text-slate-800">{card.value}</p>
+                        <p className="mt-1 text-xs text-slate-400">Total days</p>
+                    </div>
+                ))}
             </div>
 
             {/* Quick Links */}
             <div className="mb-8">
                 <h2 className="mb-4 font-semibold text-slate-700">Quick Access</h2>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    {quickLinks.map((link) => (
-                        <button
-                            key={link.path}
-                            onClick={() => navigate(link.path)}
-                            className={`relative flex flex-col items-center gap-2 rounded-xl border p-5 text-center transition-all hover:shadow-sm ${link.color}`}
-                        >
-                            {link.badge > 0 && (
-                                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white">
-                                    {link.badge}
-                                </span>
-                            )}
-                            <span className="text-3xl">{link.icon}</span>
-                            <span className="text-sm font-semibold">{link.label}</span>
-                        </button>
-                    ))}
+
+                {quickLinks.map((link) => (
+                    <button
+                        key={link.path}
+                        onClick={() => navigate(link.path)}
+                        className="relative flex flex-col items-center gap-2 rounded-xl border border-slate-200 bg-white p-5 text-center shadow-sm transition-all hover:border-slate-300 hover:shadow-md"
+                    >
+                        {link.badge > 0 && (
+                            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs font-bold text-white">
+                                {link.badge}
+                            </span>
+                        )}
+                        <span className="text-3xl">{link.icon}</span>
+                        <span className="text-sm font-semibold text-slate-700">{link.label}</span>
+                    </button>
+                ))}
                 </div>
             </div>
 
@@ -210,20 +203,18 @@ const AgentDashboard = () => {
                                 View all →
                             </button>
                         </div>
-                        <div className="grid grid-cols-3 gap-3">
-                            <div className="rounded-lg bg-amber-50 p-3 text-center">
-                                <p className="text-xs text-amber-500">Pending</p>
-                                <p className="mt-1 text-2xl font-bold text-amber-700">{leave?.pendingCount || 0}</p>
+                    <div className="grid grid-cols-3 gap-3">
+                        {[
+                            { label: "Pending", value: leave?.pendingCount || 0, accent: "border-l-amber-500" },
+                            { label: "Approved", value: leave?.approvedCount || 0, accent: "border-l-emerald-500" },
+                            { label: "Rejected", value: leave?.rejectedCount || 0, accent: "border-l-rose-500" },
+                        ].map((item) => (
+                            <div key={item.label} className={`rounded-lg border border-slate-100 border-l-4 bg-slate-50 p-3 text-center ${item.accent}`}>
+                                <p className="text-xs text-slate-400">{item.label}</p>
+                                <p className="mt-1 text-2xl font-bold text-slate-800">{item.value}</p>
                             </div>
-                            <div className="rounded-lg bg-emerald-50 p-3 text-center">
-                                <p className="text-xs text-emerald-500">Approved</p>
-                                <p className="mt-1 text-2xl font-bold text-emerald-700">{leave?.approvedCount || 0}</p>
-                            </div>
-                            <div className="rounded-lg bg-rose-50 p-3 text-center">
-                                <p className="text-xs text-rose-500">Rejected</p>
-                                <p className="mt-1 text-2xl font-bold text-rose-700">{leave?.rejectedCount || 0}</p>
-                            </div>
-                        </div>
+                        ))}
+                    </div>
                     </div>
 
                     {/* Recent Attendance */}

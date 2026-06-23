@@ -89,48 +89,29 @@ const MyAttendance = () => {
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                         Attendance Rate
                     </p>
-                    <p className={`mt-2 text-4xl font-bold ${
-                        attendanceRate >= 90 ? "text-emerald-600"
-                        : attendanceRate >= 75 ? "text-amber-600"
-                        : "text-rose-600"
-                    }`}>
+                    <p className="mt-2 text-4xl font-bold text-slate-800">
                         {attendanceRate}%
                     </p>
                     <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
                         <div
-                            className={`h-2 rounded-full transition-all duration-700 ${
-                                attendanceRate >= 90 ? "bg-emerald-500"
-                                : attendanceRate >= 75 ? "bg-amber-400"
-                                : "bg-rose-500"
-                            }`}
+                            className="h-2 rounded-full bg-slate-900 transition-all duration-700"
                             style={{ width: `${attendanceRate}%` }}
                         />
                     </div>
                 </div>
 
-                <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-5">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-emerald-500">Present</p>
-                    <p className="mt-2 text-4xl font-bold text-emerald-700">{summary?.presentCount || 0}</p>
-                    <p className="mt-1 text-xs text-emerald-400">days</p>
-                </div>
-
-                <div className="rounded-xl border border-amber-100 bg-amber-50 p-5">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-amber-500">Late</p>
-                    <p className="mt-2 text-4xl font-bold text-amber-700">{summary?.lateCount || 0}</p>
-                    <p className="mt-1 text-xs text-amber-400">days</p>
-                </div>
-
-                <div className="rounded-xl border border-rose-100 bg-rose-50 p-5">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-rose-500">Absent</p>
-                    <p className="mt-2 text-4xl font-bold text-rose-700">{summary?.absentCount || 0}</p>
-                    <p className="mt-1 text-xs text-rose-400">days</p>
-                </div>
-
-                <div className="rounded-xl border border-sky-100 bg-sky-50 p-5">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-sky-500">Leave</p>
-                    <p className="mt-2 text-4xl font-bold text-sky-700">{summary?.leaveCount || 0}</p>
-                    <p className="mt-1 text-xs text-sky-400">days</p>
-                </div>
+                {[
+                    { label: "Present", value: summary?.presentCount || 0, accent: "border-l-emerald-500" },
+                    { label: "Late", value: summary?.lateCount || 0, accent: "border-l-amber-500" },
+                    { label: "Absent", value: summary?.absentCount || 0, accent: "border-l-rose-500" },
+                    { label: "Leave", value: summary?.leaveCount || 0, accent: "border-l-slate-400" },
+                ].map((card) => (
+                    <div key={card.label} className={`rounded-xl border border-slate-100 border-l-4 bg-white p-5 shadow-sm ${card.accent}`}>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{card.label}</p>
+                        <p className="mt-2 text-4xl font-bold text-slate-800">{card.value}</p>
+                        <p className="mt-1 text-xs text-slate-400">days</p>
+                    </div>
+                ))}
             </div>
 
             {/* Filter Tabs */}

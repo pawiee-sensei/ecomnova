@@ -54,6 +54,44 @@ const getAgentAttendanceRecords = async (agentId) => {
     });
 };
 
+const getAgentLeaveRequests = async (agentId) => {
+    return new Promise((resolve, reject) => {
+        agentModel.getAgentLeaveRequests(agentId, (err, results) => {
+            if (err) return reject(err);
+            resolve(results);
+        });
+    });
+};
+
+const createAgentLeaveRequest = async (
+    agentId,
+    leaveType,
+    startDate,
+    endDate,
+    reason
+) => {
+    return new Promise((resolve, reject) => {
+        agentModel.getAgentManagerId(agentId, (err, results) => {
+            if (err) return reject(err);
+            const managerId = results[0]?.manager_id;
+            if (!managerId) return reject(new Error("No manager assigned to this agent"));
+
+            agentModel.createAgentLeaveRequest(
+                agentId,
+                managerId,
+                leaveType,
+                startDate,
+                endDate,
+                reason,
+                (err, result) => {
+                    if (err) return reject(err);
+                    resolve(result);
+                }
+            );
+        });
+    });
+};
+
 module.exports = {
     getAgentProfile,
     getAgentAttendanceSummary,
@@ -61,4 +99,6 @@ module.exports = {
     getAgentAnnouncements,
     getAgentRecentAttendance,
     getAgentAttendanceRecords,
+    getAgentLeaveRequests,
+    createAgentLeaveRequest,
 };

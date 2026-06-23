@@ -95,11 +95,64 @@ const getAgentAttendanceRecords = (agentId, callback) => {
     db.query(sql, [agentId], callback);
 };
 
+const getAgentLeaveRequests = (agentId, callback) => {
+    const sql = `
+        SELECT
+            id,
+            leave_type,
+            start_date,
+            end_date,
+            reason,
+            status,
+            manager_note,
+            created_at
+        FROM leave_requests
+        WHERE employee_id = ?
+        ORDER BY created_at DESC
+    `;
+    db.query(sql, [agentId], callback);
+};
+
+const createAgentLeaveRequest = (
+    agentId,
+    managerId,
+    leaveType,
+    startDate,
+    endDate,
+    reason,
+    callback
+) => {
+    const sql = `
+        INSERT INTO leave_requests (
+            employee_id,
+            manager_id,
+            leave_type,
+            start_date,
+            end_date,
+            reason
+        )
+        VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    db.query(sql, [agentId, managerId, leaveType, startDate, endDate, reason], callback);
+};
+
+const getAgentManagerId = (agentId, callback) => {
+    const sql = `
+        SELECT manager_id
+        FROM users
+        WHERE id = ?
+    `;
+    db.query(sql, [agentId], callback);
+};
+
 module.exports = {
     getAgentProfile,
     getAgentAttendanceSummary,
     getAgentLeaveSummary,
     getAgentAnnouncements,
     getAgentRecentAttendance,
-    getAgentAttendanceRecords,  
+    getAgentAttendanceRecords,
+    getAgentLeaveRequests,
+    createAgentLeaveRequest,
+    getAgentManagerId 
 };

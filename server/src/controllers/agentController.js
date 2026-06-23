@@ -40,7 +40,47 @@ const getAttendance = async (req, res) => {
     }
 };
 
+const getLeave = async (req, res) => {
+    try {
+        const agentId = req.user.id;
+        const [summary, requests] = await Promise.all([
+            agentService.getAgentLeaveSummary(agentId),
+            agentService.getAgentLeaveRequests(agentId),
+        ]);
+        res.json({ summary, requests });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to load leave requests" });
+    }
+};
+
+const createLeave = async (req, res) => {
+    try {
+        const agentId = req.user.id;
+        const { leaveType, startDate, endDate, reason } = req.body;
+
+        if (!leaveType || !startDate || !endDate || !reason) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+
+        await agentService.createAgentLeaveRequest(
+            agentId,
+            leaveType,
+            startDate,
+            endDate,
+            reason
+        );
+
+        res.status(201).json({ message: "Leave request submitted successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getDashboard,
     getAttendance,
+    getLeave,
+    createLeave,
 };
