@@ -8,6 +8,7 @@ const {
     createLeave,
     getTickets,
     updateTicketStatus,
+    getPerformance,
 } = require("../controllers/agentController");
 
 router.get(
@@ -44,6 +45,12 @@ router.put(
     "/tickets/:id/status",
     verifyToken,
     updateTicketStatus
+);
+
+router.get(
+    "/performance",
+    verifyToken,
+    getPerformance
 );
 
 module.exports = router;

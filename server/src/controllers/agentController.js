@@ -117,6 +117,17 @@ const updateTicketStatus = async (req, res) => {
     }
 };
 
+const getPerformance = async (req, res) => {
+    try {
+        const agentId = req.user.id;
+        const records = await agentService.getAgentPerformance(agentId);
+        res.json(records);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to load performance" });
+    }
+};
+
 module.exports = {
     getDashboard,
     getAttendance,
@@ -124,4 +135,5 @@ module.exports = {
     createLeave,
     getTickets,
     updateTicketStatus,
+    getPerformance,
 };

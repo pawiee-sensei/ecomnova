@@ -111,6 +111,38 @@ const updateAgentTicketStatus = async (ticketId, agentId, status) => {
     });
 };
 
+const getAgentPerformance = async (agentId) => {
+    return new Promise((resolve, reject) => {
+        agentModel.getAgentPerformance(agentId, (err, results) => {
+            if (err) return reject(err);
+
+            const grouped = {};
+            results.forEach((row) => {
+                const key = `${row.month}-${row.year}`;
+                if (!grouped[key]) {
+                    grouped[key] = {
+                        month: row.month,
+                        year: row.year,
+                        metrics: [],
+                    };
+                }
+                grouped[key].metrics.push({
+                    id: row.id,
+                    metric_name: row.metric_name,
+                    metric_unit: row.metric_unit,
+                    metric_value: Number(row.metric_value),
+                });
+            });
+
+            const records = Object.values(grouped).sort((a, b) =>
+                b.year !== a.year ? b.year - a.year : b.month - a.month
+            );
+
+            resolve(records);
+        });
+    });
+};
+
 module.exports = {
     getAgentProfile,
     getAgentAttendanceSummary,
@@ -121,5 +153,6 @@ module.exports = {
     getAgentLeaveRequests,
     createAgentLeaveRequest,
     getAgentTickets,
-    updateAgentTicketStatus
+    updateAgentTicketStatus,
+    getAgentPerformance
 };

@@ -46,6 +46,7 @@ import Reports from "./pages/Manager/Reports";
 import MyAttendance from "./pages/agent/MyAttendance";
 import MyLeave from "./pages/agent/MyLeave";
 import MyTickets from "./pages/agent/MyTickets";
+import MyPerformance from "./pages/agent/MyPerformance";
 
 
 
@@ -60,6 +61,17 @@ function App() {
 
             <AuthLoader />
                 <Routes>
+
+                    <Route
+                        path="/agent/performance"
+                        element={
+                            <ProtectedRoute
+                                roles={["agent"]}
+                            >
+                                <MyPerformance />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     <Route
                         path="/agent/tickets"

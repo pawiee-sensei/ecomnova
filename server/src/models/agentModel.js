@@ -179,6 +179,27 @@ const updateAgentTicketStatus = (ticketId, agentId, status, callback) => {
     db.query(sql, [status, resolvedAt, ticketId, agentId], callback);
 };
 
+const getAgentPerformance = (agentId, callback) => {
+    const sql = `
+        SELECT
+            employee_performance.id,
+            employee_performance.metric_value,
+            employee_performance.month,
+            employee_performance.year,
+            employee_performance.created_at,
+            performance_metrics.metric_name,
+            performance_metrics.metric_unit
+        FROM employee_performance
+        INNER JOIN performance_metrics
+            ON employee_performance.metric_id = performance_metrics.id
+        WHERE employee_performance.employee_id = ?
+        ORDER BY employee_performance.year DESC,
+                 employee_performance.month DESC,
+                 performance_metrics.metric_name ASC
+    `;
+    db.query(sql, [agentId], callback);
+};
+
 module.exports = {
     getAgentProfile,
     getAgentAttendanceSummary,
@@ -190,5 +211,6 @@ module.exports = {
     createAgentLeaveRequest,
     getAgentManagerId,
     getAgentTickets,
-    updateAgentTicketStatus
+    updateAgentTicketStatus,
+    getAgentPerformance
 };
