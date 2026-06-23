@@ -82,10 +82,24 @@ const getAgentRecentAttendance = (agentId, callback) => {
     db.query(sql, [agentId], callback);
 };
 
+const getAgentAttendanceRecords = (agentId, callback) => {
+    const sql = `
+        SELECT
+            id,
+            attendance_date,
+            status
+        FROM attendance_records
+        WHERE employee_id = ?
+        ORDER BY attendance_date DESC
+    `;
+    db.query(sql, [agentId], callback);
+};
+
 module.exports = {
     getAgentProfile,
     getAgentAttendanceSummary,
     getAgentLeaveSummary,
     getAgentAnnouncements,
     getAgentRecentAttendance,
+    getAgentAttendanceRecords,  
 };

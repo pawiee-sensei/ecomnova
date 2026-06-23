@@ -42,6 +42,9 @@ import KPIManagement from "./pages/Manager/KPIManagement";
 import ShiftManagement from "./pages/Manager/ShiftManagement";
 import Reports from "./pages/Manager/Reports";
 
+// Agent pages
+import MyAttendance from "./pages/agent/MyAttendance";
+
 
 
 import AuthLoader from "./components/AuthLoader";
@@ -55,6 +58,17 @@ function App() {
 
             <AuthLoader />
                 <Routes>
+
+                    <Route
+                        path="/agent/attendance"
+                        element={
+                            <ProtectedRoute
+                                roles={["agent"]}
+                            >
+                                <MyAttendance />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     <Route
                         path="/manager/reports"

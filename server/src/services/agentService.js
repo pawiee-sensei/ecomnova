@@ -45,10 +45,20 @@ const getAgentRecentAttendance = async (agentId) => {
     });
 };
 
+const getAgentAttendanceRecords = async (agentId) => {
+    return new Promise((resolve, reject) => {
+        agentModel.getAgentAttendanceRecords(agentId, (err, results) => {
+            if (err) return reject(err);
+            resolve(results);
+        });
+    });
+};
+
 module.exports = {
     getAgentProfile,
     getAgentAttendanceSummary,
     getAgentLeaveSummary,
     getAgentAnnouncements,
     getAgentRecentAttendance,
+    getAgentAttendanceRecords,
 };

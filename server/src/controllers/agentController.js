@@ -26,6 +26,21 @@ const getDashboard = async (req, res) => {
     }
 };
 
+const getAttendance = async (req, res) => {
+    try {
+        const agentId = req.user.id;
+        const [summary, records] = await Promise.all([
+            agentService.getAgentAttendanceSummary(agentId),
+            agentService.getAgentAttendanceRecords(agentId),
+        ]);
+        res.json({ summary, records });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to load attendance" });
+    }
+};
+
 module.exports = {
     getDashboard,
+    getAttendance,
 };
