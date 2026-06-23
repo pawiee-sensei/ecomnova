@@ -92,6 +92,25 @@ const createAgentLeaveRequest = async (
     });
 };
 
+const getAgentTickets = async (agentId) => {
+    return new Promise((resolve, reject) => {
+        agentModel.getAgentTickets(agentId, (err, results) => {
+            if (err) return reject(err);
+            resolve(results);
+        });
+    });
+};
+
+const updateAgentTicketStatus = async (ticketId, agentId, status) => {
+    return new Promise((resolve, reject) => {
+        agentModel.updateAgentTicketStatus(ticketId, agentId, status, (err, result) => {
+            if (err) return reject(err);
+            if (result.affectedRows === 0) return reject(new Error("Ticket not found or unauthorized"));
+            resolve(result);
+        });
+    });
+};
+
 module.exports = {
     getAgentProfile,
     getAgentAttendanceSummary,
@@ -101,4 +120,6 @@ module.exports = {
     getAgentAttendanceRecords,
     getAgentLeaveRequests,
     createAgentLeaveRequest,
+    getAgentTickets,
+    updateAgentTicketStatus
 };

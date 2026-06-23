@@ -78,9 +78,50 @@ const createLeave = async (req, res) => {
     }
 };
 
+const getTickets = async (req, res) => {
+    try {
+        const agentId = req.user.id;
+        const tickets = await agentService.getAgentTickets(agentId);
+
+        const summary = {
+            open: tickets.filter((t) => t.status === "open").length,
+            pending: tickets.filter((t) => t.status === "pending").length,
+            escalated: tickets.filter((t) => t.status === "escalated").length,
+            resolved: tickets.filter((t) => t.status === "resolved").length,
+            closed: tickets.filter((t) => t.status === "closed").length,
+        };
+
+        res.json({ summary, tickets });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to load tickets" });
+    }
+};
+
+const updateTicketStatus = async (req, res) => {
+    try {
+        const agentId = req.user.id;
+        const { id } = req.params;
+        const { status } = req.body;
+
+        const validStatuses = ["open", "pending", "resolved", "closed"];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ message: "Invalid status" });
+        }
+
+        await agentService.updateAgentTicketStatus(id, agentId, status);
+        res.json({ message: "Ticket status updated" });
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getDashboard,
     getAttendance,
     getLeave,
     createLeave,
+    getTickets,
+    updateTicketStatus,
 };

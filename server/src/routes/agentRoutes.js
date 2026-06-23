@@ -5,7 +5,9 @@ const {
     getDashboard,
     getAttendance,
     getLeave,
-    createLeave
+    createLeave,
+    getTickets,
+    updateTicketStatus,
 } = require("../controllers/agentController");
 
 router.get(
@@ -30,6 +32,18 @@ router.post(
     "/leave",
     verifyToken,
     createLeave
+);
+
+router.get(
+    "/tickets",
+    verifyToken,
+    getTickets
+);
+
+router.put(
+    "/tickets/:id/status",
+    verifyToken,
+    updateTicketStatus
 );
 
 module.exports = router;

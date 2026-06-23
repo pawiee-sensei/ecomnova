@@ -145,6 +145,40 @@ const getAgentManagerId = (agentId, callback) => {
     db.query(sql, [agentId], callback);
 };
 
+const getAgentTickets = (agentId, callback) => {
+    const sql = `
+        SELECT
+            tickets.id,
+            tickets.title,
+            tickets.description,
+            tickets.status,
+            tickets.priority,
+            tickets.created_at,
+            tickets.updated_at,
+            tickets.resolved_at,
+            departments.name AS department_name
+        FROM tickets
+        LEFT JOIN departments
+            ON tickets.department_id = departments.id
+        WHERE tickets.agent_id = ?
+        ORDER BY tickets.created_at DESC
+    `;
+    db.query(sql, [agentId], callback);
+};
+
+const updateAgentTicketStatus = (ticketId, agentId, status, callback) => {
+    const resolvedAt = status === "resolved" ? new Date() : null;
+    const sql = `
+        UPDATE tickets
+        SET
+            status = ?,
+            resolved_at = ?
+        WHERE id = ?
+        AND agent_id = ?
+    `;
+    db.query(sql, [status, resolvedAt, ticketId, agentId], callback);
+};
+
 module.exports = {
     getAgentProfile,
     getAgentAttendanceSummary,
@@ -154,5 +188,7 @@ module.exports = {
     getAgentAttendanceRecords,
     getAgentLeaveRequests,
     createAgentLeaveRequest,
-    getAgentManagerId 
+    getAgentManagerId,
+    getAgentTickets,
+    updateAgentTicketStatus
 };
