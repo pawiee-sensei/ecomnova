@@ -834,6 +834,27 @@ const exportPerformanceReport = async (req, res) => {
         res.status(500).json({ message: "Failed to export performance report" });
     }
 };
+const getShiftSchedules = async (req, res) => {
+    try {
+        const schedules = await managerService.getShiftSchedules();
+        res.json(schedules);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to load shift schedules" });
+    }
+};
+
+const updateShiftSchedule = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { startTime, endTime, gracePeriod } = req.body;
+        await managerService.updateShiftSchedule(id, startTime, endTime, gracePeriod);
+        res.json({ message: "Shift schedule updated successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to update shift schedule" });
+    }
+};
 
 module.exports = {
     getMyTeam,
@@ -855,5 +876,7 @@ module.exports = {
     updateEmployeeShift,
     exportAttendanceReport,
     exportLeaveReport,
-    exportPerformanceReport
+    exportPerformanceReport,
+    getShiftSchedules,
+    updateShiftSchedule,
 };

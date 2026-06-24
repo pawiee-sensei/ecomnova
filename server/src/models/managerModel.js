@@ -593,7 +593,26 @@ const updateEmployeeShift = (
     db.query(sql, [shift, employeeId, managerId], callback);
 };
 
+const getShiftSchedules = (callback) => {
+    const sql = `
+        SELECT id, shift_name, start_time, end_time, grace_period_minutes
+        FROM shift_schedules
+        ORDER BY shift_name ASC
+    `;
+    db.query(sql, callback);
+};
 
+const updateShiftSchedule = (id, startTime, endTime, gracePeriod, callback) => {
+    const sql = `
+        UPDATE shift_schedules
+        SET
+            start_time = ?,
+            end_time = ?,
+            grace_period_minutes = ?
+        WHERE id = ?
+    `;
+    db.query(sql, [startTime, endTime, gracePeriod, id], callback);
+};
 
 
 module.exports = {
@@ -614,5 +633,7 @@ module.exports = {
     getAttendanceAnalytics,
     getEmployeeAttendanceHistory,
     getAttendanceAlerts,
-    updateEmployeeShift
+    updateEmployeeShift,
+    getShiftSchedules,
+    updateShiftSchedule,
 };

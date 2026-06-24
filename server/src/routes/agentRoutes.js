@@ -9,6 +9,9 @@ const {
     getTickets,
     updateTicketStatus,
     getPerformance,
+    getTodayAttendance,
+    clockIn,
+    clockOut,
 } = require("../controllers/agentController");
 
 router.get(
@@ -52,5 +55,25 @@ router.get(
     verifyToken,
     getPerformance
 );
+
+router.get(
+    "/attendance/today",
+    verifyToken,
+    getTodayAttendance
+);
+
+router.post(
+    "/attendance/clock-in",
+    verifyToken,
+    clockIn
+);
+
+router.post(
+    "/attendance/clock-out",
+    verifyToken,
+    clockOut
+);
+
+
 
 module.exports = router;

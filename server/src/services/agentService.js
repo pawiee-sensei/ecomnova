@@ -143,6 +143,85 @@ const getAgentPerformance = async (agentId) => {
     });
 };
 
+const getTodayAttendance = async (agentId) => {
+    const today = new Date().toISOString().split("T")[0];
+    return new Promise((resolve, reject) => {
+        agentModel.getTodayAttendance(agentId, today, (err, results) => {
+            if (err) return reject(err);
+            resolve(results[0] || null);
+        });
+    });
+};
+
+const clockIn = async (agentId) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const today = new Date().toISOString().split("T")[0];
+
+            // Check if already clocked in today
+            const existing = await getTodayAttendance(agentId);
+            if (existing) return reject(new Error("Already clocked in today"));
+
+            // Get agent profile for shift
+            const profile = await getAgentProfile(agentId);
+            const shiftName = profile?.shift;
+
+            if (!shiftName) return reject(new Error("No shift assigned"));
+
+            // Get shift schedule
+            agentModel.getShiftSchedule(shiftName, (err, schedules) => {
+                if (err) return reject(err);
+
+                const now = new Date();
+                let status = "present";
+
+                if (schedules.length > 0) {
+                    const schedule = schedules[0];
+                    const [hours, minutes] = schedule.start_time.split(":").map(Number);
+                    const graceMinutes = schedule.grace_period_minutes || 15;
+
+                    const shiftStart = new Date(now);
+                    shiftStart.setHours(hours, minutes, 0, 0);
+
+                    const graceEnd = new Date(shiftStart);
+                    graceEnd.setMinutes(graceEnd.getMinutes() + graceMinutes);
+
+                    if (now > graceEnd) {
+                        status = "late";
+                    }
+                }
+
+                agentModel.clockIn(agentId, today, status, now, (err, result) => {
+                    if (err) return reject(err);
+                    resolve({ status, time_in: now });
+                });
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
+
+const clockOut = async (agentId) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const today = new Date().toISOString().split("T")[0];
+
+            const existing = await getTodayAttendance(agentId);
+            if (!existing) return reject(new Error("You have not clocked in today"));
+            if (existing.time_out) return reject(new Error("Already clocked out today"));
+
+            const now = new Date();
+            agentModel.clockOut(agentId, today, now, (err, result) => {
+                if (err) return reject(err);
+                resolve({ time_out: now });
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
+
 module.exports = {
     getAgentProfile,
     getAgentAttendanceSummary,
@@ -154,5 +233,8 @@ module.exports = {
     createAgentLeaveRequest,
     getAgentTickets,
     updateAgentTicketStatus,
-    getAgentPerformance
+    getAgentPerformance,
+    getTodayAttendance,
+    clockIn,
+    clockOut,
 };

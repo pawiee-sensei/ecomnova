@@ -127,6 +127,38 @@ const getPerformance = async (req, res) => {
         res.status(500).json({ message: "Failed to load performance" });
     }
 };
+const getTodayAttendance = async (req, res) => {
+    try {
+        const agentId = req.user.id;
+        const record = await agentService.getTodayAttendance(agentId);
+        res.json(record);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to load today's attendance" });
+    }
+};
+
+const clockIn = async (req, res) => {
+    try {
+        const agentId = req.user.id;
+        const result = await agentService.clockIn(agentId);
+        res.json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ message: error.message });
+    }
+};
+
+const clockOut = async (req, res) => {
+    try {
+        const agentId = req.user.id;
+        const result = await agentService.clockOut(agentId);
+        res.json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ message: error.message });
+    }
+};
 
 module.exports = {
     getDashboard,
@@ -136,4 +168,7 @@ module.exports = {
     getTickets,
     updateTicketStatus,
     getPerformance,
+    getTodayAttendance,
+    clockIn,
+    clockOut,
 };

@@ -549,6 +549,24 @@ const updateEmployeeShift = async (employeeId, managerId, shift) => {
     });
 };
 
+const getShiftSchedules = async () => {
+    return new Promise((resolve, reject) => {
+        managerModel.getShiftSchedules((err, results) => {
+            if (err) return reject(err);
+            resolve(results);
+        });
+    });
+};
+
+const updateShiftSchedule = async (id, startTime, endTime, gracePeriod) => {
+    return new Promise((resolve, reject) => {
+        managerModel.updateShiftSchedule(id, startTime, endTime, gracePeriod, (err, result) => {
+            if (err) return reject(err);
+            resolve(result);
+        });
+    });
+};
+
 module.exports = {
     getManagerTeam,
     getTeamMemberById,
@@ -566,5 +584,7 @@ module.exports = {
     getAttendanceAnalytics,
     getEmployeeAttendanceHistory,
     getAttendanceAlerts,
-    updateEmployeeShift
+    updateEmployeeShift,
+    getShiftSchedules,
+    updateShiftSchedule,
 };

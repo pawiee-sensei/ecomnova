@@ -200,6 +200,55 @@ const getAgentPerformance = (agentId, callback) => {
     db.query(sql, [agentId], callback);
 };
 
+const getTodayAttendance = (agentId, today, callback) => {
+    const sql = `
+        SELECT id, status, time_in, time_out
+        FROM attendance_records
+        WHERE employee_id = ?
+        AND attendance_date = ?
+    `;
+    db.query(sql, [agentId, today], callback);
+};
+
+const clockIn = (agentId, today, status, timeIn, callback) => {
+    const sql = `
+        INSERT INTO attendance_records (
+            employee_id,
+            attendance_date,
+            status,
+            time_in
+        )
+        VALUES (?, ?, ?, ?)
+    `;
+    db.query(sql, [agentId, today, status, timeIn], callback);
+};
+
+const clockOut = (agentId, today, timeOut, callback) => {
+    const sql = `
+        UPDATE attendance_records
+        SET time_out = ?
+        WHERE employee_id = ?
+        AND attendance_date = ?
+        AND time_out IS NULL
+    `;
+    db.query(sql, [timeOut, agentId, today], callback);
+};
+
+const getShiftSchedule = (shiftName, callback) => {
+    const sql = `
+        SELECT
+            id,
+            shift_name,
+            start_time,
+            end_time,
+            grace_period_minutes
+        FROM shift_schedules
+        WHERE shift_name = ?
+        LIMIT 1
+    `;
+    db.query(sql, [shiftName], callback);
+};
+
 module.exports = {
     getAgentProfile,
     getAgentAttendanceSummary,
@@ -212,5 +261,9 @@ module.exports = {
     getAgentManagerId,
     getAgentTickets,
     updateAgentTicketStatus,
-    getAgentPerformance
+    getAgentPerformance,
+    getTodayAttendance,
+    clockIn,
+    clockOut,
+    getShiftSchedule,
 };

@@ -24,7 +24,9 @@ const {
     updateEmployeeShift,
     exportAttendanceReport,
     exportLeaveReport,
-    exportPerformanceReport
+    exportPerformanceReport,
+    getShiftSchedules,
+    updateShiftSchedule,
 } = require("../controllers/managerController");
 
 router.get(
@@ -127,6 +129,18 @@ router.put(
     "/team/:id/shift",
     verifyToken,
     updateEmployeeShift
+);
+
+router.get(
+    "/shift-schedules",
+    verifyToken,
+    getShiftSchedules
+);
+
+router.put(
+    "/shift-schedules/:id",
+    verifyToken,
+    updateShiftSchedule
 );
 
 router.get(

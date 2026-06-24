@@ -42,6 +42,7 @@ import KPIManagement from "./pages/Manager/KPIManagement";
 import ShiftManagement from "./pages/Manager/ShiftManagement";
 import Reports from "./pages/Manager/Reports";
 
+
 // Agent pages
 import MyAttendance from "./pages/agent/MyAttendance";
 import MyLeave from "./pages/agent/MyLeave";
