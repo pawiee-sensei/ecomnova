@@ -26,6 +26,7 @@ const MyAttendance = () => {
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState("all");
     const [page, setPage] = useState(1);
+    
 
     const fetchAttendance = async () => {
         try {
@@ -148,29 +149,43 @@ const MyAttendance = () => {
                     <>
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[500px]">
-                                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-                                    <tr>
-                                        <th className="px-5 py-3 text-left font-semibold">Date</th>
-                                        <th className="px-5 py-3 text-left font-semibold">Day</th>
-                                        <th className="px-5 py-3 text-left font-semibold">Status</th>
-                                    </tr>
-                                </thead>
+<thead className="bg-slate-50 text-xs uppercase text-slate-500">
+    <tr>
+        <th className="px-5 py-3 text-left font-semibold">Date</th>
+        <th className="px-5 py-3 text-left font-semibold">Day</th>
+        <th className="px-5 py-3 text-left font-semibold">Clock In</th>
+        <th className="px-5 py-3 text-left font-semibold">Clock Out</th>
+        <th className="px-5 py-3 text-left font-semibold">Status</th>
+    </tr>
+</thead>
                                 <tbody className="divide-y divide-slate-100">
-                                    {paginated.map((record) => (
-                                        <tr key={record.id} className="hover:bg-slate-50">
-                                            <td className="px-5 py-4 text-sm font-medium text-slate-800">
-                                                {formatDate(record.attendance_date)}
-                                            </td>
-                                            <td className="px-5 py-4 text-sm text-slate-500">
-                                                {new Date(record.attendance_date).toLocaleDateString("en-US", { weekday: "long" })}
-                                            </td>
-                                            <td className="px-5 py-4">
-                                                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ring-1 ${statusStyles[record.status] || "bg-slate-100 text-slate-500 ring-slate-200"}`}>
-                                                    {record.status}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
+{paginated.map((record) => (
+    <tr key={record.id} className="hover:bg-slate-50">
+        <td className="px-5 py-4 text-sm font-medium text-slate-800">
+            {formatDate(record.attendance_date)}
+        </td>
+        <td className="px-5 py-4 text-sm text-slate-500">
+            {new Date(record.attendance_date).toLocaleDateString("en-US", { weekday: "long" })}
+        </td>
+        <td className="px-5 py-4 text-sm text-slate-600">
+            {record.time_in
+                ? new Date(record.time_in).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })
+                : <span className="text-slate-300">—</span>
+            }
+        </td>
+        <td className="px-5 py-4 text-sm text-slate-600">
+            {record.time_out
+                ? new Date(record.time_out).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })
+                : <span className="text-slate-300">—</span>
+            }
+        </td>
+        <td className="px-5 py-4">
+            <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold capitalize ring-1 ${statusStyles[record.status] || "bg-slate-100 text-slate-500 ring-slate-200"}`}>
+                {record.status}
+            </span>
+        </td>
+    </tr>
+))}
                                 </tbody>
                             </table>
                         </div>

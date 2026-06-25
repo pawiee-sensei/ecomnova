@@ -34,22 +34,68 @@ const AgentDashboard = () => {
     const navigate = useNavigate();
     const [dashboard, setDashboard] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [todayAttendance, setTodayAttendance] = useState(null);
+    const [clockLoading, setClockLoading] = useState(false);
+    const [clockError, setClockError] = useState("");
+    const [currentTime, setCurrentTime] = useState(new Date());
 
-    const fetchDashboard = async () => {
-        try {
-            setLoading(true);
-            const response = await api.get("/agent/dashboard");
-            setDashboard(response.data);
-        } catch (error) {
-            console.error("Failed to load dashboard:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
+const fetchDashboard = async () => {
+    try {
+        setLoading(true);
+        const response = await api.get("/agent/dashboard");
+        setDashboard(response.data);
+    } catch (error) {
+        console.error("Failed to load dashboard:", error);
+    } finally {
+        setLoading(false);
+    }
+};
 
-    useEffect(() => {
+const fetchTodayAttendance = async () => {
+    try {
+        const response = await api.get("/agent/attendance/today");
+        setTodayAttendance(response.data);
+    } catch (error) {
+        console.error("Failed to load today attendance:", error);
+    }
+};
+
+const handleClockIn = async () => {
+    try {
+        setClockLoading(true);
+        setClockError("");
+        await api.post("/agent/attendance/clock-in");
+        fetchTodayAttendance();
         fetchDashboard();
-    }, []);
+    } catch (error) {
+        setClockError(error.response?.data?.message || "Failed to clock in");
+    } finally {
+        setClockLoading(false);
+    }
+};
+
+const handleClockOut = async () => {
+    try {
+        setClockLoading(true);
+        setClockError("");
+        await api.post("/agent/attendance/clock-out");
+        fetchTodayAttendance();
+    } catch (error) {
+        setClockError(error.response?.data?.message || "Failed to clock out");
+    } finally {
+        setClockLoading(false);
+    }
+};
+
+useEffect(() => {
+    fetchDashboard();
+    fetchTodayAttendance();
+}, []);
+
+useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+}, []);
 
     if (loading) {
         return (
@@ -60,6 +106,17 @@ const AgentDashboard = () => {
             </DashboardLayout>
         );
     }
+
+    const formatTime12 = (timestamp) => {
+    if (!timestamp) return "—";
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+    });
+};
 
     const { profile, attendance, leave, announcements, recentAttendance } = dashboard || {};
 
@@ -72,6 +129,96 @@ const AgentDashboard = () => {
 
     return (
         <DashboardLayout>
+
+            {/* Clock In/Out Widget */}
+<div className={`mb-6 rounded-xl border-2 p-5 ${
+    !todayAttendance
+        ? "border-slate-200 bg-white"
+        : todayAttendance.time_out
+        ? "border-slate-200 bg-slate-50"
+        : todayAttendance.status === "late"
+        ? "border-amber-200 bg-amber-50"
+        : "border-emerald-200 bg-emerald-50"
+}`}>
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+        {/* Left: Time Display */}
+        <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+                {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+            </p>
+            <p className="mt-1 text-4xl font-bold tabular-nums text-slate-800">
+                {currentTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true })}
+            </p>
+
+            {/* Status Row */}
+            <div className="mt-2 flex flex-wrap gap-4">
+                {todayAttendance?.time_in && (
+                    <div>
+                        <p className="text-xs text-slate-400">Clock In</p>
+                        <p className="text-sm font-semibold text-slate-700">
+                            {formatTime12(todayAttendance.time_in)}
+                        </p>
+                    </div>
+                )}
+                {todayAttendance?.time_out && (
+                    <div>
+                        <p className="text-xs text-slate-400">Clock Out</p>
+                        <p className="text-sm font-semibold text-slate-700">
+                            {formatTime12(todayAttendance.time_out)}
+                        </p>
+                    </div>
+                )}
+                {todayAttendance?.status && (
+                    <div>
+                        <p className="text-xs text-slate-400">Status</p>
+                        <p className={`text-sm font-semibold capitalize ${
+                            todayAttendance.status === "present" ? "text-emerald-600"
+                            : todayAttendance.status === "late" ? "text-amber-600"
+                            : "text-slate-600"
+                        }`}>
+                            {todayAttendance.status}
+                        </p>
+                    </div>
+                )}
+            </div>
+        </div>
+
+        {/* Right: Action Button */}
+        <div className="flex flex-col items-start gap-2 sm:items-end">
+            {!todayAttendance ? (
+                <button
+                    onClick={handleClockIn}
+                    disabled={clockLoading}
+                    className="rounded-xl bg-slate-900 px-8 py-3 text-sm font-bold text-white hover:bg-slate-700 disabled:opacity-50"
+                >
+                    {clockLoading ? "Processing..." : "🟢 Clock In"}
+                </button>
+            ) : !todayAttendance.time_out ? (
+                <button
+                    onClick={handleClockOut}
+                    disabled={clockLoading}
+                    className="rounded-xl bg-rose-600 px-8 py-3 text-sm font-bold text-white hover:bg-rose-700 disabled:opacity-50"
+                >
+                    {clockLoading ? "Processing..." : "🔴 Clock Out"}
+                </button>
+            ) : (
+                <div className="rounded-xl bg-slate-100 px-8 py-3 text-sm font-bold text-slate-500">
+                    ✓ Shift Complete
+                </div>
+            )}
+
+            {clockError && (
+                <p className="text-xs text-rose-500">{clockError}</p>
+            )}
+
+            {!todayAttendance && (
+                <p className="text-xs text-slate-400">You haven't clocked in yet today.</p>
+            )}
+        </div>
+
+    </div>
+</div>
 
             {/* Header */}
             <div className="mb-8 flex items-start justify-between">
