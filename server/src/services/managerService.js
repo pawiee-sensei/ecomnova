@@ -567,6 +567,53 @@ const updateShiftSchedule = async (id, startTime, endTime, gracePeriod) => {
     });
 };
 
+const getManagerTickets = async (managerId) => {
+    return new Promise((resolve, reject) => {
+        managerModel.getManagerTickets(managerId, (err, results) => {
+            if (err) return reject(err);
+            resolve(results);
+        });
+    });
+};
+
+const createManagerTicket = async (
+    managerId,
+    title,
+    description,
+    priority,
+    agentId,
+    departmentId
+) => {
+    return new Promise((resolve, reject) => {
+        managerModel.validateManagedEmployee(agentId, managerId, (err, results) => {
+            if (err) return reject(err);
+            if (results.length === 0) return reject(new Error("Unauthorized agent"));
+
+            managerModel.createManagerTicket(
+                title,
+                description,
+                priority,
+                agentId,
+                departmentId,
+                (err, result) => {
+                    if (err) return reject(err);
+                    resolve(result);
+                }
+            );
+        });
+    });
+};
+
+const updateManagerTicketStatus = async (managerId, ticketId, status) => {
+    return new Promise((resolve, reject) => {
+        managerModel.updateManagerTicketStatus(ticketId, managerId, status, (err, result) => {
+            if (err) return reject(err);
+            if (result.affectedRows === 0) return reject(new Error("Ticket not found or unauthorized"));
+            resolve(result);
+        });
+    });
+};
+
 module.exports = {
     getManagerTeam,
     getTeamMemberById,
@@ -587,4 +634,7 @@ module.exports = {
     updateEmployeeShift,
     getShiftSchedules,
     updateShiftSchedule,
+    getManagerTickets,
+    createManagerTicket,
+    updateManagerTicketStatus,
 };

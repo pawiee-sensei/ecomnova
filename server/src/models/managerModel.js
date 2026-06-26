@@ -614,6 +614,64 @@ const updateShiftSchedule = (id, startTime, endTime, gracePeriod, callback) => {
     db.query(sql, [startTime, endTime, gracePeriod, id], callback);
 };
 
+const getManagerTickets = (managerId, callback) => {
+    const sql = `
+        SELECT
+            tickets.id,
+            tickets.title,
+            tickets.description,
+            tickets.status,
+            tickets.priority,
+            tickets.created_at,
+            tickets.updated_at,
+            tickets.resolved_at,
+            users.fullname AS agent_name,
+            users.employee_id AS agent_code,
+            departments.name AS department_name
+        FROM tickets
+        INNER JOIN users ON tickets.agent_id = users.id
+        LEFT JOIN departments ON tickets.department_id = departments.id
+        WHERE users.manager_id = ?
+        ORDER BY tickets.created_at DESC
+    `;
+    db.query(sql, [managerId], callback);
+};
+
+const createManagerTicket = (
+    title,
+    description,
+    priority,
+    agentId,
+    departmentId,
+    callback
+) => {
+    const sql = `
+        INSERT INTO tickets (
+            title,
+            description,
+            priority,
+            agent_id,
+            department_id,
+            status
+        )
+        VALUES (?, ?, ?, ?, ?, 'open')
+    `;
+    db.query(sql, [title, description, priority, agentId, departmentId], callback);
+};
+
+const updateManagerTicketStatus = (ticketId, managerId, status, callback) => {
+    const resolvedAt = status === "resolved" ? new Date() : null;
+    const sql = `
+        UPDATE tickets
+        SET status = ?, resolved_at = ?
+        WHERE id = ?
+        AND agent_id IN (
+            SELECT id FROM users WHERE manager_id = ?
+        )
+    `;
+    db.query(sql, [status, resolvedAt, ticketId, managerId], callback);
+};
+
 
 module.exports = {
     getManagerTeam,
@@ -636,4 +694,7 @@ module.exports = {
     updateEmployeeShift,
     getShiftSchedules,
     updateShiftSchedule,
+    getManagerTickets,
+    createManagerTicket,
+    updateManagerTicketStatus,
 };

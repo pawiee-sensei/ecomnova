@@ -27,6 +27,9 @@ const {
     exportPerformanceReport,
     getShiftSchedules,
     updateShiftSchedule,
+    getManagerTickets,
+    createManagerTicket,
+    updateManagerTicketStatus,
 } = require("../controllers/managerController");
 
 router.get(
@@ -141,6 +144,24 @@ router.put(
     "/shift-schedules/:id",
     verifyToken,
     updateShiftSchedule
+);
+
+router.get(
+    "/tickets",
+    verifyToken,
+    getManagerTickets
+);
+
+router.post(
+    "/tickets",
+    verifyToken,
+    createManagerTicket
+);
+
+router.put(
+    "/tickets/:id/status",
+    verifyToken,
+    updateManagerTicketStatus
 );
 
 router.get(

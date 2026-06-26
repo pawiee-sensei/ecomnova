@@ -41,6 +41,7 @@ import LeaveManagement from "./pages/Manager/LeaveManagement";
 import KPIManagement from "./pages/Manager/KPIManagement";
 import ShiftManagement from "./pages/Manager/ShiftManagement";
 import Reports from "./pages/Manager/Reports";
+import ManagerTickets from "./pages/Manager/ManagerTickets";
 
 
 // Agent pages
@@ -114,6 +115,17 @@ function App() {
                                 roles={["manager"]}
                             >
                                 <Reports />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                                        <Route
+                        path="/manager/tickets"
+                        element={
+                            <ProtectedRoute
+                                roles={["manager"]}
+                            >
+                                <ManagerTickets />
                             </ProtectedRoute>
                         }
                     />

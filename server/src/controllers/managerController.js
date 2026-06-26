@@ -856,6 +856,65 @@ const updateShiftSchedule = async (req, res) => {
     }
 };
 
+const getManagerTickets = async (req, res) => {
+    try {
+        const managerId = req.user.id;
+        const tickets = await managerService.getManagerTickets(managerId);
+
+        const summary = {
+            open: tickets.filter((t) => t.status === "open").length,
+            pending: tickets.filter((t) => t.status === "pending").length,
+            escalated: tickets.filter((t) => t.status === "escalated").length,
+            resolved: tickets.filter((t) => t.status === "resolved").length,
+            closed: tickets.filter((t) => t.status === "closed").length,
+        };
+
+        res.json({ summary, tickets });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to load tickets" });
+    }
+};
+
+const createManagerTicket = async (req, res) => {
+    try {
+        const managerId = req.user.id;
+        const { title, description, priority, agentId, departmentId } = req.body;
+
+        if (!title || !agentId) {
+            return res.status(400).json({ message: "Title and agent are required" });
+        }
+
+        await managerService.createManagerTicket(
+            managerId,
+            title,
+            description,
+            priority || "medium",
+            agentId,
+            departmentId || null
+        );
+
+        res.status(201).json({ message: "Ticket created successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ message: error.message });
+    }
+};
+
+const updateManagerTicketStatus = async (req, res) => {
+    try {
+        const managerId = req.user.id;
+        const { id } = req.params;
+        const { status } = req.body;
+
+        await managerService.updateManagerTicketStatus(managerId, id, status);
+        res.json({ message: "Ticket status updated" });
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getMyTeam,
     getTeamMember,
@@ -879,4 +938,7 @@ module.exports = {
     exportPerformanceReport,
     getShiftSchedules,
     updateShiftSchedule,
+    getManagerTickets,
+    createManagerTicket,
+    updateManagerTicketStatus,
 };
