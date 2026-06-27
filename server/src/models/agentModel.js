@@ -249,6 +249,47 @@ const getShiftSchedule = (shiftName, callback) => {
     db.query(sql, [shiftName], callback);
 };
 
+const getTicketComments = (ticketId, agentId, callback) => {
+    const sql = `
+        SELECT
+            ticket_comments.id,
+            ticket_comments.comment,
+            ticket_comments.created_at,
+            users.fullname AS author_name,
+            users.role AS author_role
+        FROM ticket_comments
+        INNER JOIN users ON ticket_comments.user_id = users.id
+        WHERE ticket_comments.ticket_id = ?
+        AND tickets.agent_id = ?
+        ORDER BY ticket_comments.created_at ASC
+    `;
+    const safeSql = `
+        SELECT
+            tc.id,
+            tc.comment,
+            tc.created_at,
+            u.fullname AS author_name,
+            u.role AS author_role
+        FROM ticket_comments tc
+        INNER JOIN users u ON tc.user_id = u.id
+        INNER JOIN tickets t ON tc.ticket_id = t.id
+        WHERE tc.ticket_id = ?
+        AND t.agent_id = ?
+        ORDER BY tc.created_at ASC
+    `;
+    db.query(safeSql, [ticketId, agentId], callback);
+};
+
+const addTicketComment = (ticketId, agentId, userId, comment, callback) => {
+    const checkSql = `SELECT id FROM tickets WHERE id = ? AND agent_id = ?`;
+    db.query(checkSql, [ticketId, agentId], (err, results) => {
+        if (err) return callback(err);
+        if (results.length === 0) return callback(new Error("Unauthorized"));
+        const sql = `INSERT INTO ticket_comments (ticket_id, user_id, comment) VALUES (?, ?, ?)`;
+        db.query(sql, [ticketId, userId, comment], callback);
+    });
+};
+
 module.exports = {
     getAgentProfile,
     getAgentAttendanceSummary,
@@ -266,4 +307,6 @@ module.exports = {
     clockIn,
     clockOut,
     getShiftSchedule,
+    getTicketComments,
+    addTicketComment,
 };

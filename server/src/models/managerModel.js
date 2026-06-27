@@ -622,6 +622,8 @@ const getManagerTickets = (managerId, callback) => {
             tickets.description,
             tickets.status,
             tickets.priority,
+            tickets.customer_name,
+            tickets.reference_number,
             tickets.created_at,
             tickets.updated_at,
             tickets.resolved_at,
@@ -643,6 +645,8 @@ const createManagerTicket = (
     priority,
     agentId,
     departmentId,
+    customerName,
+    referenceNumber,
     callback
 ) => {
     const sql = `
@@ -652,11 +656,13 @@ const createManagerTicket = (
             priority,
             agent_id,
             department_id,
+            customer_name,
+            reference_number,
             status
         )
-        VALUES (?, ?, ?, ?, ?, 'open')
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'open')
     `;
-    db.query(sql, [title, description, priority, agentId, departmentId], callback);
+    db.query(sql, [title, description, priority, agentId, departmentId, customerName, referenceNumber], callback);
 };
 
 const updateManagerTicketStatus = (ticketId, managerId, status, callback) => {
@@ -670,6 +676,30 @@ const updateManagerTicketStatus = (ticketId, managerId, status, callback) => {
         )
     `;
     db.query(sql, [status, resolvedAt, ticketId, managerId], callback);
+};
+
+const getTicketComments = (ticketId, callback) => {
+    const sql = `
+        SELECT
+            ticket_comments.id,
+            ticket_comments.comment,
+            ticket_comments.created_at,
+            users.fullname AS author_name,
+            users.role AS author_role
+        FROM ticket_comments
+        INNER JOIN users ON ticket_comments.user_id = users.id
+        WHERE ticket_comments.ticket_id = ?
+        ORDER BY ticket_comments.created_at ASC
+    `;
+    db.query(sql, [ticketId], callback);
+};
+
+const addTicketComment = (ticketId, userId, comment, callback) => {
+    const sql = `
+        INSERT INTO ticket_comments (ticket_id, user_id, comment)
+        VALUES (?, ?, ?)
+    `;
+    db.query(sql, [ticketId, userId, comment], callback);
 };
 
 
@@ -697,4 +727,6 @@ module.exports = {
     getManagerTickets,
     createManagerTicket,
     updateManagerTicketStatus,
+    getTicketComments,
+    addTicketComment,
 };

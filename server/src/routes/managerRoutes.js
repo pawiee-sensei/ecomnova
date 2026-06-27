@@ -30,6 +30,8 @@ const {
     getManagerTickets,
     createManagerTicket,
     updateManagerTicketStatus,
+    getTicketComments,
+    addTicketComment,
 } = require("../controllers/managerController");
 
 router.get(
@@ -162,6 +164,18 @@ router.put(
     "/tickets/:id/status",
     verifyToken,
     updateManagerTicketStatus
+);
+
+router.get(
+    "/tickets/:id/comments",
+    verifyToken,
+    getTicketComments
+);
+
+router.post(
+    "/tickets/:id/comments",
+    verifyToken,
+    addTicketComment
 );
 
 router.get(

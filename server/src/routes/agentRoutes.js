@@ -12,6 +12,8 @@ const {
     getTodayAttendance,
     clockIn,
     clockOut,
+    getTicketComments,
+    addTicketComment,
 } = require("../controllers/agentController");
 
 router.get(
@@ -48,6 +50,18 @@ router.put(
     "/tickets/:id/status",
     verifyToken,
     updateTicketStatus
+);
+
+router.get(
+    "/tickets/:id/comments",
+    verifyToken,
+    getTicketComments
+);
+
+router.post(
+    "/tickets/:id/comments",
+    verifyToken,
+    addTicketComment
 );
 
 router.get(

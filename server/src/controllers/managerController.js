@@ -879,7 +879,7 @@ const getManagerTickets = async (req, res) => {
 const createManagerTicket = async (req, res) => {
     try {
         const managerId = req.user.id;
-        const { title, description, priority, agentId, departmentId } = req.body;
+        const { title, description, priority, agentId, departmentId, customerName, referenceNumber } = req.body;
 
         if (!title || !agentId) {
             return res.status(400).json({ message: "Title and agent are required" });
@@ -891,7 +891,9 @@ const createManagerTicket = async (req, res) => {
             description,
             priority || "medium",
             agentId,
-            departmentId || null
+            departmentId || null,
+            customerName || null,
+            referenceNumber || null
         );
 
         res.status(201).json({ message: "Ticket created successfully" });
@@ -912,6 +914,33 @@ const updateManagerTicketStatus = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(400).json({ message: error.message });
+    }
+};
+
+const getTicketComments = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const comments = await managerService.getTicketComments(id);
+        res.json(comments);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to load comments" });
+    }
+};
+
+const addTicketComment = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { id } = req.params;
+        const { comment } = req.body;
+        if (!comment?.trim()) {
+            return res.status(400).json({ message: "Comment is required" });
+        }
+        await managerService.addTicketComment(id, userId, comment);
+        res.status(201).json({ message: "Comment added" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to add comment" });
     }
 };
 
@@ -941,4 +970,6 @@ module.exports = {
     getManagerTickets,
     createManagerTicket,
     updateManagerTicketStatus,
+    getTicketComments,
+    addTicketComment,
 };

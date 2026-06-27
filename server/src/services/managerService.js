@@ -582,7 +582,9 @@ const createManagerTicket = async (
     description,
     priority,
     agentId,
-    departmentId
+    departmentId,
+    customerName,
+    referenceNumber
 ) => {
     return new Promise((resolve, reject) => {
         managerModel.validateManagedEmployee(agentId, managerId, (err, results) => {
@@ -595,11 +597,31 @@ const createManagerTicket = async (
                 priority,
                 agentId,
                 departmentId,
+                customerName || null,
+                referenceNumber || null,
                 (err, result) => {
                     if (err) return reject(err);
                     resolve(result);
                 }
             );
+        });
+    });
+};
+
+const getTicketComments = async (ticketId) => {
+    return new Promise((resolve, reject) => {
+        managerModel.getTicketComments(ticketId, (err, results) => {
+            if (err) return reject(err);
+            resolve(results);
+        });
+    });
+};
+
+const addTicketComment = async (ticketId, userId, comment) => {
+    return new Promise((resolve, reject) => {
+        managerModel.addTicketComment(ticketId, userId, comment, (err, result) => {
+            if (err) return reject(err);
+            resolve(result);
         });
     });
 };
@@ -637,4 +659,6 @@ module.exports = {
     getManagerTickets,
     createManagerTicket,
     updateManagerTicketStatus,
+    getTicketComments,
+    addTicketComment,
 };

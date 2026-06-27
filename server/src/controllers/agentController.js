@@ -160,6 +160,34 @@ const clockOut = async (req, res) => {
     }
 };
 
+const getTicketComments = async (req, res) => {
+    try {
+        const agentId = req.user.id;
+        const { id } = req.params;
+        const comments = await agentService.getTicketComments(id, agentId);
+        res.json(comments);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to load comments" });
+    }
+};
+
+const addTicketComment = async (req, res) => {
+    try {
+        const agentId = req.user.id;
+        const { id } = req.params;
+        const { comment } = req.body;
+        if (!comment?.trim()) {
+            return res.status(400).json({ message: "Comment is required" });
+        }
+        await agentService.addTicketComment(id, agentId, agentId, comment);
+        res.status(201).json({ message: "Comment added" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to add comment" });
+    }
+};
+
 module.exports = {
     getDashboard,
     getAttendance,
@@ -171,4 +199,6 @@ module.exports = {
     getTodayAttendance,
     clockIn,
     clockOut,
+    getTicketComments,
+    addTicketComment,
 };

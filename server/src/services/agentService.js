@@ -222,6 +222,24 @@ const clockOut = async (agentId) => {
     });
 };
 
+const getTicketComments = async (ticketId, agentId) => {
+    return new Promise((resolve, reject) => {
+        agentModel.getTicketComments(ticketId, agentId, (err, results) => {
+            if (err) return reject(err);
+            resolve(results);
+        });
+    });
+};
+
+const addTicketComment = async (ticketId, agentId, userId, comment) => {
+    return new Promise((resolve, reject) => {
+        agentModel.addTicketComment(ticketId, agentId, userId, comment, (err, result) => {
+            if (err) return reject(err);
+            resolve(result);
+        });
+    });
+};
+
 module.exports = {
     getAgentProfile,
     getAgentAttendanceSummary,
@@ -237,4 +255,6 @@ module.exports = {
     getTodayAttendance,
     clockIn,
     clockOut,
+    getTicketComments,
+    addTicketComment,
 };
