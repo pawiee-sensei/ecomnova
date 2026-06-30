@@ -240,6 +240,38 @@ const addTicketComment = async (ticketId, agentId, userId, comment) => {
     });
 };
 
+const createAgentTicket = async (
+    agentId,
+    title,
+    description,
+    priority,
+    customerName,
+    referenceNumber
+) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const profile = await getAgentProfile(agentId);
+            const departmentId = profile?.department_id || null;
+
+            agentModel.createAgentTicket(
+                title,
+                description,
+                priority,
+                agentId,
+                departmentId,
+                customerName,
+                referenceNumber,
+                (err, result) => {
+                    if (err) return reject(err);
+                    resolve(result);
+                }
+            );
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
+
 module.exports = {
     getAgentProfile,
     getAgentAttendanceSummary,
@@ -257,4 +289,5 @@ module.exports = {
     clockOut,
     getTicketComments,
     addTicketComment,
+    createAgentTicket,
 };

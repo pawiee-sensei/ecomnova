@@ -44,6 +44,65 @@ const MyTickets = () => {
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [updatingStatus, setUpdatingStatus] = useState(null);
     const [actionLoading, setActionLoading] = useState(false);
+    const [comments, setComments] = useState([]);
+    const [newComment, setNewComment] = useState("");
+    const [commentLoading, setCommentLoading] = useState(false);
+    const [showForm, setShowForm] = useState(false);
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [priority, setPriority] = useState("medium");
+    const [customerName, setCustomerName] = useState("");
+    const [referenceNumber, setReferenceNumber] = useState("");
+    const [formLoading, setFormLoading] = useState(false);
+    const [formError, setFormError] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
+
+    const fetchComments = async (ticketId) => {
+    try {
+        const response = await api.get(`/agent/tickets/${ticketId}/comments`);
+        setComments(response.data);
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+const handleCreateTicket = async () => {
+    if (!title.trim()) {
+        setFormError("Title is required.");
+        return;
+    }
+    try {
+        setFormLoading(true);
+        setFormError("");
+        const response = await api.post("/agent/tickets", {
+            title, description, priority, customerName, referenceNumber,
+        });
+        setTitle(""); setDescription(""); setPriority("medium");
+        setCustomerName(""); setReferenceNumber("");
+        setShowForm(false);
+        setSuccessMessage(`Ticket ${response.data.ticketNumber} created successfully!`);
+        setTimeout(() => setSuccessMessage(""), 3000);
+        fetchTickets();
+    } catch (error) {
+        setFormError(error.response?.data?.message || "Failed to create ticket.");
+    } finally {
+        setFormLoading(false);
+    }
+};
+
+const handleAddComment = async () => {
+    if (!newComment.trim()) return;
+    try {
+        setCommentLoading(true);
+        await api.post(`/agent/tickets/${selectedTicket.id}/comments`, { comment: newComment });
+        setNewComment("");
+        fetchComments(selectedTicket.id);
+    } catch (error) {
+        console.error(error);
+    } finally {
+        setCommentLoading(false);
+    }
+};
 
     const fetchTickets = async () => {
         try {
@@ -62,21 +121,29 @@ const MyTickets = () => {
         fetchTickets();
     }, []);
 
-    const handleUpdateStatus = async (ticketId, status) => {
-        try {
-            setActionLoading(true);
-            await api.put(`/agent/tickets/${ticketId}/status`, { status });
-            setUpdatingStatus(null);
-            if (selectedTicket?.id === ticketId) {
-                setSelectedTicket((prev) => ({ ...prev, status }));
-            }
-            fetchTickets();
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setActionLoading(false);
+const handleUpdateStatus = async (ticketId, status) => {
+    try {
+        setActionLoading(true);
+        await api.put(`/agent/tickets/${ticketId}/status`, { status });
+        setUpdatingStatus(null);
+        if (selectedTicket?.id === ticketId) {
+            setSelectedTicket((prev) => ({ ...prev, status }));
         }
-    };
+        fetchTickets();
+    } catch (error) {
+        console.error(error);
+    } finally {
+        setActionLoading(false);
+    }
+};
+
+const handleOpenTicket = (ticket) => {
+    setSelectedTicket(ticket);
+    setUpdatingStatus(null);
+    setComments([]);
+    setNewComment("");
+    fetchComments(ticket.id);
+};
 
     const filtered = statusFilter === "all"
         ? tickets
@@ -100,12 +167,26 @@ const MyTickets = () => {
                         View and manage your assigned tickets.
                     </p>
                 </div>
-                {totalActive > 0 && (
-                    <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-600">
-                        {totalActive} active
-                    </span>
-                )}
+<div className="flex items-center gap-3">
+    {totalActive > 0 && (
+        <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-600">
+            {totalActive} active
+        </span>
+    )}
+    <button
+        onClick={() => { setShowForm(true); setFormError(""); }}
+        className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700"
+    >
+        + Create Ticket
+    </button>
+</div>
             </div>
+
+            {successMessage && (
+    <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+        ✓ {successMessage}
+    </div>
+)}
 
             {/* Summary Cards */}
             <div className="mb-8 grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
@@ -172,12 +253,13 @@ const MyTickets = () => {
                             <tbody className="divide-y divide-slate-100">
                                 {filtered.map((ticket) => (
                                     <tr key={ticket.id} className="hover:bg-slate-50">
-                                        <td className="px-5 py-4">
-                                            <p className="font-semibold text-slate-800">{ticket.title}</p>
-                                            <p className="mt-0.5 text-xs text-slate-400 line-clamp-1">
-                                                {ticket.description || "No description"}
-                                            </p>
-                                        </td>
+<td className="px-5 py-4">
+    <p className="font-semibold text-slate-800">{ticket.title}</p>
+    <p className="mt-0.5 text-xs text-slate-400">
+        {ticket.ticket_number || `#${ticket.id}`}
+        {ticket.customer_name && ` · ${ticket.customer_name}`}
+    </p>
+</td>
                                         <td className="px-5 py-4">
                                             <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ring-1 ${priorityStyles[ticket.priority]}`}>
                                                 {ticket.priority}
@@ -196,10 +278,7 @@ const MyTickets = () => {
                                         </td>
                                         <td className="px-5 py-4">
                                             <button
-                                                onClick={() => {
-                                                    setSelectedTicket(ticket);
-                                                    setUpdatingStatus(null);
-                                                }}
+                                                onClick={() => handleOpenTicket(ticket)}
                                                 className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
                                             >
                                                 View
@@ -213,118 +292,250 @@ const MyTickets = () => {
                 )}
             </div>
 
-            {/* View Ticket Modal */}
-            {selectedTicket && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-                    <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+            {/* Create Ticket Modal */}
+{showForm && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="bg-slate-900 px-6 py-5 text-white">
+                <div className="flex items-start justify-between">
+                    <div>
+                        <h2 className="text-lg font-bold">Create Ticket</h2>
+                        <p className="mt-0.5 text-sm text-slate-400">Log a new customer issue.</p>
+                    </div>
+                    <button
+                        onClick={() => { setShowForm(false); setFormError(""); }}
+                        className="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/20"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
 
-                        {/* Modal Header */}
-                        <div className={`border-l-4 bg-slate-900 px-6 py-5 text-white ${statusAccent[selectedTicket.status]}`}>
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
-                                        Ticket #{selectedTicket.id}
-                                    </p>
-                                    <h2 className="mt-1 text-lg font-bold">
-                                        {selectedTicket.title}
-                                    </h2>
-                                </div>
-                                <button
-                                    onClick={() => {
-                                        setSelectedTicket(null);
-                                        setUpdatingStatus(null);
-                                    }}
-                                    className="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/20"
-                                >
-                                    Close
-                                </button>
-                            </div>
-                        </div>
+            <div className="space-y-4 p-6">
+                {formError && (
+                    <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                        {formError}
+                    </div>
+                )}
 
-                        {/* Modal Body */}
-                        <div className="space-y-4 p-6">
+                <div>
+                    <label className="mb-1.5 block text-xs font-semibold text-slate-500">Title *</label>
+                    <input
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="e.g. Missing units in order"
+                        className="w-full rounded-lg border border-slate-200 p-3 text-sm focus:border-slate-400 focus:outline-none"
+                    />
+                </div>
 
-                            {/* Details */}
-                            <div className="divide-y divide-slate-100 rounded-xl border border-slate-100">
-                                {[
-                                    {
-                                        label: "Status",
-                                        value: (
-                                            <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ring-1 ${statusStyles[selectedTicket.status]}`}>
-                                                {selectedTicket.status}
-                                            </span>
-                                        )
-                                    },
-                                    {
-                                        label: "Priority",
-                                        value: (
-                                            <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ring-1 ${priorityStyles[selectedTicket.priority]}`}>
-                                                {selectedTicket.priority}
-                                            </span>
-                                        )
-                                    },
-                                    { label: "Department", value: selectedTicket.department_name || "—" },
-                                    { label: "Created", value: formatDate(selectedTicket.created_at) },
-                                    { label: "Last Updated", value: formatDate(selectedTicket.updated_at) },
-                                    { label: "Resolved", value: formatDate(selectedTicket.resolved_at) },
-                                ].map((item) => (
-                                    <div key={item.label} className="flex items-center justify-between px-4 py-3">
-                                        <span className="text-sm text-slate-500">{item.label}</span>
-                                        <span className="text-sm font-medium text-slate-800">{item.value}</span>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Description */}
-                            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Description</p>
-                                <p className="mt-1 text-sm text-slate-700">
-                                    {selectedTicket.description || "No description provided."}
-                                </p>
-                            </div>
-
-                            {/* Update Status */}
-                            {selectedTicket.status !== "closed" && selectedTicket.status !== "escalated" && (
-                                <div>
-                                    {updatingStatus === selectedTicket.id ? (
-                                        <div className="space-y-3">
-                                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                                                Update Status
-                                            </p>
-                                            <div className="flex flex-wrap gap-2">
-                                                {AGENT_STATUSES.filter((s) => s !== selectedTicket.status).map((s) => (
-                                                    <button
-                                                        key={s}
-                                                        onClick={() => handleUpdateStatus(selectedTicket.id, s)}
-                                                        disabled={actionLoading}
-                                                        className={`rounded-full px-4 py-1.5 text-xs font-semibold capitalize ring-1 transition-all disabled:opacity-50 ${statusStyles[s]}`}
-                                                    >
-                                                        {actionLoading ? "..." : `Mark as ${s}`}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                            <button
-                                                onClick={() => setUpdatingStatus(null)}
-                                                className="text-xs text-slate-400 hover:text-slate-600"
-                                            >
-                                                Cancel
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            onClick={() => setUpdatingStatus(selectedTicket.id)}
-                                            className="w-full rounded-xl bg-slate-900 py-2.5 text-sm font-semibold text-white hover:bg-slate-700"
-                                        >
-                                            Update Status
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-
-                        </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="mb-1.5 block text-xs font-semibold text-slate-500">Customer Name</label>
+                        <input
+                            type="text"
+                            value={customerName}
+                            onChange={(e) => setCustomerName(e.target.value)}
+                            placeholder="e.g. John Doe"
+                            className="w-full rounded-lg border border-slate-200 p-3 text-sm focus:border-slate-400 focus:outline-none"
+                        />
+                    </div>
+                    <div>
+                        <label className="mb-1.5 block text-xs font-semibold text-slate-500">Reference #</label>
+                        <input
+                            type="text"
+                            value={referenceNumber}
+                            onChange={(e) => setReferenceNumber(e.target.value)}
+                            placeholder="e.g. ORD-4521"
+                            className="w-full rounded-lg border border-slate-200 p-3 text-sm focus:border-slate-400 focus:outline-none"
+                        />
                     </div>
                 </div>
-            )}
+
+                <div>
+                    <label className="mb-1.5 block text-xs font-semibold text-slate-500">Description</label>
+                    <textarea
+                        rows="3"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Describe the issue..."
+                        className="w-full rounded-lg border border-slate-200 p-3 text-sm focus:border-slate-400 focus:outline-none"
+                    />
+                </div>
+
+                <div>
+                    <label className="mb-1.5 block text-xs font-semibold text-slate-500">Priority</label>
+                    <select
+                        value={priority}
+                        onChange={(e) => setPriority(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 p-3 text-sm focus:border-slate-400 focus:outline-none"
+                    >
+                        {["low", "medium", "high", "urgent"].map((p) => (
+                            <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                    <button
+                        onClick={handleCreateTicket}
+                        disabled={formLoading || !title.trim()}
+                        className="flex-1 rounded-xl bg-slate-900 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-50"
+                    >
+                        {formLoading ? "Creating..." : "Create Ticket"}
+                    </button>
+                    <button
+                        onClick={() => { setShowForm(false); setFormError(""); }}
+                        className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+)}
+
+{/* View Ticket Modal */}
+{selectedTicket && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+
+            {/* Modal Header */}
+            <div className={`border-l-4 bg-slate-900 px-6 py-5 text-white ${statusAccent[selectedTicket.status]}`}>
+                <div className="flex items-start justify-between">
+                    <div>
+<p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+    {selectedTicket.ticket_number || `Ticket #${selectedTicket.id}`}
+</p>
+                        <h2 className="mt-1 text-lg font-bold">{selectedTicket.title}</h2>
+                        {selectedTicket.customer_name && (
+                            <p className="mt-0.5 text-sm text-slate-400">
+                                Customer: {selectedTicket.customer_name}
+                                {selectedTicket.reference_number && ` · Ref: ${selectedTicket.reference_number}`}
+                            </p>
+                        )}
+                    </div>
+                    <button
+                        onClick={() => { setSelectedTicket(null); setUpdatingStatus(null); }}
+                        className="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/20"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="max-h-[70vh] overflow-y-auto p-6">
+                <div className="grid gap-6 lg:grid-cols-2">
+
+                    {/* Left: Details + Status */}
+                    <div className="space-y-4">
+                        <div className="divide-y divide-slate-100 rounded-xl border border-slate-100">
+                            {[
+                                { label: "Status", value: <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ring-1 ${statusStyles[selectedTicket.status]}`}>{selectedTicket.status}</span> },
+                                { label: "Priority", value: <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ring-1 ${priorityStyles[selectedTicket.priority]}`}>{selectedTicket.priority}</span> },
+                                { label: "Department", value: selectedTicket.department_name || "—" },
+                                { label: "Created", value: formatDate(selectedTicket.created_at) },
+                                { label: "Last Updated", value: formatDate(selectedTicket.updated_at) },
+                                { label: "Resolved", value: formatDate(selectedTicket.resolved_at) },
+                            ].map((item) => (
+                                <div key={item.label} className="flex items-center justify-between px-4 py-3">
+                                    <span className="text-sm text-slate-500">{item.label}</span>
+                                    <span className="text-sm font-medium text-slate-800">{item.value}</span>
+                                </div>
+                            ))}
+                        </div>
+
+                        {selectedTicket.description && (
+                            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Description</p>
+                                <p className="mt-1 text-sm text-slate-700">{selectedTicket.description}</p>
+                            </div>
+                        )}
+
+                        {selectedTicket.status !== "closed" && selectedTicket.status !== "escalated" && (
+                            <div>
+                                {updatingStatus === selectedTicket.id ? (
+                                    <div className="space-y-3">
+                                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Update Status</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {AGENT_STATUSES.filter((s) => s !== selectedTicket.status).map((s) => (
+                                                <button key={s}
+                                                    onClick={() => handleUpdateStatus(selectedTicket.id, s)}
+                                                    disabled={actionLoading}
+                                                    className={`rounded-full px-3 py-1.5 text-xs font-semibold capitalize ring-1 transition-all disabled:opacity-50 ${statusStyles[s]}`}>
+                                                    {actionLoading ? "..." : `Mark as ${s}`}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <button onClick={() => setUpdatingStatus(null)} className="text-xs text-slate-400 hover:text-slate-600">Cancel</button>
+                                    </div>
+                                ) : (
+                                    <button onClick={() => setUpdatingStatus(selectedTicket.id)}
+                                        className="w-full rounded-xl bg-slate-900 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">
+                                        Update Status
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Right: Comments */}
+                    <div className="space-y-3">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                            Activity / Comments ({comments.length})
+                        </p>
+
+                        <div className="max-h-48 space-y-2 overflow-y-auto">
+                            {comments.length === 0 ? (
+                                <p className="text-xs text-slate-400">No comments yet.</p>
+                            ) : (
+                                comments.map((c) => (
+                                    <div key={c.id} className="rounded-lg border border-slate-100 p-3">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-semibold text-slate-700">{c.author_name}</span>
+                                                <span className={`rounded-full px-2 py-0.5 text-xs capitalize ${
+                                                    c.author_role === "manager" ? "bg-violet-100 text-violet-700"
+                                                    : "bg-blue-100 text-blue-700"
+                                                }`}>
+                                                    {c.author_role}
+                                                </span>
+                                            </div>
+                                            <span className="text-xs text-slate-400">
+                                                {new Date(c.created_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: true })}
+                                            </span>
+                                        </div>
+                                        <p className="mt-1.5 text-sm text-slate-600">{c.comment}</p>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        <div className="space-y-2">
+                            <textarea
+                                rows="3"
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                                placeholder="Add a comment or update..."
+                                className="w-full rounded-lg border border-slate-200 p-3 text-sm focus:border-slate-400 focus:outline-none"
+                            />
+                            <button
+                                onClick={handleAddComment}
+                                disabled={commentLoading || !newComment.trim()}
+                                className="w-full rounded-lg bg-slate-900 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-50"
+                            >
+                                {commentLoading ? "Posting..." : "Add Comment"}
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+)}
 
         </DashboardLayout>
     );

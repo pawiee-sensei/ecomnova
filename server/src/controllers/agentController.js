@@ -188,6 +188,31 @@ const addTicketComment = async (req, res) => {
     }
 };
 
+const createTicket = async (req, res) => {
+    try {
+        const agentId = req.user.id;
+        const { title, description, priority, customerName, referenceNumber } = req.body;
+
+        if (!title?.trim()) {
+            return res.status(400).json({ message: "Title is required" });
+        }
+
+        const result = await agentService.createAgentTicket(
+            agentId,
+            title,
+            description,
+            priority || "medium",
+            customerName || null,
+            referenceNumber || null
+        );
+
+        res.status(201).json({ message: "Ticket created successfully", ticketNumber: result.ticketNumber });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to create ticket" });
+    }
+};
+
 module.exports = {
     getDashboard,
     getAttendance,
@@ -201,4 +226,5 @@ module.exports = {
     clockOut,
     getTicketComments,
     addTicketComment,
+    createTicket,
 };

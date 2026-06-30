@@ -618,6 +618,7 @@ const getManagerTickets = (managerId, callback) => {
     const sql = `
         SELECT
             tickets.id,
+            tickets.ticket_number,
             tickets.title,
             tickets.description,
             tickets.status,
@@ -662,7 +663,16 @@ const createManagerTicket = (
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, 'open')
     `;
-    db.query(sql, [title, description, priority, agentId, departmentId, customerName, referenceNumber], callback);
+    db.query(sql, [title, description, priority, agentId, departmentId, customerName, referenceNumber], (err, result) => {
+        if (err) return callback(err);
+
+        const ticketNumber = `TKT-${String(result.insertId).padStart(5, "0")}`;
+        const updateSql = `UPDATE tickets SET ticket_number = ? WHERE id = ?`;
+        db.query(updateSql, [ticketNumber, result.insertId], (err2) => {
+            if (err2) return callback(err2);
+            callback(null, { ...result, ticketNumber });
+        });
+    });
 };
 
 const updateManagerTicketStatus = (ticketId, managerId, status, callback) => {

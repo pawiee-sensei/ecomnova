@@ -14,6 +14,7 @@ const {
     clockOut,
     getTicketComments,
     addTicketComment,
+    createTicket,
 } = require("../controllers/agentController");
 
 router.get(
@@ -44,6 +45,12 @@ router.get(
     "/tickets",
     verifyToken,
     getTickets
+);
+
+router.post(
+    "/tickets",
+    verifyToken,
+    createTicket
 );
 
 router.put(

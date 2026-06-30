@@ -9,6 +9,7 @@ const getAgentProfile = (agentId, callback) => {
             users.email,
             users.role,
             users.status,
+            users.department_id,
             users.job_title,
             users.employment_type,
             users.hire_date,
@@ -149,10 +150,13 @@ const getAgentTickets = (agentId, callback) => {
     const sql = `
         SELECT
             tickets.id,
+            tickets.ticket_number,
             tickets.title,
             tickets.description,
             tickets.status,
             tickets.priority,
+            tickets.customer_name,
+            tickets.reference_number,
             tickets.created_at,
             tickets.updated_at,
             tickets.resolved_at,
@@ -290,6 +294,41 @@ const addTicketComment = (ticketId, agentId, userId, comment, callback) => {
     });
 };
 
+const createAgentTicket = (
+    title,
+    description,
+    priority,
+    agentId,
+    departmentId,
+    customerName,
+    referenceNumber,
+    callback
+) => {
+    const sql = `
+        INSERT INTO tickets (
+            title,
+            description,
+            priority,
+            agent_id,
+            department_id,
+            customer_name,
+            reference_number,
+            status
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'open')
+    `;
+    db.query(sql, [title, description, priority, agentId, departmentId, customerName, referenceNumber], (err, result) => {
+        if (err) return callback(err);
+
+        const ticketNumber = `TKT-${String(result.insertId).padStart(5, "0")}`;
+        const updateSql = `UPDATE tickets SET ticket_number = ? WHERE id = ?`;
+        db.query(updateSql, [ticketNumber, result.insertId], (err2) => {
+            if (err2) return callback(err2);
+            callback(null, { ...result, ticketNumber });
+        });
+    });
+};
+
 module.exports = {
     getAgentProfile,
     getAgentAttendanceSummary,
@@ -309,4 +348,5 @@ module.exports = {
     getShiftSchedule,
     getTicketComments,
     addTicketComment,
+    createAgentTicket,
 };

@@ -258,12 +258,13 @@ const ManagerTickets = () => {
                             <tbody className="divide-y divide-slate-100">
                                 {filtered.map((ticket) => (
                                     <tr key={ticket.id} className="hover:bg-slate-50">
-                                        <td className="px-5 py-4">
-                                            <p className="font-semibold text-slate-800">{ticket.title}</p>
-                                            {ticket.reference_number && (
-                                                <p className="mt-0.5 text-xs text-slate-400">Ref: {ticket.reference_number}</p>
-                                            )}
-                                        </td>
+<td className="px-5 py-4">
+    <p className="font-semibold text-slate-800">{ticket.title}</p>
+    <p className="mt-0.5 text-xs text-slate-400">
+        {ticket.ticket_number || `#${ticket.id}`}
+        {ticket.reference_number && ` · Ref: ${ticket.reference_number}`}
+    </p>
+</td>
                                         <td className="px-5 py-4 text-sm text-slate-600">
                                             {ticket.customer_name || <span className="text-slate-300">—</span>}
                                         </td>
@@ -388,7 +389,9 @@ const ManagerTickets = () => {
                         <div className="bg-slate-900 px-6 py-5 text-white">
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Ticket #{selectedTicket.id}</p>
+                                    <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+                                        {selectedTicket.ticket_number || `Ticket #${selectedTicket.id}`}
+                                    </p>
                                     <h2 className="mt-1 text-lg font-bold">{selectedTicket.title}</h2>
                                     {selectedTicket.customer_name && (
                                         <p className="mt-0.5 text-sm text-slate-400">
