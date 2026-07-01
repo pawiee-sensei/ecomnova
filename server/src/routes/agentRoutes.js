@@ -15,6 +15,7 @@ const {
     getTicketComments,
     addTicketComment,
     createTicket,
+    getAnnouncements,
 } = require("../controllers/agentController");
 
 router.get(
@@ -51,6 +52,12 @@ router.post(
     "/tickets",
     verifyToken,
     createTicket
+);
+
+router.get(
+    "/announcements",
+    verifyToken,
+    getAnnouncements
 );
 
 router.put(

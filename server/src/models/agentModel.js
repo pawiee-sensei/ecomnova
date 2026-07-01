@@ -64,7 +64,6 @@ const getAgentAnnouncements = (agentId, callback) => {
         WHERE users.id = ?
         AND announcements.status != 'archived'
         ORDER BY announcements.created_at DESC
-        LIMIT 5
     `;
     db.query(sql, [agentId], callback);
 };

@@ -213,6 +213,17 @@ const createTicket = async (req, res) => {
     }
 };
 
+const getAnnouncements = async (req, res) => {
+    try {
+        const agentId = req.user.id;
+        const announcements = await agentService.getAgentAnnouncements(agentId);
+        res.json(announcements);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to load announcements" });
+    }
+};
+
 module.exports = {
     getDashboard,
     getAttendance,
@@ -227,4 +238,5 @@ module.exports = {
     getTicketComments,
     addTicketComment,
     createTicket,
+    getAnnouncements,
 };

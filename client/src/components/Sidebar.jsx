@@ -147,6 +147,11 @@ const Sidebar = () => {
                 name: "Performance",
                 path: "/agent/performance",
                 icon: "P"
+            },
+            {
+                name: "Announcements",
+                path: "/agent/announcements",
+                icon: "📢"
             }
         ],
     };
