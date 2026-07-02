@@ -712,6 +712,42 @@ const addTicketComment = (ticketId, userId, comment, callback) => {
     db.query(sql, [ticketId, userId, comment], callback);
 };
 
+const getOperationMonitor = (managerId, callback) => {
+    const today = new Date().toISOString().split("T")[0];
+    const sql = `
+        SELECT
+            users.id,
+            users.fullname,
+            users.employee_id AS employee_code,
+            users.job_title,
+            users.shift,
+            users.status AS employee_status,
+            attendance_records.time_in,
+            attendance_records.time_out,
+            attendance_records.status AS attendance_status,
+            (
+                SELECT COUNT(*)
+                FROM tickets
+                WHERE tickets.agent_id = users.id
+                AND tickets.status IN ('open', 'pending', 'escalated')
+            ) AS active_tickets,
+            (
+                SELECT COUNT(*)
+                FROM leave_requests
+                WHERE leave_requests.employee_id = users.id
+                AND leave_requests.status = 'approved'
+                AND ? BETWEEN leave_requests.start_date AND leave_requests.end_date
+            ) AS on_leave_today
+        FROM users
+        LEFT JOIN attendance_records
+            ON attendance_records.employee_id = users.id
+            AND attendance_records.attendance_date = ?
+        WHERE users.manager_id = ?
+        ORDER BY users.fullname ASC
+    `;
+    db.query(sql, [today, today, managerId], callback);
+};
+
 
 module.exports = {
     getManagerTeam,
@@ -739,4 +775,5 @@ module.exports = {
     updateManagerTicketStatus,
     getTicketComments,
     addTicketComment,
+    getOperationMonitor,
 };

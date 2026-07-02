@@ -944,6 +944,17 @@ const addTicketComment = async (req, res) => {
     }
 };
 
+const getOperationMonitor = async (req, res) => {
+    try {
+        const managerId = req.user.id;
+        const data = await managerService.getOperationMonitor(managerId);
+        res.json(data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to load operation monitor" });
+    }
+};
+
 module.exports = {
     getMyTeam,
     getTeamMember,
@@ -972,4 +983,5 @@ module.exports = {
     updateManagerTicketStatus,
     getTicketComments,
     addTicketComment,
+    getOperationMonitor,
 };

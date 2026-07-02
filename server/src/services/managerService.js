@@ -636,6 +636,34 @@ const updateManagerTicketStatus = async (managerId, ticketId, status) => {
     });
 };
 
+const getOperationMonitor = async (managerId) => {
+    return new Promise((resolve, reject) => {
+        managerModel.getOperationMonitor(managerId, (err, results) => {
+            if (err) return reject(err);
+
+            const summary = {
+                total: results.length,
+                present: results.filter((r) => r.attendance_status === "present").length,
+                late: results.filter((r) => r.attendance_status === "late").length,
+                absent: results.filter((r) => !r.attendance_status && !r.on_leave_today).length,
+                onLeave: results.filter((r) => r.on_leave_today > 0).length,
+                notClockedIn: results.filter((r) => !r.time_in && !r.on_leave_today).length,
+            };
+
+            const agents = results.map((r) => {
+                let liveStatus = "Not Clocked In";
+                if (r.on_leave_today > 0) liveStatus = "On Leave";
+                else if (r.time_out) liveStatus = "Clocked Out";
+                else if (r.time_in) liveStatus = r.attendance_status === "late" ? "Working (Late)" : "Working";
+
+                return { ...r, liveStatus };
+            });
+
+            resolve({ summary, agents });
+        });
+    });
+};
+
 module.exports = {
     getManagerTeam,
     getTeamMemberById,
@@ -661,4 +689,5 @@ module.exports = {
     updateManagerTicketStatus,
     getTicketComments,
     addTicketComment,
+    getOperationMonitor
 };

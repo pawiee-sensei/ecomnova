@@ -42,6 +42,7 @@ import KPIManagement from "./pages/Manager/KPIManagement";
 import ShiftManagement from "./pages/Manager/ShiftManagement";
 import Reports from "./pages/Manager/Reports";
 import ManagerTickets from "./pages/Manager/ManagerTickets";
+import OperationMonitor from "./pages/Manager/OperationMonitor";
 
 
 // Agent pages
@@ -116,6 +117,17 @@ function App() {
                                 roles={["agent"]}
                             >
                                 <MyAttendance />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                                        <Route
+                        path="/manager/operations"
+                        element={
+                            <ProtectedRoute
+                                roles={["manager"]}
+                            >
+                                <OperationMonitor />
                             </ProtectedRoute>
                         }
                     />

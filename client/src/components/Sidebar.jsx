@@ -119,6 +119,11 @@ const Sidebar = () => {
                 name: "Tickets",
                 path: "/manager/tickets",
                 icon: "T"
+            },
+            {
+                name: "Operations",
+                path: "/manager/operations",
+                icon: "🖥️"
             }
         ],
 

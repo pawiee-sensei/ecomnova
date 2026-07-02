@@ -32,6 +32,7 @@ const {
     updateManagerTicketStatus,
     getTicketComments,
     addTicketComment,
+    getOperationMonitor
 } = require("../controllers/managerController");
 
 router.get(
@@ -176,6 +177,12 @@ router.post(
     "/tickets/:id/comments",
     verifyToken,
     addTicketComment
+);
+
+router.get(
+    "/operation-monitor",
+    verifyToken,
+    getOperationMonitor
 );
 
 router.get(
