@@ -1,6 +1,5 @@
-const managerService = require(
-    "../services/managerService"
-);
+const managerService = require("../services/managerService");
+const notificationService = require("../services/notificationService");
 
 const getMyTeam =
     async (req, res) => {
@@ -895,6 +894,19 @@ const createManagerTicket = async (req, res) => {
             customerName || null,
             referenceNumber || null
         );
+
+        // Notify agent
+        try {
+            await notificationService.createNotification(
+                agentId,
+                "New Ticket Assigned",
+                `You have been assigned a new ticket: ${title}`,
+                "ticket",
+                "/agent/tickets"
+            );
+        } catch (e) {
+            console.error("Notification error:", e);
+        }
 
         res.status(201).json({ message: "Ticket created successfully" });
     } catch (error) {

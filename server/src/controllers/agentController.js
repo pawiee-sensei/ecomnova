@@ -1,4 +1,5 @@
 const agentService = require("../services/agentService");
+const notificationService = require("../services/notificationService");
 
 const getDashboard = async (req, res) => {
     try {
@@ -110,6 +111,23 @@ const updateTicketStatus = async (req, res) => {
         }
 
         await agentService.updateAgentTicketStatus(id, agentId, status);
+
+        // Notify manager
+        try {
+            const profile = await agentService.getAgentProfile(agentId);
+            if (profile?.manager_id) {
+                await notificationService.createNotification(
+                    profile.manager_id,
+                    "Ticket Status Updated",
+                    `${profile.fullname} marked ticket #${id} as ${status}`,
+                    "ticket",
+                    "/manager/tickets"
+                );
+            }
+        } catch (e) {
+            console.error("Notification error:", e);
+        }
+
         res.json({ message: "Ticket status updated" });
     } catch (error) {
         console.error(error);
@@ -205,6 +223,22 @@ const createTicket = async (req, res) => {
             customerName || null,
             referenceNumber || null
         );
+
+        // Notify manager
+        try {
+            const profile = await agentService.getAgentProfile(agentId);
+            if (profile?.manager_id) {
+                await notificationService.createNotification(
+                    profile.manager_id,
+                    "New Ticket Created",
+                    `${profile.fullname} created ticket ${result.ticketNumber}: ${title}`,
+                    "ticket",
+                    "/manager/tickets"
+                );
+            }
+        } catch (e) {
+            console.error("Notification error:", e);
+        }
 
         res.status(201).json({ message: "Ticket created successfully", ticketNumber: result.ticketNumber });
     } catch (error) {

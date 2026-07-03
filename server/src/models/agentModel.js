@@ -10,6 +10,7 @@ const getAgentProfile = (agentId, callback) => {
             users.role,
             users.status,
             users.department_id,
+            users.manager_id,
             users.job_title,
             users.employment_type,
             users.hire_date,

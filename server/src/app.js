@@ -22,6 +22,7 @@ const performanceRoutes = require("./routes/performanceRoutes");
 const leaveRoutes = require("./routes/leaveRoutes");
 
 const agentRoutes = require("./routes/agentRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 
 
@@ -51,6 +52,7 @@ app.use("/api/performance", performanceRoutes);
 app.use("/api/manager/leave", leaveRoutes);
 
 app.use("/api/agent", agentRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 
 module.exports = app;
