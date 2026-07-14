@@ -96,7 +96,7 @@ const getTeamLeaders = (callback) => {
             id,
             fullname
         FROM users
-        WHERE role = 'leader'
+        WHERE role IN ('leader', 'manager')
         AND status = 'active'
         ORDER BY fullname ASC
     `;

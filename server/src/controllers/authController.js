@@ -203,12 +203,16 @@ const login = (req, res) => {
             }
         );
 
-        await loginAttemptService.createLoginAttempt({
-            user_id: user.id,
-            email,
-            status: "SUCCESS",
-            reason: "Login successful"
-        });
+        try {
+            await loginAttemptService.createLoginAttempt({
+                user_id: user.id,
+                email,
+                status: "SUCCESS",
+                reason: "Login successful"
+            });
+        } catch (logError) {
+            console.warn("Login attempt logging failed:", logError.message);
+        }
 
         res.json({
             token,

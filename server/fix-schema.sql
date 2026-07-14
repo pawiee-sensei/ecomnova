@@ -1,0 +1,7 @@
+USE ecomnova;
+ALTER TABLE users ENGINE=InnoDB;
+ALTER TABLE login_attempts ENGINE=InnoDB;
+SET FOREIGN_KEY_CHECKS=0;
+ALTER TABLE login_attempts DROP FOREIGN KEY IF EXISTS login_attempts_ibfk_1;
+SET FOREIGN_KEY_CHECKS=1;
+ALTER TABLE login_attempts ADD CONSTRAINT login_attempts_ibfk_1 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL;

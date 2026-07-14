@@ -28,15 +28,18 @@ const getAllEmployees = (
             users.role,
             users.status,
             users.created_at,
+            users.department_id,
+            users.team_id,
+            users.manager_id,
             departments.name AS department_name,
             teams.name AS team_name,
             manager.fullname AS manager_name,
             leader.fullname AS leader_name
         FROM users
-        LEFT JOIN departments
-            ON users.department_id = departments.id
         LEFT JOIN teams
             ON users.team_id = teams.id
+        LEFT JOIN departments
+            ON users.department_id = departments.id
         LEFT JOIN users AS manager
             ON users.manager_id = manager.id
         LEFT JOIN users AS leader
@@ -166,22 +169,10 @@ const getEmployeeById = (
             users.hire_date,
             users.work_location,
             users.shift,
-
-            departments.name AS department_name,
-            teams.name AS team_name,
-            manager.fullname AS manager_name
-
+            NULL AS department_name,
+            NULL AS team_name,
+            NULL AS manager_name
         FROM users
-
-        LEFT JOIN departments
-            ON users.department_id = departments.id
-
-        LEFT JOIN teams
-            ON users.team_id = teams.id
-
-        LEFT JOIN users AS manager
-            ON users.manager_id = manager.id
-
         WHERE users.id = ?
     `;
 

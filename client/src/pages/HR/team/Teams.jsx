@@ -192,9 +192,9 @@ const Teams = () => {
                 api.get("/hr/teams/leaders")
             ]);
 
-            setTeams(teamsResponse.data);
-            setDepartments(departmentsResponse.data);
-            setLeaders(leadersResponse.data);
+            setTeams(teamsResponse.data || []);
+            setDepartments(departmentsResponse.data || []);
+            setLeaders(leadersResponse.data || []);
         } catch (error) {
             console.error("Team fetch failed:", error);
         }
